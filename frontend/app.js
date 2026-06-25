@@ -1,35 +1,37 @@
 /* ===== Running Coach App ===== */
 
-const GITHUB_REPO = "omrisi37/mygarmin";
-// Plan JSON committed to repo by GitHub Actions — served as static file by Vercel
-const PLAN_URL = "/data/plan.json";
+// These can be overridden by dev.html before this script loads
+if (typeof GITHUB_REPO === "undefined") var GITHUB_REPO = "omrisi37/mygarmin";
+if (typeof PLAN_URL    === "undefined") var PLAN_URL    = "/data/plan.json";
 
 // ─── Auth (GitHub OAuth via /api/auth/callback Vercel function) ───────────────
 
 function getStoredAuth() {
   try {
     const token = localStorage.getItem("gh_access_token");
-    const user = localStorage.getItem("gh_user");
+    const user  = localStorage.getItem("gh_user");
     return token ? { token, user } : null;
   } catch { return null; }
 }
 
-function checkAuth() {
-  // Handle redirect back from OAuth callback: /?token=...&user=...
-  const params = new URLSearchParams(window.location.search);
-  if (params.has("token")) {
-    localStorage.setItem("gh_access_token", params.get("token"));
-    localStorage.setItem("gh_user", params.get("user") || "");
-    // Clean URL
-    window.history.replaceState({}, "", "/");
-  }
-  return getStoredAuth();
+if (typeof checkAuth === "undefined") {
+  var checkAuth = function() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("token")) {
+      localStorage.setItem("gh_access_token", params.get("token"));
+      localStorage.setItem("gh_user", params.get("user") || "");
+      window.history.replaceState({}, "", "/");
+    }
+    return getStoredAuth();
+  };
 }
 
-function logout() {
-  localStorage.removeItem("gh_access_token");
-  localStorage.removeItem("gh_user");
-  window.location.href = "/login.html";
+if (typeof logout === "undefined") {
+  var logout = function() {
+    localStorage.removeItem("gh_access_token");
+    localStorage.removeItem("gh_user");
+    window.location.href = "/login.html";
+  };
 }
 
 // ─── Navigation ──────────────────────────────────────────────────────────────
@@ -61,8 +63,8 @@ async function fetchPlan() {
 // ─── Approve → Trigger GitHub Actions ────────────────────────────────────────
 
 // Uses the GitHub OAuth token obtained at login (stored in localStorage)
-function getGithubToken() {
-  return localStorage.getItem("gh_access_token");
+if (typeof getGithubToken === "undefined") {
+  var getGithubToken = function() { return localStorage.getItem("gh_access_token"); };
 }
 
 async function triggerWorkflow(workflowFile, label) {
@@ -92,20 +94,24 @@ async function triggerWorkflow(workflowFile, label) {
   }
 }
 
-async function approveAndSync() {
-  const btn = document.getElementById("approve-btn");
-  btn.disabled = true;
-  btn.textContent = "Triggering sync…";
-  const ok = await triggerWorkflow("sync-to-calendar.yml", "Calendar sync");
-  if (ok) showToast("✅ Syncing to Google Calendar! Check back in ~60s.");
-  btn.disabled = false;
-  btn.textContent = "Approve & Sync to Calendar";
+if (typeof approveAndSync === "undefined") {
+  var approveAndSync = async function() {
+    const btn = document.getElementById("approve-btn");
+    btn.disabled = true;
+    btn.textContent = "Triggering sync…";
+    const ok = await triggerWorkflow("sync-to-calendar.yml", "Calendar sync");
+    if (ok) showToast("✅ Syncing to Google Calendar! Check back in ~60s.");
+    btn.disabled = false;
+    btn.textContent = "Approve & Sync to Calendar";
+  };
 }
 
-async function triggerManualGenerate() {
-  showToast("⏳ Triggering plan generation…");
-  const ok = await triggerWorkflow("weekly-plan.yml", "Plan generation");
-  if (ok) showToast("✅ Generating plan — refresh in ~90s.");
+if (typeof triggerManualGenerate === "undefined") {
+  var triggerManualGenerate = async function() {
+    showToast("⏳ Triggering plan generation…");
+    const ok = await triggerWorkflow("weekly-plan.yml", "Plan generation");
+    if (ok) showToast("✅ Generating plan — refresh in ~90s.");
+  };
 }
 
 // ─── UI Helpers ──────────────────────────────────────────────────────────────
