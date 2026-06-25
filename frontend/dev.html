@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Coach" />
+  <meta name="theme-color" content="#0f0f13" />
+  <title>Running Coach [DEV]</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div id="app">
+  <header class="topbar">
+    <h1>🏃 Coach <span style="font-size:11px;color:var(--accent-orange);font-weight:500">[DEV]</span></h1>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span id="user-display" style="font-size:13px;color:var(--text-dim)"></span>
+      <div class="status-dot"></div>
+    </div>
+  </header>
+
+  <div class="screens">
+    <section id="screen-dashboard" class="screen"><div id="dashboard-content"><div class="spinner"></div></div></section>
+    <section id="screen-week"      class="screen"><div id="week-content"><div class="spinner"></div></div></section>
+    <section id="screen-approve"   class="screen"><div id="approve-content"><div class="spinner"></div></div></section>
+    <section id="screen-settings"  class="screen">
+      <div class="card">
+        <div class="card-title">Dev Mode</div>
+        <p style="font-size:14px;line-height:1.6;color:var(--text-dim)">
+          Auth is bypassed. Plan loaded from <code>../data/plan.json</code>.<br>
+          This file is for local/Codespace testing only — not deployed.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-title">Training Config</div>
+        <div style="font-size:14px;color:var(--text-dim);line-height:2">
+          <div>Goal: <strong style="color:var(--text)">Marathon</strong></div>
+          <div>Weekly budget: <strong style="color:var(--text)">~7 hours</strong></div>
+          <div>Methodology: <strong style="color:var(--text)">Polarized (80/20)</strong></div>
+        </div>
+      </div>
+      <button class="btn btn-ghost" onclick="refreshData()" style="margin-top:4px">🔄 Reload plan.json</button>
+    </section>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-nav="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Today
+    </button>
+    <button class="nav-btn" data-nav="week">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+      Week
+    </button>
+    <button class="nav-btn" data-nav="approve">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Approve
+    </button>
+    <button class="nav-btn" data-nav="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Settings
+    </button>
+  </nav>
+</div>
+
+<div class="modal-overlay" id="day-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="day-modal-content"></div>
+</div>
+
+<div id="toast" style="position:fixed;bottom:calc(var(--nav-h) + 20px);left:50%;transform:translateX(-50%);background:#333;color:white;padding:10px 20px;border-radius:99px;font-size:14px;font-weight:500;opacity:0;transition:opacity 0.2s;pointer-events:none;white-space:nowrap;z-index:200;"></div>
+<style>#toast.show{opacity:1;}</style>
+
+<script>
+// ── Dev mode overrides ──────────────────────────────────────────────
+const GITHUB_REPO = "omrisi37/mygarmin";
+// Load plan from repo's data folder relative to this file
+const PLAN_URL = "../data/plan.json";
+
+function checkAuth() { return { token: "dev", user: "omrisi37" }; }
+function logout() { alert("No auth in dev mode."); }
+function approveAndSync() { showToast("🚫 Approve disabled in dev mode — deploy to Vercel to test."); }
+function triggerManualGenerate() { showToast("🚫 Workflow trigger disabled in dev mode."); }
+function getGithubToken() { return null; }
+</script>
+<script src="app.js"></script>
+</body>
+</html>
