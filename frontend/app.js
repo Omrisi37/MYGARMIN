@@ -1,23 +1,35 @@
 /* ===== Running Coach App ===== */
 
-const GITHUB_REPO = "omrisi37/mygarmin";  // UPDATE: your repo
-const PLAN_URL = "./data/plan.json";       // Served from repo root via Azure
+const GITHUB_REPO = "omrisi37/mygarmin";
+// Plan JSON committed to repo by GitHub Actions — served as static file by Vercel
+const PLAN_URL = "/data/plan.json";
 
-// ─── Auth ────────────────────────────────────────────────────────────────────
+// ─── Auth (GitHub OAuth via /api/auth/callback Vercel function) ───────────────
 
-async function checkAuth() {
+function getStoredAuth() {
   try {
-    const res = await fetch("/.auth/me");
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data?.clientPrincipal || null;
-  } catch {
-    return null;
+    const token = localStorage.getItem("gh_access_token");
+    const user = localStorage.getItem("gh_user");
+    return token ? { token, user } : null;
+  } catch { return null; }
+}
+
+function checkAuth() {
+  // Handle redirect back from OAuth callback: /?token=...&user=...
+  const params = new URLSearchParams(window.location.search);
+  if (params.has("token")) {
+    localStorage.setItem("gh_access_token", params.get("token"));
+    localStorage.setItem("gh_user", params.get("user") || "");
+    // Clean URL
+    window.history.replaceState({}, "", "/");
   }
+  return getStoredAuth();
 }
 
 function logout() {
-  window.location.href = "/.auth/logout?post_logout_redirect_uri=/";
+  localStorage.removeItem("gh_access_token");
+  localStorage.removeItem("gh_user");
+  window.location.href = "/login.html";
 }
 
 // ─── Navigation ──────────────────────────────────────────────────────────────
@@ -48,57 +60,17 @@ async function fetchPlan() {
 
 // ─── Approve → Trigger GitHub Actions ────────────────────────────────────────
 
-async function approveAndSync() {
-  const token = prompt(
-    "Enter your GitHub Personal Access Token to trigger calendar sync.\n" +
-    "(Needs workflow scope. You only need to do this once per device.)"
-  );
-  if (!token) return;
-
-  const btn = document.getElementById("approve-btn");
-  btn.disabled = true;
-  btn.textContent = "Triggering sync…";
-
-  try {
-    const res = await fetch(
-      `https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/sync-to-calendar.yml/dispatches`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `token ${token}`,
-          "Content-Type": "application/json",
-          Accept: "application/vnd.github+json",
-        },
-        body: JSON.stringify({ ref: "main" }),
-      }
-    );
-
-    if (res.status === 204) {
-      showToast("✅ Syncing to Google Calendar! Check back in a minute.");
-      // Cache token in sessionStorage so user doesn't re-enter this session
-      sessionStorage.setItem("gh_token", token);
-    } else {
-      const err = await res.json().catch(() => ({}));
-      showToast(`❌ Error: ${err.message || res.status}`);
-    }
-  } catch (e) {
-    showToast(`❌ Network error: ${e.message}`);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = "Approve & Sync to Calendar";
-  }
+// Uses the GitHub OAuth token obtained at login (stored in localStorage)
+function getGithubToken() {
+  return localStorage.getItem("gh_access_token");
 }
 
-async function triggerManualGenerate() {
-  const token = sessionStorage.getItem("gh_token") ||
-    prompt("Enter your GitHub Personal Access Token (workflow scope):");
-  if (!token) return;
-  sessionStorage.setItem("gh_token", token);
-
-  showToast("⏳ Triggering weekly plan generation…");
+async function triggerWorkflow(workflowFile, label) {
+  const token = getGithubToken();
+  if (!token) { showToast("❌ Not logged in"); return false; }
 
   const res = await fetch(
-    `https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/weekly-plan.yml/dispatches`,
+    `https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/${workflowFile}/dispatches`,
     {
       method: "POST",
       headers: {
@@ -111,10 +83,29 @@ async function triggerManualGenerate() {
   );
 
   if (res.status === 204) {
-    showToast("✅ Plan generation started! Refresh in ~60s.");
+    showToast(`✅ ${label} started!`);
+    return true;
   } else {
-    showToast("❌ Failed to trigger. Check your token.");
+    const err = await res.json().catch(() => ({}));
+    showToast(`❌ ${err.message || `HTTP ${res.status}`}`);
+    return false;
   }
+}
+
+async function approveAndSync() {
+  const btn = document.getElementById("approve-btn");
+  btn.disabled = true;
+  btn.textContent = "Triggering sync…";
+  const ok = await triggerWorkflow("sync-to-calendar.yml", "Calendar sync");
+  if (ok) showToast("✅ Syncing to Google Calendar! Check back in ~60s.");
+  btn.disabled = false;
+  btn.textContent = "Approve & Sync to Calendar";
+}
+
+async function triggerManualGenerate() {
+  showToast("⏳ Triggering plan generation…");
+  const ok = await triggerWorkflow("weekly-plan.yml", "Plan generation");
+  if (ok) showToast("✅ Generating plan — refresh in ~90s.");
 }
 
 // ─── UI Helpers ──────────────────────────────────────────────────────────────
@@ -381,23 +372,17 @@ function renderAll() {
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 
 async function boot() {
-  // Check Azure auth
-  const user = await checkAuth();
-  if (!user) {
-    // Not logged in — Azure will redirect, but show a fallback login screen
-    document.getElementById("screen-login").style.display = "flex";
-    document.getElementById("main-ui").style.display = "none";
+  const auth = checkAuth();  // handles OAuth redirect params + localStorage
+  if (!auth) {
+    window.location.href = "/login.html";
     return;
   }
 
-  // Update header with username
-  document.getElementById("user-display").textContent = user.userDetails || "Omri";
+  document.getElementById("user-display").textContent = auth.user || "Omri";
 
-  // Load plan
   currentPlan = await fetchPlan();
   renderAll();
 
-  // Nav setup
   document.querySelectorAll(".nav-btn").forEach(btn => {
     btn.addEventListener("click", () => navigate(btn.dataset.nav));
   });

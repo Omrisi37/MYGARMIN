@@ -97,12 +97,22 @@ def generate_plan():
     print("Calling Claude API...")
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
+    # Prompt caching: mark the large static methodology prompt as cacheable.
+    # On subsequent weekly runs the cache hit saves ~90% of input token cost.
     message = client.messages.create(
-        model="claude-sonnet-4-6",
+        model="claude-haiku-4-5-20251001",
         max_tokens=4096,
-        system=system_prompt,
+        system=[
+            {
+                "type": "text",
+                "text": system_prompt,
+                "cache_control": {"type": "ephemeral"},
+            }
+        ],
         messages=[{"role": "user", "content": user_message}],
     )
+    cache_stats = getattr(message.usage, "cache_read_input_tokens", 0)
+    print(f"Cache read tokens: {cache_stats} (${cache_stats * 0.000000025:.6f} saved)")
 
     raw = message.content[0].text.strip()
 

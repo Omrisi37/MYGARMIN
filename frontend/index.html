@@ -14,22 +14,8 @@
 </head>
 <body>
 
-<!-- ── Login fallback (hidden when Azure auth is active) ── -->
-<div id="screen-login" style="display:none; flex-direction:column; align-items:center; justify-content:center; height:100dvh; text-align:center; padding:40px 24px;">
-  <div style="font-size:72px; margin-bottom:20px">🏃</div>
-  <h1 style="font-size:28px; font-weight:800; margin-bottom:10px">Running Coach</h1>
-  <p style="font-size:15px; color:var(--text-dim); margin-bottom:40px; line-height:1.6">
-    Your private AI-powered<br>marathon training assistant
-  </p>
-  <a href="/.auth/login/github?post_login_redirect_uri=/"
-     style="display:block; width:100%; max-width:320px; padding:16px; background:#24292e; color:white; border-radius:14px; font-size:16px; font-weight:600; text-decoration:none; text-align:center;">
-    Sign in with GitHub
-  </a>
-</div>
-
 <!-- ── Main App ── -->
-<div id="main-ui">
-  <div id="app">
+<div id="app">
 
     <!-- Top Bar -->
     <header class="topbar">
@@ -132,7 +118,6 @@
     </nav>
 
   </div>
-</div>
 
 <!-- Day Detail Modal -->
 <div class="modal-overlay" id="day-modal" onclick="if(event.target===this)closeModal()">
