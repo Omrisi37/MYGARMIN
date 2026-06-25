@@ -1,0 +1,36 @@
+name: Sync Approved Plan to Calendar
+
+on:
+  workflow_dispatch:   # Triggered by the dashboard "Approve & Sync" button
+                       # via GitHub API call
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Mark plan as approved and sync
+        env:
+          GOOGLE_CALENDAR_ID: ${{ secrets.GOOGLE_CALENDAR_ID }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: python backend/approve_and_sync.py
+
+      - name: Commit sync status
+        run: |
+          git config user.name "Running Coach Bot"
+          git config user.email "bot@running-coach"
+          git add data/plan.json
+          git commit -m "Plan synced to calendar: $(date +%Y-%m-%d)" || echo "No changes"
+          git push

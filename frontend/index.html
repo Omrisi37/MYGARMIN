@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Coach" />
+  <meta name="theme-color" content="#0f0f13" />
+  <title>Running Coach</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="apple-touch-icon" href="icon.png" />
+  <link rel="manifest" href="manifest.json" />
+</head>
+<body>
+
+<!-- ── Login fallback (hidden when Azure auth is active) ── -->
+<div id="screen-login" style="display:none; flex-direction:column; align-items:center; justify-content:center; height:100dvh; text-align:center; padding:40px 24px;">
+  <div style="font-size:72px; margin-bottom:20px">🏃</div>
+  <h1 style="font-size:28px; font-weight:800; margin-bottom:10px">Running Coach</h1>
+  <p style="font-size:15px; color:var(--text-dim); margin-bottom:40px; line-height:1.6">
+    Your private AI-powered<br>marathon training assistant
+  </p>
+  <a href="/.auth/login/github?post_login_redirect_uri=/"
+     style="display:block; width:100%; max-width:320px; padding:16px; background:#24292e; color:white; border-radius:14px; font-size:16px; font-weight:600; text-decoration:none; text-align:center;">
+    Sign in with GitHub
+  </a>
+</div>
+
+<!-- ── Main App ── -->
+<div id="main-ui">
+  <div id="app">
+
+    <!-- Top Bar -->
+    <header class="topbar">
+      <h1>🏃 Coach</h1>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span id="user-display" style="font-size:13px;color:var(--text-dim)"></span>
+        <div class="status-dot"></div>
+        <button onclick="logout()" style="background:none;border:none;color:var(--text-dim);font-size:13px;cursor:pointer">Out</button>
+      </div>
+    </header>
+
+    <!-- Screens -->
+    <div class="screens">
+
+      <!-- Dashboard -->
+      <section id="screen-dashboard" class="screen">
+        <div id="dashboard-content">
+          <div class="spinner"></div>
+        </div>
+      </section>
+
+      <!-- This Week -->
+      <section id="screen-week" class="screen">
+        <div id="week-content">
+          <div class="spinner"></div>
+        </div>
+      </section>
+
+      <!-- Approve & Sync -->
+      <section id="screen-approve" class="screen">
+        <div id="approve-content">
+          <div class="spinner"></div>
+        </div>
+      </section>
+
+      <!-- Settings -->
+      <section id="screen-settings" class="screen">
+        <div class="card">
+          <div class="card-title">About</div>
+          <p style="font-size:14px;line-height:1.6;color:var(--text-dim)">
+            Your AI marathon coach. Plans generate every Monday at 7 AM UTC using
+            Garmin data + Claude AI. Review the plan here, then approve to sync to
+            Google Calendar.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Training Config</div>
+          <div style="font-size:14px;color:var(--text-dim);line-height:2">
+            <div>Goal: <strong style="color:var(--text)">Marathon</strong></div>
+            <div>Weekly budget: <strong style="color:var(--text)">~7 hours</strong></div>
+            <div>Methodology: <strong style="color:var(--text)">Polarized (80/20)</strong></div>
+            <div>Plan generation: <strong style="color:var(--text)">Every Monday 7 AM UTC</strong></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Manual Actions</div>
+          <button class="btn btn-primary" onclick="triggerManualGenerate()" style="margin-bottom:10px">
+            ⚡ Generate Plan Now
+          </button>
+          <button class="btn btn-ghost" onclick="refreshData()">
+            🔄 Refresh Data
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Links</div>
+          <a href="https://github.com/omrisi37/mygarmin/actions" target="_blank"
+             style="display:block;font-size:14px;color:var(--accent);text-decoration:none;margin-bottom:8px">
+            GitHub Actions →
+          </a>
+          <a href="https://calendar.google.com" target="_blank"
+             style="display:block;font-size:14px;color:var(--accent);text-decoration:none">
+            Google Calendar →
+          </a>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-nav="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Today
+      </button>
+      <button class="nav-btn" data-nav="week">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+        Week
+      </button>
+      <button class="nav-btn" data-nav="approve">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        Approve
+      </button>
+      <button class="nav-btn" data-nav="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Settings
+      </button>
+    </nav>
+
+  </div>
+</div>
+
+<!-- Day Detail Modal -->
+<div class="modal-overlay" id="day-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="day-modal-content"></div>
+</div>
+
+<!-- Toast -->
+<div id="toast" style="
+  position:fixed; bottom:calc(var(--nav-h) + 20px); left:50%; transform:translateX(-50%);
+  background:#333; color:white; padding:10px 20px; border-radius:99px;
+  font-size:14px; font-weight:500; opacity:0; transition:opacity 0.2s;
+  pointer-events:none; white-space:nowrap; z-index:200;
+"></div>
+
+<style>
+  #toast.show { opacity: 1; }
+</style>
+
+<script src="app.js"></script>
+</body>
+</html>
