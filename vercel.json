@@ -1,16 +1,3 @@
 {
-  "outputDirectory": "frontend",
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/(.*)", "dest": "/frontend/$1" }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Cache-Control", "value": "no-store" }
-      ]
-    }
-  ]
+  "rootDirectory": "frontend"
 }
