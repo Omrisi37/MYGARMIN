@@ -24,14 +24,10 @@
     <p style="font-size:12px;color:var(--text-dim);margin-top:24px">Private access only</p>
   </div>
   <script>
-    async function initLogin() {
-      const res = await fetch("/api/config");
-      const { clientId } = await res.json();
-      const CALLBACK = encodeURIComponent(window.location.origin + "/api/auth/callback");
-      document.getElementById("login-btn").href =
-        `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=repo+workflow&redirect_uri=${CALLBACK}`;
-    }
-    initLogin();
+    const CLIENT_ID = "Iv23ctnBNtfPOe3CTu7u";
+    const CALLBACK = encodeURIComponent(window.location.origin + "/api/auth/callback");
+    document.getElementById("login-btn").href =
+      `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&scope=repo+workflow&redirect_uri=${CALLBACK}`;
   </script>
 </body>
 </html>
