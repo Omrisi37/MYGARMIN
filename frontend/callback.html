@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Signing in...</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body style="display:flex;align-items:center;justify-content:center;height:100dvh;text-align:center;padding:24px;">
+  <div>
+    <div style="font-size:48px;margin-bottom:16px">🔐</div>
+    <h2 style="margin-bottom:8px">Signing you in...</h2>
+    <p style="color:var(--text-dim);font-size:14px" id="status">Exchanging token with GitHub...</p>
+  </div>
+  <script>
+    const CLIENT_ID = "Iv23ctnBNtfPOe3CTu7u";
+    // Use gatekeeper (open source GitHub OAuth proxy) or corsproxy
+    // We use https://github.com/prose/gatekeeper compatible proxy
+    const PROXY = "https://cors-anywhere.herokuapp.com/https://github.com/login/oauth/access_token";
+
+    async function handleCallback() {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
+
+      if (!code) {
+        document.getElementById("status").textContent = "No code received. Redirecting...";
+        setTimeout(() => window.location.href = "/login.html", 2000);
+        return;
+      }
+
+      try {
+        // Exchange code for token via proxy
+        const res = await fetch(PROXY, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Origin": window.location.origin,
+          },
+          body: JSON.stringify({
+            client_id: CLIENT_ID,
+            // Client secret cannot be in frontend — use gatekeeper instead
+            code,
+          }),
+        });
+
+        if (!res.ok) throw new Error("Proxy failed");
+        const data = await res.json();
+
+        if (data.access_token) {
+          // Get username
+          const userRes = await fetch("https://api.github.com/user", {
+            headers: { Authorization: `token ${data.access_token}` }
+          });
+          const user = await userRes.json();
+
+          localStorage.setItem("gh_access_token", data.access_token);
+          localStorage.setItem("gh_user", user.login);
+
+          document.getElementById("status").textContent = `Welcome ${user.login}! Redirecting...`;
+          setTimeout(() => window.location.href = "/index.html", 500);
+        } else {
+          throw new Error(data.error_description || "No token received");
+        }
+      } catch (e) {
+        document.getElementById("status").textContent = `Error: ${e.message}`;
+      }
+    }
+
+    handleCallback();
+  </script>
+</body>
+</html>
