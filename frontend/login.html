@@ -24,11 +24,14 @@
     <p style="font-size:12px;color:var(--text-dim);margin-top:24px">Private access only</p>
   </div>
   <script>
-    // Read CLIENT_ID injected at deploy time, or fall back to placeholder
-    const CLIENT_ID = window.GITHUB_CLIENT_ID || "YOUR_GITHUB_CLIENT_ID";
-    const CALLBACK = encodeURIComponent(window.location.origin + "/api/auth/callback");
-    document.getElementById("login-btn").href =
-      `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&scope=repo+workflow&redirect_uri=${CALLBACK}`;
+    async function initLogin() {
+      const res = await fetch("/api/config");
+      const { clientId } = await res.json();
+      const CALLBACK = encodeURIComponent(window.location.origin + "/api/auth/callback");
+      document.getElementById("login-btn").href =
+        `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=repo+workflow&redirect_uri=${CALLBACK}`;
+    }
+    initLogin();
   </script>
 </body>
 </html>
