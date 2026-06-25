@@ -73,15 +73,37 @@
 <style>#toast.show{opacity:1;}</style>
 
 <script>
-// ── Dev mode overrides ──────────────────────────────────────────────
 const GITHUB_REPO = "omrisi37/mygarmin";
-// Load plan from repo's data folder relative to this file
-const PLAN_URL = "../data/plan.json";
+
+// Mock plan injected directly — no file fetch needed
+const MOCK_PLAN = {
+  "week_number":1,"phase":"Base Building",
+  "weekly_summary":"First week back — building aerobic base with controlled volume. Focus is on easy effort and consistency, not speed.",
+  "total_distance_km":52,"aerobic_percent":82,"anaerobic_percent":18,
+  "status":"pending_approval","generated_at":"2026-06-25T07:00:00Z",
+  "garmin_summary":{"runs":5,"distance_km":48.3,"duration_hours":6.1},
+  "garmin_averages":{"distance_per_run_km":9.7,"avg_hr":148,"latest_vo2_max":54},
+  "coaching_notes":"Your last 14 days show solid aerobic volume (48 km across 5 runs) with average HR well in Zone 2. VO2 max holding at 54. No fatigue flags. Ready to add one quality session this week.",
+  "recovery_flags":[],
+  "next_week_preview":"If this week goes well, we'll introduce a longer tempo interval and bump long run to 20 km.",
+  "days":[
+    {"day":"Monday","date":"2026-06-29","workout_type":"Rest","title":"Full Recovery","distance_km":0,"duration_min":0,"intensity":"Rest","hr_zone":null,"description":"Complete rest. Prioritize 8+ hours sleep and good nutrition.","key_focus":"Recovery","notes":""},
+    {"day":"Tuesday","date":"2026-06-30","workout_type":"Easy Run","title":"Easy Aerobic Base","distance_km":10,"duration_min":65,"intensity":"Easy","hr_zone":"Zone 2","description":"Conversational pace the whole way. If you can't speak in full sentences, slow down.","key_focus":"Aerobic base, fat adaptation","notes":"Run by HR (130–145 bpm), not pace."},
+    {"day":"Wednesday","date":"2026-07-01","workout_type":"Tempo","title":"Threshold Intervals","distance_km":12,"duration_min":72,"intensity":"Tempo","hr_zone":"Zone 4","description":"Warm up 15 min easy → 3 × 10 min at threshold with 3 min easy recovery → cool down 10 min.","key_focus":"Lactate threshold development","notes":"Target pace: ~4:15–4:30/km."},
+    {"day":"Thursday","date":"2026-07-02","workout_type":"Easy Run","title":"Recovery Jog","distance_km":8,"duration_min":52,"intensity":"Easy","hr_zone":"Zone 1-2","description":"Very easy effort. Purpose is active recovery from Wednesday's intervals.","key_focus":"Active recovery","notes":"If legs feel heavy, shorten to 5 km."},
+    {"day":"Friday","date":"2026-07-03","workout_type":"Rest","title":"Rest Day","distance_km":0,"duration_min":0,"intensity":"Rest","hr_zone":null,"description":"Full rest. Prepare for the weekend runs.","key_focus":"Recovery","notes":""},
+    {"day":"Saturday","date":"2026-07-04","workout_type":"Easy Run","title":"Medium Long Run","distance_km":14,"duration_min":90,"intensity":"Easy","hr_zone":"Zone 2","description":"Steady easy effort from start to finish. Bring water. Fuel if going past 75 min.","key_focus":"Aerobic endurance","notes":"Keep HR under 150 bpm."},
+    {"day":"Sunday","date":"2026-07-05","workout_type":"Long Run","title":"Long Run with Marathon Finish","distance_km":18,"duration_min":120,"intensity":"Long Run","hr_zone":"Zone 2","description":"Easy for first 13 km, then last 5 km at marathon goal pace (~4:45–5:00/km). Practice race fueling.","key_focus":"Marathon-specific endurance","notes":"Gel at 45 min and 80 min."}
+  ]
+};
+
+// Override fetchPlan to return mock data instantly
+async function fetchPlan() { return MOCK_PLAN; }
 
 function checkAuth() { return { token: "dev", user: "omrisi37" }; }
 function logout() { alert("No auth in dev mode."); }
-function approveAndSync() { showToast("🚫 Approve disabled in dev mode — deploy to Vercel to test."); }
-function triggerManualGenerate() { showToast("🚫 Workflow trigger disabled in dev mode."); }
+function approveAndSync() { showToast("🚫 Approve disabled in dev mode"); }
+function triggerManualGenerate() { showToast("🚫 Disabled in dev mode"); }
 function getGithubToken() { return null; }
 </script>
 <script src="app.js"></script>
