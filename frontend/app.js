@@ -161,6 +161,8 @@ function workoutEmoji(type = "", intensity = "") {
   if (type === "Long Run" || intensity === "Long Run") return "🏃";
   if (intensity === "Tempo") return "⚡";
   if (intensity === "Hard") return "🔥";
+  const ct = { "Cross-Training":"💪","WeightTraining":"🏋️","Gym":"🏋️","Swimming":"🏊","Cycling":"🚴","Soccer":"⚽","Football":"⚽","Tennis":"🎾","Basketball":"🏀","Boxing":"🥊","Yoga":"🧘","Pilates":"🧘","Swim":"🏊" };
+  if (ct[type]) return ct[type];
   return "🟢";
 }
 
@@ -391,10 +393,13 @@ function _renderWeekDays(days, weekOffset) {
     const rating = day.execution_rating;
 
     if (done) {
-      const distLabel = actual?.distance_km ? `${actual.distance_km} km` : "";
-      const hrLabel   = actual?.avg_hr       ? `${actual.avg_hr} bpm`   : "";
-      const paceLabel = actual?.avg_pace     ? `${actual.avg_pace}/km`  : "";
-      const subParts  = [distLabel, hrLabel, paceLabel].filter(Boolean);
+      const isRun     = ["Run","TrailRun","VirtualRun"].includes(actual?.activity_type);
+      const distLabel = isRun && actual?.distance_km  ? `${actual.distance_km} km`  : "";
+      const hrLabel   = actual?.avg_hr                ? `${actual.avg_hr} bpm`      : "";
+      const paceLabel = isRun && actual?.avg_pace     ? `${actual.avg_pace}/km`     : "";
+      const durLabel  = !isRun && actual?.duration_min ? `${actual.duration_min} min` : "";
+      const calLabel  = !isRun && actual?.calories    ? `${actual.calories} kcal`   : "";
+      const subParts  = [distLabel, durLabel, hrLabel, paceLabel, calLabel].filter(Boolean);
       return `<div class="day-row done" onclick="openDayModal(${i}, ${weekOffset})">
         <div class="day-abbr">${day.day.slice(0,3).toUpperCase()}</div>
         <div class="day-dot done-dot">✓</div>
@@ -963,22 +968,24 @@ function openDayModal(i, weekOffset) {
 
   // ── Completed session modal ──
   if (done) {
-    const hasActual = actual.distance_km || actual.duration_min || actual.avg_hr;
+    const isRun     = ["Run","TrailRun","VirtualRun"].includes(actual?.activity_type);
+    const actLabel  = actual?.activity_name ? `"${actual.activity_name}"` : (actual?.activity_type || "Activity");
+    const hasActual = actual.distance_km || actual.duration_min || actual.avg_hr || actual.calories;
     const compareHtml = hasActual ? `
       <div class="compare-grid">
         <div class="compare-col">
-          <div class="compare-col-label actual">✅ Actual</div>
-          ${actual.distance_km  ? `<div class="compare-stat"><strong>${actual.distance_km} km</strong> distance</div>` : ""}
-          ${actual.duration_min ? `<div class="compare-stat"><strong>${actual.duration_min} min</strong> duration</div>` : ""}
-          ${actual.avg_hr       ? `<div class="compare-stat"><strong>${actual.avg_hr} bpm</strong> avg HR</div>` : ""}
-          ${actual.avg_pace     ? `<div class="compare-stat"><strong>${actual.avg_pace}/km</strong> pace</div>` : ""}
-          ${actual.calories     ? `<div class="compare-stat"><strong>${actual.calories} kcal</strong></div>` : ""}
-          ${actual.elevation_m  ? `<div class="compare-stat"><strong>${actual.elevation_m} m</strong> elevation</div>` : ""}
+          <div class="compare-col-label actual">✅ Actual · ${actLabel}</div>
+          ${actual.duration_min                    ? `<div class="compare-stat"><strong>${actual.duration_min} min</strong> duration</div>` : ""}
+          ${isRun && actual.distance_km            ? `<div class="compare-stat"><strong>${actual.distance_km} km</strong> distance</div>` : ""}
+          ${actual.avg_hr                          ? `<div class="compare-stat"><strong>${actual.avg_hr} bpm</strong> avg HR</div>` : ""}
+          ${isRun && actual.avg_pace               ? `<div class="compare-stat"><strong>${actual.avg_pace}/km</strong> pace</div>` : ""}
+          ${actual.calories                        ? `<div class="compare-stat"><strong>${actual.calories} kcal</strong> burned</div>` : ""}
+          ${actual.elevation_m                     ? `<div class="compare-stat"><strong>${actual.elevation_m} m</strong> elevation</div>` : ""}
         </div>
         <div class="compare-col">
           <div class="compare-col-label planned">📋 Planned</div>
-          ${day.distance_km  ? `<div class="compare-stat"><strong>${day.distance_km} km</strong> distance</div>` : ""}
           ${day.duration_min ? `<div class="compare-stat"><strong>${day.duration_min} min</strong> duration</div>` : ""}
+          ${day.distance_km  ? `<div class="compare-stat"><strong>${day.distance_km} km</strong> distance</div>` : ""}
           ${day.hr_zone      ? `<div class="compare-stat"><strong>${day.hr_zone}</strong></div>` : ""}
           ${day.intensity    ? `<div class="compare-stat"><strong>${day.intensity}</strong> intensity</div>` : ""}
         </div>

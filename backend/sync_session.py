@@ -117,44 +117,85 @@ def find_matching_day(plan, date_str):
     return None
 
 
+RUNNING_TYPES = {"Run", "TrailRun", "VirtualRun"}
+
+def _activity_label(act_type: str) -> str:
+    labels = {
+        "WeightTraining": "Gym / Weight Training",
+        "Workout": "Workout",
+        "Crossfit": "CrossFit",
+        "Swim": "Swimming",
+        "Ride": "Cycling",
+        "VirtualRide": "Cycling (Indoor)",
+        "Soccer": "Football",
+        "Tennis": "Tennis",
+        "Basketball": "Basketball",
+        "Boxing": "Boxing",
+        "Yoga": "Yoga",
+        "Pilates": "Pilates",
+        "Walk": "Walk",
+        "Hike": "Hike",
+        "Run": "Run",
+        "TrailRun": "Trail Run",
+    }
+    return labels.get(act_type, act_type)
+
+
 def analyze_session(planned_day, actual):
-    """Ask Claude for a brief coaching take on the session."""
+    """Ask Claude for a brief coaching take on the session — works for all activity types."""
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
+    act_type   = actual.get("type", "Workout")
+    act_label  = _activity_label(act_type)
+    is_running = act_type in RUNNING_TYPES
+
     actual_parts = []
-    if actual.get("distance_km"):
-        actual_parts.append(f"Distance: {actual['distance_km']} km")
     if actual.get("duration_min"):
         actual_parts.append(f"Duration: {actual['duration_min']} min")
+    if is_running and actual.get("distance_km"):
+        actual_parts.append(f"Distance: {actual['distance_km']} km")
     if actual.get("avg_hr"):
         actual_parts.append(f"Avg HR: {actual['avg_hr']} bpm")
-    if actual.get("avg_pace"):
+    if is_running and actual.get("avg_pace"):
         actual_parts.append(f"Avg Pace: {actual['avg_pace']} /km")
-    actual_summary = ", ".join(actual_parts) or "No detailed stats"
+    if actual.get("calories"):
+        actual_parts.append(f"Calories: {actual['calories']} kcal")
+    if actual.get("elevation_m"):
+        actual_parts.append(f"Elevation: {actual['elevation_m']} m")
+    actual_summary = ", ".join(actual_parts) or "Activity recorded — no detailed stats available"
 
-    prompt = f"""You are a running coach. A session just completed — give a brief coaching analysis.
+    if is_running:
+        context = "You are an elite running coach. Give a brief analysis of this run vs what was planned."
+        adjustment_note = "Set 'adjustment' (not null) ONLY if effort deviated significantly (>20% from target HR/pace) AND a specific upcoming running session should change."
+    else:
+        context = (
+            f"You are a sports coach. The athlete just completed a {act_label} session. "
+            "This is a cross-training activity that supports their running program. "
+            "Give a brief, relevant analysis — focus on recovery impact, energy levels, and how it fits into the overall training week."
+        )
+        adjustment_note = "Set 'adjustment' (not null) ONLY if this session was so demanding it should affect the next day's running (e.g. heavy leg day before a tempo run)."
+
+    prompt = f"""{context}
 
 WHAT WAS PLANNED:
-- Type: {planned_day.get('workout_type', 'Run')}
+- Type: {planned_day.get('workout_type', 'Cross-Training')}
 - Title: {planned_day.get('title', '')}
-- Distance: {planned_day.get('distance_km', 0)} km
-- Duration: {planned_day.get('duration_min', 0)} min
-- Intensity: {planned_day.get('intensity', '')}
-- HR Zone: {planned_day.get('hr_zone', '')}
 - Description: {planned_day.get('description', '')}
 
 WHAT ACTUALLY HAPPENED (Strava):
-- Activity: {actual.get('name', '')} ({actual.get('type', 'Workout')})
+- Activity: {actual.get('name', '')} ({act_label})
 - {actual_summary}
 
 Respond ONLY with valid JSON:
 {{
-  "session_analysis": "2-3 sentences: how did the athlete execute? Specific, personal, encouraging but honest.",
+  "session_analysis": "2-3 sentences. Be specific, personal, encouraging but honest.",
   "execution_rating": "on-plan|slightly-hard|too-hard|too-easy|great|skipped",
   "adjustment": null
 }}
 
-Set "adjustment" (not null) ONLY if effort deviated significantly (>20% from target HR/pace) AND a specific upcoming session should change. Format: {{"day": "Wednesday", "change": "Reduce tempo from 8km to 6km", "reason": "HR ran high today — allow extra recovery"}}. Otherwise keep null — minor variations are normal and the plan should stay intact."""
+{adjustment_note}
+If adjustment needed: {{"day": "Wednesday", "change": "brief change", "reason": "why"}}
+Otherwise keep null."""
 
     response = client.messages.create(
         model="claude-haiku-4-5-20251001",
