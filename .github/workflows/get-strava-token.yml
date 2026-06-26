@@ -1,0 +1,59 @@
+name: Get Strava Refresh Token
+
+on:
+  workflow_dispatch:
+    inputs:
+      auth_code:
+        description: "Paste the 'code' from the Strava redirect URL here"
+        required: false
+        default: ""
+
+jobs:
+  get-token:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Step 1 — Open this URL in your browser to authorize
+        run: |
+          echo ""
+          echo "======================================================"
+          echo "OPEN THIS URL IN YOUR BROWSER:"
+          echo "======================================================"
+          echo "https://www.strava.com/oauth/authorize?client_id=${{ secrets.STRAVA_CLIENT_ID }}&response_type=code&redirect_uri=http://localhost&approval_prompt=force&scope=activity:read_all"
+          echo "======================================================"
+          echo ""
+          echo "After clicking Authorize, the browser goes to localhost"
+          echo "(page won't load — that is fine)."
+          echo "Copy the 'code=XXXX' part from the address bar."
+          echo ""
+          echo "Then re-run this workflow and paste the code in the input field."
+
+      - name: Step 2 — Exchange code for refresh token
+        if: ${{ inputs.auth_code != '' }}
+        run: |
+          pip install requests -q
+          python3 - <<'EOF'
+          import requests, os
+
+          code = "${{ inputs.auth_code }}"
+          resp = requests.post("https://www.strava.com/oauth/token", data={
+              "client_id":     "${{ secrets.STRAVA_CLIENT_ID }}",
+              "client_secret": "${{ secrets.STRAVA_CLIENT_SECRET }}",
+              "code":          code,
+              "grant_type":    "authorization_code",
+          })
+
+          if not resp.ok:
+              print(f"Error {resp.status_code}: {resp.text}")
+              exit(1)
+
+          data = resp.json()
+          athlete = data.get("athlete", {})
+          print("")
+          print("======================================================")
+          print("SUCCESS! Copy this as your STRAVA_REFRESH_TOKEN secret:")
+          print("======================================================")
+          print(data["refresh_token"])
+          print("======================================================")
+          print(f"Scope: {data.get('scope')}")
+          print(f"Athlete: {athlete.get('firstname','')} {athlete.get('lastname','')}")
+          EOF
