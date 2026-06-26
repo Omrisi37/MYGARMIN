@@ -1,0 +1,40 @@
+name: Sync Session from Strava
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sync-session:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Sync latest session
+        env:
+          STRAVA_CLIENT_ID:     ${{ secrets.STRAVA_CLIENT_ID }}
+          STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
+          STRAVA_REFRESH_TOKEN: ${{ secrets.STRAVA_REFRESH_TOKEN }}
+          ANTHROPIC_API_KEY:    ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python backend/sync_session.py
+
+      - name: Commit updated plan
+        run: |
+          git config user.name "Running Coach Bot"
+          git config user.email "bot@running-coach"
+          git stash --include-untracked
+          git pull --rebase origin main
+          git stash pop || true
+          git add frontend/data/plan.json
+          git commit -m "Session sync: $(date +%Y-%m-%d)" || echo "No changes"
+          git push
