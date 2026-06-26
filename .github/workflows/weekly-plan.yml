@@ -27,6 +27,7 @@ jobs:
           GARMIN_EMAIL: ${{ secrets.GARMIN_EMAIL }}
           GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GARMIN_TOKENS: ${{ secrets.GARMIN_TOKENS }}
           RACE_DATE: ${{ secrets.RACE_DATE }}
         run: python backend/run_coach_agent.py
 

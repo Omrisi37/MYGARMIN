@@ -1,15 +1,45 @@
-"""Garmin Connect data fetcher."""
+"""Garmin Connect data fetcher — uses token-based auth for CI environments."""
 import os
 import json
+import base64
+import tempfile
+from pathlib import Path
 from datetime import datetime, timedelta
+
+import garth
 from garminconnect import Garmin
 
 
 def get_client():
+    """
+    Try token auth first (from GARMIN_TOKENS secret), fall back to password login.
+    Token auth works reliably in CI; password login may fail with Garmin's MFA.
+    """
+    tokens_b64 = os.environ.get("GARMIN_TOKENS")
+
+    if tokens_b64:
+        # Restore saved session tokens (base64-encoded garth token dir)
+        token_dir = Path(tempfile.mkdtemp())
+        token_bytes = base64.b64decode(tokens_b64)
+        # garth tokens are stored as a tar archive
+        import tarfile, io
+        with tarfile.open(fileobj=io.BytesIO(token_bytes)) as tar:
+            tar.extractall(token_dir)
+        client = Garmin()
+        client.garth.load(str(token_dir))
+        try:
+            client.get_full_name()  # quick test that tokens are valid
+            print("Garmin auth: using saved tokens")
+            return client
+        except Exception as e:
+            print(f"Token auth failed ({e}), falling back to password login")
+
+    # Password login fallback
     email = os.environ["GARMIN_EMAIL"]
     password = os.environ["GARMIN_PASSWORD"]
     client = Garmin(email, password)
     client.login()
+    print("Garmin auth: password login successful")
     return client
 
 

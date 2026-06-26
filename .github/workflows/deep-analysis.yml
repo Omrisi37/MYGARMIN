@@ -32,6 +32,7 @@ jobs:
           GARMIN_EMAIL: ${{ inputs.garmin_email || secrets.GARMIN_EMAIL }}
           GARMIN_PASSWORD: ${{ inputs.garmin_password || secrets.GARMIN_PASSWORD }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GARMIN_TOKENS: ${{ secrets.GARMIN_TOKENS }}
           RACE_DATE: ${{ secrets.RACE_DATE }}
           TRAINING_GOAL: ${{ secrets.TRAINING_GOAL }}
           TARGET_TIME: ${{ secrets.TARGET_TIME }}
