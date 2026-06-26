@@ -803,7 +803,7 @@ async function showApp() {
 
   // Load plan + analytics
   [currentPlan, currentAnalytics] = await Promise.all([fetchPlan(), fetchAnalytics()]);
-  renderScreen("today");
+  navigate("today");
 }
 
 async function boot() {
