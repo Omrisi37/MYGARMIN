@@ -154,6 +154,37 @@ Generate the complete 4-week training plan for the block above.
 """
 
 
+def _load_completed_sessions(data_dir: Path) -> dict:
+    """Load persistent completed sessions log (survives plan regeneration)."""
+    path = data_dir / "completed_sessions.json"
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text())
+    except Exception:
+        return {}
+
+
+def _apply_completed_sessions_to_plan(plan: dict, completed: dict):
+    """Merge completed session flags into matching plan days."""
+    if not completed:
+        return
+    completion_fields = ["completed", "actual_stats", "coach_analysis", "execution_rating", "coach_adjustment"]
+    for day in plan.get("days", []):
+        date = day.get("date")
+        if date and date in completed:
+            for field in completion_fields:
+                if field in completed[date]:
+                    day[field] = completed[date][field]
+    for week in plan.get("weeks", []):
+        for day in week.get("days", []):
+            date = day.get("date")
+            if date and date in completed:
+                for field in completion_fields:
+                    if field in completed[date]:
+                        day[field] = completed[date][field]
+
+
 def save_plan(result: dict):
     data_dir = Path(__file__).parent.parent / "frontend" / "data"
     data_dir.mkdir(exist_ok=True)
@@ -187,6 +218,11 @@ def save_plan(result: dict):
         "generated_at":      datetime.utcnow().isoformat() + "Z",
         "status":            "pending_approval",
     }
+    # Re-apply any previously completed sessions so regenerating the plan
+    # doesn't wipe workout completions that were recorded by sync_session.py
+    completed = _load_completed_sessions(data_dir)
+    _apply_completed_sessions_to_plan(plan, completed)
+
     plan_path.write_text(json.dumps(plan, indent=2))
     print(f"Plan saved to {plan_path}")
     return plan

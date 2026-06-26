@@ -73,6 +73,26 @@ def fetch_recent_all_activities(days=2):
     return result
 
 
+COMPLETED_SESSIONS_PATH = Path(__file__).parent.parent / "frontend" / "data" / "completed_sessions.json"
+
+
+def load_completed_sessions():
+    if not COMPLETED_SESSIONS_PATH.exists():
+        return {}
+    try:
+        return json.loads(COMPLETED_SESSIONS_PATH.read_text())
+    except Exception:
+        return {}
+
+
+def save_completed_session(date_str, completion):
+    """Append/update a completed session in the persistent log."""
+    sessions = load_completed_sessions()
+    sessions[date_str] = {**completion, "logged_at": datetime.utcnow().isoformat() + "Z"}
+    COMPLETED_SESSIONS_PATH.parent.mkdir(exist_ok=True)
+    COMPLETED_SESSIONS_PATH.write_text(json.dumps(sessions, indent=2))
+
+
 def load_plan():
     plan_path = Path(__file__).parent.parent / "frontend" / "data" / "plan.json"
     if not plan_path.exists():
@@ -352,6 +372,8 @@ def sync_session():
 
         # Update ALL occurrences of this date (top-level days + weeks array are separate copies)
         apply_completion_to_plan(plan, date_str, completion)
+        # Persist to completed_sessions.json so completions survive plan regeneration
+        save_completed_session(date_str, completion)
         updated += 1
 
     if updated > 0:
