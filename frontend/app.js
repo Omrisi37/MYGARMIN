@@ -111,11 +111,29 @@ async function generatePlan() {
   else showToast("❌ Failed. Check your GitHub token.");
 }
 
-async function syncToCalendar() {
-  showToast("⏳ Syncing to Google Calendar…");
-  const ok = await triggerWorkflow("sync-to-calendar.yml");
-  if (ok) showToast("✅ Syncing! Events appear in ~60s");
-  else showToast("❌ Failed. Check your GitHub token.");
+// Build a Google Calendar "Add Event" URL for a single workout day
+function gcalUrl(day) {
+  if (!day.date || day.distance_km === 0) return null;
+
+  // Default workout time: 6:30 AM, duration from plan
+  const start = new Date(`${day.date}T06:30:00`);
+  const end   = new Date(start.getTime() + (day.duration_min || 60) * 60000);
+
+  const fmt = d => d.toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");
+
+  const title = encodeURIComponent(`🏃 ${day.title}`);
+  const details = encodeURIComponent([
+    day.description || "",
+    "",
+    `Distance: ${day.distance_km} km`,
+    `Duration: ${day.duration_min} min`,
+    `Intensity: ${day.intensity}`,
+    day.hr_zone ? `HR Zone: ${day.hr_zone}` : "",
+    day.key_focus ? `Focus: ${day.key_focus}` : "",
+    day.notes ? `Notes: ${day.notes}` : "",
+  ].filter(Boolean).join("\n"));
+
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${fmt(start)}/${fmt(end)}&details=${details}`;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -385,13 +403,22 @@ function renderApprove() {
       ${plan.recovery_flags.map(f => `<p class="text-sm text-mid" style="margin-bottom:4px">• ${f}</p>`).join("")}
     </div>` : ""}
 
-    <div style="margin-top:16px">
-      ${plan.status === "synced"
-        ? `<div class="banner synced"><span class="banner-icon">📅</span><div><div class="banner-title">Synced to Google Calendar</div><div class="banner-sub">Events are in your calendar.</div></div></div>`
-        : `<button class="btn btn-green" id="approve-btn" onclick="syncToCalendar()">
-             ${isApproved ? "📅 Sync to Google Calendar" : "✅ Approve & Sync to Calendar"}
-           </button>`
-      }
+    <div class="card" style="margin-top:4px">
+      <div class="card-label">ADD TO GOOGLE CALENDAR</div>
+      <p class="text-sm text-mid" style="margin-bottom:12px;line-height:1.5">Tap any workout to open Google Calendar on your device and save it with one tap.</p>
+      ${plan.days.filter(d => d.distance_km > 0).map(day => {
+        const url = gcalUrl(day);
+        const key = intensityKey(day.intensity);
+        return `<a href="${url}" target="_blank" style="text-decoration:none">
+          <div class="day-row" style="margin-bottom:8px">
+            <div class="day-abbr">${day.day.slice(0,3).toUpperCase()}</div>
+            <div class="day-dot ${key}"></div>
+            <div class="day-name">${day.title}</div>
+            <div class="text-sm text-mid">${day.distance_km}km</div>
+            <div style="color:var(--accent);font-size:20px">+</div>
+          </div>
+        </a>`;
+      }).join("")}
     </div>
 
     ${plan.generated_at ? `<p class="text-xs text-dim" style="text-align:center;margin-top:12px">Generated ${new Date(plan.generated_at).toLocaleDateString()} by Claude AI</p>` : ""}
@@ -472,8 +499,7 @@ function renderSettings() {
     <div class="settings-section">
       <div class="settings-header"><span class="icon">📅</span> Google Calendar</div>
       <div class="settings-body">
-        <p class="text-sm text-mid" style="line-height:1.6;margin-bottom:12px">Calendar sync happens automatically when you approve a plan. The <code>GOOGLE_SERVICE_ACCOUNT_JSON</code> and <code>GOOGLE_CALENDAR_ID</code> secrets need to be set in GitHub Actions.</p>
-        <a href="https://github.com/${GITHUB_REPO}/settings/secrets/actions" target="_blank" class="btn btn-ghost text-sm">Open GitHub Secrets →</a>
+        <div class="info-box">Tap any workout in the Approve tab to open Google Calendar on your device and add it with one tap. No API keys needed.</div>
       </div>
     </div>
 
