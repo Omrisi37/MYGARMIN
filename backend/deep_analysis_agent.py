@@ -14,11 +14,11 @@ from strava_client import fetch_stats_summary, fetch_recent_activities
 
 
 TRAINING_CONFIG = {
-    "goal":          os.environ.get("TRAINING_GOAL", "Marathon"),
-    "target_time":   os.environ.get("TARGET_TIME", ""),
-    "race_name":     os.environ.get("RACE_NAME", ""),
-    "weekly_hours":  float(os.environ.get("WEEKLY_HOURS", "7")),
-    "race_date":     os.environ.get("RACE_DATE"),
+    "goal":          os.environ.get("TRAINING_GOAL") or "Marathon",
+    "target_time":   os.environ.get("TARGET_TIME") or "",
+    "race_name":     os.environ.get("RACE_NAME") or "",
+    "weekly_hours":  float(os.environ.get("WEEKLY_HOURS") or "7"),
+    "race_date":     os.environ.get("RACE_DATE") or None,
 }
 
 ANALYSIS_SYSTEM_PROMPT = """
@@ -177,7 +177,7 @@ def save_plan(plan: dict):
 
 
 def run_deep_analysis():
-    print("Fetching 8 weeks of Garmin data...")
+    print("Fetching 8 weeks of Strava data...")
     activities = fetch_recent_activities(days=56)
     print(f"  → {len(activities)} activities found")
 
@@ -206,7 +206,7 @@ def run_deep_analysis():
 - Weekly time budget: {config['weekly_hours']} hours
 {f"- Weeks until race: {weeks_to_race}" if weeks_to_race is not None else "- No race date set"}
 
-## 8-Week Training History (from Garmin)
+## 8-Week Training History (from Strava)
 
 ### Weekly Summaries
 {json.dumps(weeks, indent=2)}

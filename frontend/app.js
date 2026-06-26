@@ -40,12 +40,16 @@ function saveSettings(obj) {
 
 let currentScreen = "today";
 
+const PAGE_TITLES = { today: "Today", week: "This Week", goals: "Training Goals", analyse: "Analytics", settings: "Settings" };
+
 function navigate(id) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
   document.getElementById(`screen-${id}`).classList.add("active");
   document.querySelectorAll(`[data-nav="${id}"]`).forEach(b => b.classList.add("active"));
   currentScreen = id;
+  const titleEl = document.getElementById("desktop-page-title");
+  if (titleEl) titleEl.textContent = PAGE_TITLES[id] || id;
   renderScreen(id);
 }
 
@@ -302,10 +306,8 @@ function renderWeek() {
   }
   const today = todayDayName();
   el.innerHTML = `
-    <div style="margin-bottom:16px">
-      <div style="font-size:20px;font-weight:700">This Week</div>
-      <div class="text-sm text-dim">Week ${plan.week_number || 1} · ${plan.phase || ""}</div>
-    </div>
+    <div class="page-title">This Week</div>
+    <div class="page-sub">Week ${plan.week_number || 1} · ${plan.phase || ""}</div>
     ${plan.days.map((day, i) => {
       const key = intensityKey(day.intensity);
       const isToday = day.day === today;
@@ -337,10 +339,8 @@ function renderGoals() {
   const d2r = daysToRace(s.race_date);
 
   el.innerHTML = `
-    <div style="margin-bottom:20px">
-      <div style="font-size:20px;font-weight:700">Training Goals</div>
-      <div class="text-sm text-dim">Set your goal and generate a personalised plan</div>
-    </div>
+    <div class="page-title">Training Goals</div>
+    <div class="page-sub">Set your goal and generate a personalised plan</div>
 
     <div class="card">
       <div class="card-label">🎯 RACE GOAL</div>
@@ -582,10 +582,8 @@ function renderAnalytics() {
 
   if (!a) {
     el.innerHTML = `
-      <div style="margin-bottom:16px">
-        <div style="font-size:20px;font-weight:700">Analytics</div>
-        <div class="text-sm text-dim">8-week performance overview</div>
-      </div>
+      <div class="page-title">Analytics</div>
+      <div class="page-sub">8-week performance overview</div>
       ${analyseBtn}
       <div class="empty"><div class="empty-icon">📊</div><h3>No analytics yet</h3><p>Tap "Analyse &amp; Improve" to generate insights from your Strava data.</p></div>
     `;
@@ -597,10 +595,8 @@ function renderAnalytics() {
   const ratioColor = ratio > 1.3 ? "var(--red)" : ratio < 0.8 ? "var(--orange)" : "var(--green)";
 
   el.innerHTML = `
-    <div style="margin-bottom:16px">
-      <div style="font-size:20px;font-weight:700">Analytics</div>
-      <div class="text-sm text-dim">${a.generated_at ? "Last analysed " + new Date(a.generated_at).toLocaleDateString() : "8-week performance overview"}</div>
-    </div>
+    <div class="page-title">Analytics</div>
+    <div class="page-sub">${a.generated_at ? "Last analysed " + new Date(a.generated_at).toLocaleDateString() : "8-week performance overview"}</div>
 
     ${analyseBtn}
 
@@ -707,8 +703,11 @@ async function showApp() {
   document.getElementById("app").style.display = "flex";
 
   // Set greeting + date
+  const now = new Date();
   document.getElementById("greeting").textContent = greeting();
-  document.getElementById("today-date").textContent = formatDate(new Date());
+  document.getElementById("today-date").textContent = formatDate(now);
+  const dEl = document.getElementById("desktop-date");
+  if (dEl) dEl.textContent = now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
 
   // Nav
   document.querySelectorAll(".nav-btn").forEach(btn => {

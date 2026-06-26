@@ -18,10 +18,11 @@ from strava_client import fetch_stats_summary
 
 
 TRAINING_CONFIG = {
-    "goal": "Marathon",
-    "weekly_hours_budget": 7,
-    "current_weekly_km": 50,
-    "race_date": os.environ.get("RACE_DATE"),  # e.g. "2025-04-27"
+    "goal":                os.environ.get("TRAINING_GOAL") or "Marathon",
+    "target_time":         os.environ.get("TARGET_TIME") or "",
+    "race_name":           os.environ.get("RACE_NAME") or "",
+    "weekly_hours_budget": float(os.environ.get("WEEKLY_HOURS") or "7"),
+    "race_date":           os.environ.get("RACE_DATE") or None,
 }
 
 
@@ -37,7 +38,7 @@ def weeks_to_race(race_date_str: str | None) -> int | None:
     return max(0, (race - datetime.today()).days // 7)
 
 
-def build_user_message(garmin_data: dict, config: dict) -> str:
+def build_user_message(strava_data: dict, config: dict) -> str:
     weeks_left = weeks_to_race(config.get("race_date"))
     today = datetime.today()
     week_start = today - timedelta(days=today.weekday())  # Monday
@@ -50,12 +51,14 @@ def build_user_message(garmin_data: dict, config: dict) -> str:
     return f"""
 ## Athlete Profile
 - Goal: {config['goal']}
-- Weekly time budget: {config['weekly_hours_budget']} hours (~{config['weekly_hours_budget'] * 10} km equivalent)
+{f"- Race: {config['race_name']}" if config.get('race_name') else ""}
+{f"- Target time: {config['target_time']}" if config.get('target_time') else ""}
+- Weekly time budget: {config['weekly_hours_budget']} hours
 - Target week: {week_start.strftime('%Y-%m-%d')} to {(week_start + timedelta(days=6)).strftime('%Y-%m-%d')}
 {f"- Weeks until race: {weeks_left}" if weeks_left is not None else "- No specific race date set"}
 
-## Last 14 Days of Training (from Garmin)
-{json.dumps(garmin_data, indent=2)}
+## Last 14 Days of Training (from Strava)
+{json.dumps(strava_data, indent=2)}
 
 ## Week Schedule to Fill
 {json.dumps(days_of_week, indent=2)}
@@ -87,12 +90,12 @@ def save_plan(plan: dict):
 
 
 def generate_plan():
-    print("Fetching Garmin data...")
-    garmin_data = fetch_stats_summary(days=14)
-    print(f"Fetched {garmin_data['totals'].get('runs', 0)} runs")
+    print("Fetching Strava data...")
+    strava_data = fetch_stats_summary(days=14)
+    print(f"Fetched {strava_data['totals'].get('runs', 0)} runs")
 
     system_prompt = load_prompt_template()
-    user_message = build_user_message(garmin_data, TRAINING_CONFIG)
+    user_message = build_user_message(strava_data, TRAINING_CONFIG)
 
     print("Calling Claude API...")
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
@@ -124,8 +127,8 @@ def generate_plan():
     raw = raw.strip()
 
     plan = json.loads(raw)
-    plan["garmin_summary"] = garmin_data["totals"]
-    plan["garmin_averages"] = garmin_data["averages"]
+    plan["strava_summary"] = strava_data["totals"]
+    plan["strava_averages"] = strava_data["averages"]
 
     save_plan(plan)
     print("Done! Plan is saved and awaiting your approval in the dashboard.")
