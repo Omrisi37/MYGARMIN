@@ -3,6 +3,18 @@
 const GITHUB_REPO = "omrisi37/mygarmin";
 const APP_PASSWORD = "omrirun2026"; // Change this to your preferred password
 
+const CROSS_TRAINING_ACTIVITIES = [
+  {id:"football",  label:"Football",    emoji:"⚽"},
+  {id:"gym",       label:"Gym",         emoji:"🏋️"},
+  {id:"pilates",   label:"Pilates",     emoji:"🧘"},
+  {id:"swimming",  label:"Swimming",    emoji:"🏊"},
+  {id:"cycling",   label:"Cycling",     emoji:"🚴"},
+  {id:"tennis",    label:"Tennis",      emoji:"🎾"},
+  {id:"basketball",label:"Basketball",  emoji:"🏀"},
+  {id:"yoga",      label:"Yoga",        emoji:"🤸"},
+  {id:"boxing",    label:"Boxing",      emoji:"🥊"},
+];
+
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
 function doLogin() {
@@ -297,7 +309,38 @@ function renderToday() {
 
 // ── Render: WEEK ──────────────────────────────────────────────────────────────
 
-let weekView = "this-week"; // "this-week" | "4-week"
+let weekViewMode = "week";
+
+function setWeekView(mode) {
+  weekViewMode = mode;
+  renderWeek();
+}
+
+function _renderWeekDays(days, weekOffset) {
+  const today = todayDayName();
+  return days.map((day, i) => {
+    const key = intensityKey(day.intensity);
+    const isToday = (weekOffset === 0) && (day.day === today);
+    return `<div class="day-row${isToday ? " today" : ""}" onclick="openDayModal(${i}, ${weekOffset})">
+      <div class="day-abbr${isToday ? " today" : ""}">${day.day.slice(0,3).toUpperCase()}</div>
+      <div class="day-dot ${key}"></div>
+      <div class="day-name">${day.title}</div>
+      ${day.distance_km > 0 ? `<div class="text-sm text-mid">${day.distance_km}km</div>` : ""}
+      <div class="day-badge ${key}">${day.intensity}</div>
+      <div class="day-chevron">›</div>
+    </div>`;
+  }).join("");
+}
+
+function _intensityColor(intensity) {
+  const m = { "Rest":"var(--surface3)","Easy":"var(--green)","Moderate":"var(--green)","Tempo":"var(--orange)","Hard":"var(--red)","Long Run":"var(--blue)","Race":"var(--red)" };
+  return m[intensity] || "var(--green)";
+}
+
+function toggleMonthWeek(idx) {
+  const body = document.getElementById(`month-week-body-${idx}`);
+  if (body) body.classList.toggle("open");
+}
 
 function renderWeek() {
   const el = document.getElementById("week-content");
@@ -307,130 +350,65 @@ function renderWeek() {
     return;
   }
 
-  const hasMonthPlan = Array.isArray(plan.weeks) && plan.weeks.length > 0;
-  const toggleHtml = hasMonthPlan ? `
+  const hasMonthData = Array.isArray(plan.weeks) && plan.weeks.length > 0;
+  const weekData = hasMonthData ? (plan.weeks[0] || plan) : plan;
+
+  const toggleHtml = hasMonthData ? `
     <div class="view-toggle">
-      <button class="view-toggle-btn${weekView === "this-week" ? " active" : ""}" onclick="setWeekView('this-week')">This Week</button>
-      <button class="view-toggle-btn${weekView === "4-week" ? " active" : ""}" onclick="setWeekView('4-week')">4-Week Plan</button>
+      <button class="view-toggle-btn${weekViewMode === "week" ? " active" : ""}" onclick="setWeekView('week')">This Week</button>
+      <button class="view-toggle-btn${weekViewMode === "month" ? " active" : ""}" onclick="setWeekView('month')">4-Week Plan</button>
     </div>` : "";
 
-  const legend = `
-    <div class="legend" style="margin-top:8px">
-      <div class="legend-label">INTENSITY LEGEND</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Easy</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div> Tempo</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Hard</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div> Long Run</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--surface3);border:1px solid var(--border)"></div> Rest</div>
-    </div>`;
-
-  if (hasMonthPlan && weekView === "4-week") {
-    const monthHtml = plan.weeks.map((wk, wi) => {
-      const totalKm = wk.total_distance_km || 0;
-      const runs = (wk.days || []).filter(d => d.distance_km > 0).length;
-      const dateRange = wk.days?.[0]?.date
-        ? `${new Date(wk.days[0].date).toLocaleDateString("en-US",{month:"short",day:"numeric"})} – ${new Date(wk.days[6]?.date||wk.days[wk.days.length-1].date).toLocaleDateString("en-US",{month:"short",day:"numeric"})}`
-        : "";
-      const dayRows = (wk.days || []).map((day, di) => {
-        const key = intensityKey(day.intensity);
-        return `<div class="day-row" onclick="openMonthDayModal(${wi},${di})" style="margin-bottom:6px">
-          <div class="day-abbr">${day.day.slice(0,3).toUpperCase()}</div>
-          <div class="day-dot ${key}"></div>
-          <div class="day-name">${day.title}</div>
-          ${day.distance_km > 0 ? `<div class="text-sm text-mid">${day.distance_km}km</div>` : ""}
-          <div class="day-badge ${key}">${day.intensity}</div>
-          <div class="day-chevron">›</div>
-        </div>`;
+  if (weekViewMode === "month" && hasMonthData) {
+    const monthCardsHtml = plan.weeks.map((week, idx) => {
+      const dotsHtml = (week.days || []).map(day => {
+        const color = _intensityColor(day.intensity);
+        const abbr = day.day ? day.day.slice(0,1) : "";
+        return `<div class="month-week-dot" style="background:${color}">${abbr}</div>`;
       }).join("");
-      return `<div class="month-week" id="mw-${wi}">
-        <div class="month-week-header" onclick="toggleMonthWeek(${wi})">
-          <div>
-            <div class="month-week-title">Week ${wi + 1} — ${wk.phase || ""}</div>
-            <div class="month-week-meta">${dateRange} · ${totalKm} km · ${runs} runs</div>
+
+      return `
+        <div class="month-week">
+          <div class="month-week-header" onclick="toggleMonthWeek(${idx})">
+            <div>
+              <div style="font-weight:700;font-size:14px">Week ${week.week_number || idx+1}</div>
+              <div class="text-xs text-dim">${week.phase || ""} · ${week.total_distance_km || 0} km</div>
+            </div>
+            <div style="color:var(--text-dim);font-size:18px">›</div>
           </div>
-          <div class="month-week-chevron">›</div>
-        </div>
-        <div class="month-week-body">${dayRows}${wk.weekly_summary ? `<p class="text-sm text-mid" style="margin-top:10px;line-height:1.6">${wk.weekly_summary}</p>` : ""}</div>
-      </div>`;
+          <div class="month-week-dots">${dotsHtml}</div>
+          <div class="month-week-body" id="month-week-body-${idx}">
+            ${_renderWeekDays(week.days || [], idx)}
+          </div>
+        </div>`;
     }).join("");
+
     el.innerHTML = `
       <div class="page-title">Training Plan</div>
-      <div class="page-sub">${plan.coaching_overview || "4-week personalised plan"}</div>
+      <div class="page-sub">4-Week block overview</div>
       ${toggleHtml}
-      ${monthHtml}
-      ${legend}`;
-    return;
+      ${monthCardsHtml}
+    `;
+  } else {
+    const today = todayDayName();
+    el.innerHTML = `
+      <div class="page-title">This Week</div>
+      <div class="page-sub">Week ${weekData.week_number || 1} · ${weekData.phase || ""}</div>
+      ${toggleHtml}
+      ${_renderWeekDays(weekData.days || [], 0)}
+      <div class="legend" style="margin-top:8px">
+        <div class="legend-label">INTENSITY LEGEND</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Easy</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div> Tempo</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Hard</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div> Long Run</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--surface3);border:1px solid var(--border)"></div> Rest</div>
+      </div>
+    `;
   }
-
-  const today = todayDayName();
-  el.innerHTML = `
-    <div class="page-title">This Week</div>
-    <div class="page-sub">Week ${plan.week_number || 1} · ${plan.phase || ""}</div>
-    ${toggleHtml}
-    ${plan.days.map((day, i) => {
-      const key = intensityKey(day.intensity);
-      const isToday = day.day === today;
-      return `<div class="day-row${isToday ? " today" : ""}" onclick="openDayModal(${i})">
-        <div class="day-abbr${isToday ? " today" : ""}">${day.day.slice(0,3).toUpperCase()}</div>
-        <div class="day-dot ${key}"></div>
-        <div class="day-name">${day.title}</div>
-        ${day.distance_km > 0 ? `<div class="text-sm text-mid">${day.distance_km}km</div>` : ""}
-        <div class="day-badge ${key}">${day.intensity}</div>
-        <div class="day-chevron">›</div>
-      </div>`;
-    }).join("")}
-    ${legend}
-  `;
-}
-
-function setWeekView(v) {
-  weekView = v;
-  renderWeek();
-}
-
-function toggleMonthWeek(wi) {
-  const el = document.getElementById(`mw-${wi}`);
-  el?.classList.toggle("open");
-}
-
-function openMonthDayModal(wi, di) {
-  const day = currentPlan?.weeks?.[wi]?.days?.[di];
-  if (!day) return;
-  const key = intensityKey(day.intensity);
-  document.getElementById("day-modal-body").innerHTML = `
-    <div style="font-size:32px;margin-bottom:8px">${workoutEmoji(day.workout_type, day.intensity)}</div>
-    <h2 style="font-size:20px;font-weight:700;margin-bottom:4px">${day.title}</h2>
-    <div class="text-sm text-mid">${day.day}${day.date ? " · " + day.date : ""}</div>
-    <div style="margin:12px 0"><span class="day-badge ${key}">${day.intensity}</span>${day.hr_zone ? ` <span class="day-badge easy" style="margin-left:6px">${day.hr_zone}</span>` : ""}</div>
-    ${day.distance_km > 0 ? `
-    <div class="stats-grid" style="margin-bottom:14px">
-      <div class="stat-box"><div class="stat-val">${day.distance_km}<span class="stat-unit"> km</span></div><div class="stat-lbl">Distance</div></div>
-      <div class="stat-box"><div class="stat-val">${day.duration_min}<span class="stat-unit"> min</span></div><div class="stat-lbl">Duration</div></div>
-    </div>` : ""}
-    <p class="text-sm text-mid" style="line-height:1.6;margin-bottom:10px">${day.description||""}</p>
-    ${day.key_focus ? `<p class="text-sm"><strong>Focus:</strong> <span class="text-mid">${day.key_focus}</span></p>` : ""}
-    ${day.notes ? `<p class="text-sm mt-8"><strong>Notes:</strong> <span class="text-mid">${day.notes}</span></p>` : ""}
-    <button class="btn btn-ghost" onclick="closeModal()" style="margin-top:20px">Close</button>
-  `;
-  document.getElementById("day-modal").classList.add("open");
 }
 
 // ── Render: GOALS ────────────────────────────────────────────────────────────
-
-const CT_ACTIVITIES = [
-  { id: "football",   label: "Football",   emoji: "⚽" },
-  { id: "gym",        label: "Gym",        emoji: "🏋️" },
-  { id: "pilates",    label: "Pilates",    emoji: "🧘" },
-  { id: "swimming",   label: "Swimming",   emoji: "🏊" },
-  { id: "cycling",    label: "Cycling",    emoji: "🚴" },
-  { id: "tennis",     label: "Tennis",     emoji: "🎾" },
-  { id: "basketball", label: "Basketball", emoji: "🏀" },
-  { id: "yoga",       label: "Yoga",       emoji: "🧘" },
-  { id: "boxing",     label: "Boxing",     emoji: "🥊" },
-];
-
-const QUALITY_TYPES = ["Intervals", "Tempo", "Fartlek", "Hills"];
-const WEEK_DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 
 function renderGoals() {
   const el = document.getElementById("goals-content");
@@ -440,73 +418,62 @@ function renderGoals() {
   const days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
   const savedDays = s.run_days || ["Tuesday","Thursday","Saturday","Sunday"];
 
-  // Cross-training data
   const ct = s.cross_training || [];
-  const ctIds = ct.map(a => a.id);
-  const weeklySkip = s.weekly_skip_ct || [];
+  const ctHtml = _renderCTSection(ct);
 
-  // Quality sessions data
-  const qualityEnabled = s.quality_enabled !== false ? (s.quality_enabled || false) : false;
+  const qualityEnabled = s.quality_enabled || false;
   const qualitySessions = s.quality_sessions || 2;
   const qualityTypes = s.quality_types || [];
-
-  // Cross-training activities card
-  const ctPills = CT_ACTIVITIES.map(a => `
-    <span class="activity-pill${ctIds.includes(a.id) ? " active" : ""}" onclick="toggleCrossTraining('${a.id}')" id="ct-pill-${a.id}">
-      ${a.emoji} ${a.label}
-    </span>`).join("");
-
-  const ctDayBlocks = ct.map(a => {
-    const chips = WEEK_DAYS.map(d => {
-      const short = d.slice(0,2);
-      const active = (a.days || []).includes(d);
-      return `<span class="day-chip${active ? " active" : ""}" onclick="toggleCTDay('${a.id}','${d}')" id="ct-day-${a.id}-${d}">${short}</span>`;
-    }).join("");
-    return `<div class="ct-activity-block">
-      <div class="ct-activity-name">${a.emoji} ${a.label}</div>
-      <div class="ct-days-row">${chips}</div>
-    </div>`;
-  }).join("");
-
-  // Weekly override card (only if CT selected)
-  const overrideCard = ct.length > 0 ? `
-    <div class="card">
-      <div class="card-label">🔄 THIS WEEK EXCEPTIONS</div>
-      <p class="text-xs text-dim" style="margin-bottom:12px">Any changes to your cross-training this week?</p>
-      ${ct.map(a => `
-        <div class="override-row">
-          <span class="override-row-name">${a.emoji} ${a.label}</span>
-          <div class="skip-toggle">
-            <button class="skip-toggle-btn doing${!weeklySkip.includes(a.id) ? " active" : ""}" onclick="toggleSkipCT('${a.id}',false)">Doing ✓</button>
-            <button class="skip-toggle-btn skipping${weeklySkip.includes(a.id) ? " active" : ""}" onclick="toggleSkipCT('${a.id}',true)">Skipping ✗</button>
-          </div>
-        </div>`).join("")}
-    </div>` : "";
-
-  // Quality sessions card
-  const qualityCard = `
+  const qtypes = ["intervals","tempo","fartlek","hills"];
+  const qualityHtml = `
     <div class="card">
       <div class="card-label">⚡ QUALITY SESSIONS</div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <span class="text-sm" style="font-weight:500">Include quality/anaerobic sessions?</span>
-        <div class="skip-toggle">
-          <button class="skip-toggle-btn doing${qualityEnabled ? " active" : ""}" onclick="setQualityEnabled(true)">Yes</button>
-          <button class="skip-toggle-btn skipping${!qualityEnabled ? " active" : ""}" onclick="setQualityEnabled(false)">No</button>
-        </div>
-      </div>
-      ${qualityEnabled ? `
-      <div class="form-group" style="margin-bottom:12px">
-        <label class="form-label">Sessions per week: <span id="g-quality-sessions-val">${qualitySessions}</span></label>
-        <input id="g-quality-sessions" type="range" min="1" max="3" step="1" value="${qualitySessions}"
-          oninput="document.getElementById('g-quality-sessions-val').textContent=this.value;saveQualitySessions(this.value)"/>
-      </div>
       <div class="form-group">
-        <label class="form-label">Session Types</label>
-        <div class="quality-chips-wrap">
-          ${QUALITY_TYPES.map(t => `<span class="quality-chip${qualityTypes.includes(t) ? " active" : ""}" onclick="toggleQualityType('${t}')" id="qt-${t}">${t}</span>`).join("")}
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+          <input type="checkbox" id="g-quality-enabled" ${qualityEnabled ? "checked" : ""}
+            onchange="toggleQualitySection(this.checked)" style="accent-color:var(--orange);width:18px;height:18px"/>
+          <span style="font-size:14px;font-weight:600">Include speed/interval training</span>
+        </label>
+      </div>
+      <div id="quality-details" style="display:${qualityEnabled ? "block" : "none"}">
+        <div class="form-group" style="margin-top:12px">
+          <label class="form-label">Quality sessions per week: <span id="g-quality-sessions-val">${qualitySessions}</span></label>
+          <input id="g-quality-sessions" type="range" min="1" max="3" step="1" value="${qualitySessions}"
+            oninput="document.getElementById('g-quality-sessions-val').textContent=this.value"/>
         </div>
-      </div>` : ""}
+        <div class="form-group" style="margin-top:12px">
+          <label class="form-label">Session types</label>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">
+            ${qtypes.map(qt => `
+              <button class="quality-chip${qualityTypes.includes(qt) ? " selected" : ""}"
+                onclick="toggleQualityType('${qt}')" id="qchip-${qt}">
+                ${qt.charAt(0).toUpperCase()+qt.slice(1)}
+              </button>`).join("")}
+          </div>
+        </div>
+      </div>
     </div>`;
+
+  const skipCt = s.weekly_skip_ct || [];
+  const weeklyExceptionsHtml = ct.length > 0 ? `
+    <div class="card">
+      <div class="card-label">🔄 THIS WEEK EXCEPTIONS</div>
+      <div class="info-box" style="margin-bottom:14px">Tell the coach if you're skipping a usual activity this week — it may free up a slot for a run</div>
+      ${ct.map(act => {
+        const isSkipped = skipCt.includes(act.id);
+        return `<div class="ct-item">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:14px;font-weight:600">${act.emoji} ${act.label}</span>
+            <div class="skip-toggle">
+              <button class="skip-btn${!isSkipped ? " active-doing" : ""}"
+                onclick="setSkipCT('${act.id}', false)">Doing it ✓</button>
+              <button class="skip-btn${isSkipped ? " active-skip" : ""}"
+                onclick="setSkipCT('${act.id}', true)">Skipping ✗</button>
+            </div>
+          </div>
+        </div>`;
+      }).join("")}
+    </div>` : "";
 
   el.innerHTML = `
     <div class="page-title">Training Goals</div>
@@ -567,15 +534,9 @@ function renderGoals() {
       ${d2r !== null ? `<div class="info-box">📅 ${d2r >= 0 ? `${d2r} days to race` : `Race was ${Math.abs(d2r)} days ago`}</div>` : ""}
     </div>
 
-    <div class="card">
-      <div class="card-label">💪 CROSS-TRAINING</div>
-      <p class="text-xs text-dim" style="margin-bottom:10px">Select activities you do regularly. The AI coach will plan around them.</p>
-      <div class="activity-pills-wrap">${ctPills}</div>
-      ${ct.length > 0 ? `<div style="margin-top:4px">${ctDayBlocks}</div>` : ""}
-    </div>
-
-    ${overrideCard}
-    ${qualityCard}
+    ${ctHtml}
+    ${qualityHtml}
+    ${weeklyExceptionsHtml}
 
     <button class="btn btn-green" onclick="saveGoalsAndGenerate()" style="margin-bottom:10px">⚡ Save &amp; Generate Plan</button>
     <button class="btn btn-ghost" onclick="saveGoalsOnly()">💾 Save Goals Only</button>
@@ -607,79 +568,171 @@ function renderGoals() {
   `;
 }
 
-// ── Cross-Training Handlers ───────────────────────────────────────────────────
+// ── Cross-Training helpers ────────────────────────────────────────────────────
+
+function _renderCTSection(ct) {
+  const selectedIds = ct.map(a => a.id);
+  const dayNames = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+
+  const pillsHtml = CROSS_TRAINING_ACTIVITIES.map(act => `
+    <button class="activity-pill${selectedIds.includes(act.id) ? " selected" : ""}"
+      onclick="toggleCrossTraining('${act.id}')" id="ct-pill-${act.id}">
+      ${act.emoji} ${act.label}
+    </button>`).join("");
+
+  const selectedActivities = ct.filter(a => CROSS_TRAINING_ACTIVITIES.find(x => x.id === a.id));
+  const dayPickersHtml = selectedActivities.map(act => {
+    const actDef = CROSS_TRAINING_ACTIVITIES.find(x => x.id === act.id);
+    const selectedDays = act.days || [];
+    const chips = dayNames.map(d => `
+      <button class="day-chip${selectedDays.includes(d) ? " selected" : ""}"
+        onclick="toggleCTDay('${act.id}','${d}')" id="ctday-${act.id}-${d}">
+        ${d.slice(0,3)}
+      </button>`).join("");
+    return `<div class="ct-item">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px">${actDef ? actDef.emoji : ""} ${act.label} — which days?</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${chips}</div>
+    </div>`;
+  }).join("");
+
+  return `
+    <div class="card" id="ct-card">
+      <div class="card-label">💪 CROSS-TRAINING</div>
+      <div class="activity-pill-grid" id="ct-pills">${pillsHtml}</div>
+      <div id="ct-day-pickers">${dayPickersHtml}</div>
+    </div>`;
+}
 
 function toggleCrossTraining(id) {
   const s = getSettings();
   let ct = s.cross_training || [];
-  const existing = ct.find(a => a.id === id);
-  if (existing) {
-    ct = ct.filter(a => a.id !== id);
-    // Also remove from skip list
-    const skip = (s.weekly_skip_ct || []).filter(x => x !== id);
-    saveSettings({ cross_training: ct, weekly_skip_ct: skip });
+  const idx = ct.findIndex(a => a.id === id);
+  if (idx >= 0) {
+    ct.splice(idx, 1);
   } else {
-    const def = CT_ACTIVITIES.find(a => a.id === id);
-    ct = [...ct, { id: def.id, label: def.label, emoji: def.emoji, days: [] }];
-    saveSettings({ cross_training: ct });
+    const def = CROSS_TRAINING_ACTIVITIES.find(a => a.id === id);
+    if (def) ct.push({ id: def.id, label: def.label, emoji: def.emoji, days: [] });
   }
-  renderGoals();
+  saveSettings({ cross_training: ct });
+
+  // Re-render just the CT card contents
+  const card = document.getElementById("ct-card");
+  if (card) {
+    const newHtml = _renderCTSection(ct);
+    const tmp = document.createElement("div");
+    tmp.innerHTML = newHtml;
+    card.innerHTML = tmp.querySelector("#ct-card").innerHTML;
+  }
+
+  // Re-render weekly exceptions if visible
+  _rerenderWeeklyExceptions();
 }
 
 function toggleCTDay(actId, day) {
   const s = getSettings();
-  const ct = (s.cross_training || []).map(a => {
-    if (a.id !== actId) return a;
-    const days = a.days || [];
-    const newDays = days.includes(day) ? days.filter(d => d !== day) : [...days, day];
-    return { ...a, days: newDays };
-  });
-  saveSettings({ cross_training: ct });
-  // Update chip visually without full re-render
-  const chip = document.getElementById(`ct-day-${actId}-${day}`);
-  if (chip) {
-    const act = ct.find(a => a.id === actId);
-    const active = act?.days?.includes(day);
-    chip.classList.toggle("active", !!active);
-  }
-}
-
-// ── Weekly Override Handlers ─────────────────────────────────────────────────
-
-function toggleSkipCT(id, skip) {
-  const s = getSettings();
-  let arr = s.weekly_skip_ct || [];
-  if (skip) {
-    if (!arr.includes(id)) arr = [...arr, id];
+  let ct = s.cross_training || [];
+  const act = ct.find(a => a.id === actId);
+  if (!act) return;
+  const dayIdx = act.days.indexOf(day);
+  if (dayIdx >= 0) {
+    act.days.splice(dayIdx, 1);
   } else {
-    arr = arr.filter(x => x !== id);
+    act.days.push(day);
   }
-  saveSettings({ weekly_skip_ct: arr });
-  // Update buttons visually
-  const doing = document.querySelector(`[onclick="toggleSkipCT('${id}',false)"]`);
-  const skipping = document.querySelector(`[onclick="toggleSkipCT('${id}',true)"]`);
-  if (doing) doing.classList.toggle("active", !skip);
-  if (skipping) skipping.classList.toggle("active", skip);
+  saveSettings({ cross_training: ct });
+
+  // Update chip styling only
+  const btn = document.getElementById(`ctday-${actId}-${day}`);
+  if (btn) {
+    btn.classList.toggle("selected", act.days.includes(day));
+  }
 }
 
-// ── Quality Session Handlers ─────────────────────────────────────────────────
+function _rerenderWeeklyExceptions() {
+  // Find the weekly exceptions card and re-render it
+  const s = getSettings();
+  const ct = s.cross_training || [];
+  const skipCt = s.weekly_skip_ct || [];
 
-function setQualityEnabled(val) {
-  saveSettings({ quality_enabled: val });
-  renderGoals();
+  // Look for existing exceptions card and update
+  const cards = document.querySelectorAll(".card");
+  let exceptCard = null;
+  cards.forEach(c => {
+    if (c.querySelector(".card-label")?.textContent?.includes("THIS WEEK EXCEPTIONS")) {
+      exceptCard = c;
+    }
+  });
+
+  if (ct.length === 0 && exceptCard) {
+    exceptCard.remove();
+    return;
+  }
+
+  if (ct.length > 0) {
+    const newCardHtml = `
+      <div class="card-label">🔄 THIS WEEK EXCEPTIONS</div>
+      <div class="info-box" style="margin-bottom:14px">Tell the coach if you're skipping a usual activity this week — it may free up a slot for a run</div>
+      ${ct.map(act => {
+        const isSkipped = skipCt.includes(act.id);
+        return `<div class="ct-item">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:14px;font-weight:600">${act.emoji} ${act.label}</span>
+            <div class="skip-toggle">
+              <button class="skip-btn${!isSkipped ? " active-doing" : ""}"
+                onclick="setSkipCT('${act.id}', false)">Doing it ✓</button>
+              <button class="skip-btn${isSkipped ? " active-skip" : ""}"
+                onclick="setSkipCT('${act.id}', true)">Skipping ✗</button>
+            </div>
+          </div>
+        </div>`;
+      }).join("")}`;
+    if (exceptCard) {
+      exceptCard.innerHTML = newCardHtml;
+    }
+  }
 }
 
-function saveQualitySessions(val) {
-  saveSettings({ quality_sessions: parseInt(val) });
+function toggleQualitySection(enabled) {
+  const el = document.getElementById("quality-details");
+  if (el) el.style.display = enabled ? "block" : "none";
+  const s = getSettings();
+  saveSettings({ quality_enabled: enabled });
 }
 
-function toggleQualityType(type) {
+function toggleQualityType(qt) {
   const s = getSettings();
   let types = s.quality_types || [];
-  types = types.includes(type) ? types.filter(t => t !== type) : [...types, type];
+  const idx = types.indexOf(qt);
+  if (idx >= 0) {
+    types.splice(idx, 1);
+  } else {
+    types.push(qt);
+  }
   saveSettings({ quality_types: types });
-  const chip = document.getElementById(`qt-${type}`);
-  if (chip) chip.classList.toggle("active", types.includes(type));
+  const btn = document.getElementById(`qchip-${qt}`);
+  if (btn) btn.classList.toggle("selected", types.includes(qt));
+}
+
+function setSkipCT(actId, skip) {
+  const s = getSettings();
+  let skipCt = s.weekly_skip_ct || [];
+  const idx = skipCt.indexOf(actId);
+  if (skip && idx < 0) {
+    skipCt.push(actId);
+  } else if (!skip && idx >= 0) {
+    skipCt.splice(idx, 1);
+  }
+  saveSettings({ weekly_skip_ct: skipCt });
+
+  // Update button styling
+  const doingBtn = document.querySelector(`[onclick="setSkipCT('${actId}', false)"]`);
+  const skipBtn = document.querySelector(`[onclick="setSkipCT('${actId}', true)"]`);
+  if (doingBtn) {
+    doingBtn.className = `skip-btn${!skip ? " active-doing" : ""}`;
+  }
+  if (skipBtn) {
+    skipBtn.className = `skip-btn${skip ? " active-skip" : ""}`;
+  }
 }
 
 function updateDayLabel(cb) {
@@ -691,11 +744,6 @@ function updateDayLabel(cb) {
     label.style.borderColor = "var(--border)";
     label.style.color = "var(--text-dim)";
   }
-  document.querySelector(".text-xs.text-dim[style*='margin-top:2px']") &&
-    (document.getElementById("g-sessions-val") &&
-      document.querySelector(`[for="g-sessions"] + * + .text-xs`) &&
-      (document.querySelector(".form-group .text-xs.text-dim").textContent =
-        `AI will pick the best ${document.getElementById("g-sessions").value} days from your selected days above`));
 }
 
 function _getSelectedDays() {
@@ -712,26 +760,25 @@ function saveGoalsOnly() {
 async function saveGoalsAndGenerate() {
   const fields = _saveGoalFields();
   showToast("✅ Goals saved — generating plan…");
-  const s = getSettings();
   const ok = await triggerWorkflow("weekly-plan.yml", {
-    start_date:        fields.start_date || "",
-    run_days:          fields.run_days.join(","),
+    start_date:       fields.start_date || "",
+    run_days:         fields.run_days.join(","),
     sessions_per_week: String(fields.sessions_per_week),
-    weekly_hours:      String(fields.weekly_hours),
-    training_goal:     fields.goal || "",
-    target_time:       fields.target_time || "",
-    race_name:         fields.race_name || "",
-    race_date:         fields.race_date || "",
-    cross_training:    JSON.stringify(s.cross_training || []),
-    weekly_skip_ct:    JSON.stringify(s.weekly_skip_ct || []),
-    quality_enabled:   String(s.quality_enabled || false),
-    quality_sessions:  String(s.quality_sessions || 2),
-    quality_types:     (s.quality_types || []).join(","),
+    weekly_hours:     String(fields.weekly_hours),
+    training_goal:    fields.goal || "",
+    target_time:      fields.target_time || "",
+    race_name:        fields.race_name || "",
+    race_date:        fields.race_date || "",
+    cross_training:   JSON.stringify(fields.cross_training || []),
+    quality_sessions: fields.quality_enabled ? String(fields.quality_sessions || 2) : "0",
+    quality_types:    (fields.quality_types || []).join(","),
+    weekly_skip_ct:   (fields.weekly_skip_ct || []).join(","),
   });
   if (ok) showToast("✅ Plan generating — reload in ~90s");
 }
 
 function _saveGoalFields() {
+  const s = getSettings();
   const fields = {
     goal:              document.getElementById("g-goal").value,
     race_name:         document.getElementById("g-race-name").value,
@@ -741,6 +788,12 @@ function _saveGoalFields() {
     run_days:          _getSelectedDays(),
     sessions_per_week: parseInt(document.getElementById("g-sessions").value),
     weekly_hours:      parseFloat(document.getElementById("g-hours").value),
+    // Cross-training: read from current settings (updated in real time by toggleCrossTraining/toggleCTDay)
+    cross_training:    (getSettings()).cross_training || [],
+    quality_enabled:   document.getElementById("g-quality-enabled")?.checked || false,
+    quality_sessions:  parseInt(document.getElementById("g-quality-sessions")?.value || "2"),
+    quality_types:     (getSettings()).quality_types || [],
+    weekly_skip_ct:    (getSettings()).weekly_skip_ct || [],
   };
   saveSettings(fields);
   return fields;
@@ -788,8 +841,15 @@ async function syncFromStrava() {
 
 // ── Day Modal ─────────────────────────────────────────────────────────────────
 
-function openDayModal(i) {
-  const day = currentPlan?.days?.[i];
+function openDayModal(i, weekOffset) {
+  weekOffset = weekOffset || 0;
+  let days;
+  if (weekOffset > 0 && currentPlan?.weeks?.[weekOffset]) {
+    days = currentPlan.weeks[weekOffset].days;
+  } else {
+    days = currentPlan?.days;
+  }
+  const day = days?.[i];
   if (!day) return;
   const key = intensityKey(day.intensity);
   document.getElementById("day-modal-body").innerHTML = `

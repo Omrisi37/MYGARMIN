@@ -22,15 +22,6 @@ def _parse_run_days(raw):
         return []
     return [d.strip() for d in raw.split(",") if d.strip()]
 
-def _parse_json_env(key, default):
-    raw = os.environ.get(key, "")
-    if not raw or raw.strip() in ("", "[]", "{}"):
-        return default
-    try:
-        return json.loads(raw)
-    except Exception:
-        return default
-
 TRAINING_CONFIG = {
     "goal":                os.environ.get("TRAINING_GOAL") or "Marathon",
     "target_time":         os.environ.get("TARGET_TIME") or "",
@@ -40,11 +31,10 @@ TRAINING_CONFIG = {
     "start_date":          os.environ.get("START_DATE") or None,
     "run_days":            _parse_run_days(os.environ.get("RUN_DAYS") or ""),
     "sessions_per_week":   int(os.environ.get("SESSIONS_PER_WEEK") or "4"),
-    "cross_training":      _parse_json_env("CROSS_TRAINING", []),
-    "weekly_skip_ct":      _parse_json_env("WEEKLY_SKIP_CT", []),
-    "quality_enabled":     os.environ.get("QUALITY_ENABLED", "false").lower() == "true",
-    "quality_sessions":    int(os.environ.get("QUALITY_SESSIONS") or "2"),
+    "cross_training":      json.loads(os.environ.get("CROSS_TRAINING") or "[]"),
+    "quality_sessions":    int(os.environ.get("QUALITY_SESSIONS") or "0"),
     "quality_types":       [t.strip() for t in (os.environ.get("QUALITY_TYPES") or "").split(",") if t.strip()],
+    "weekly_skip_ct":      [t.strip() for t in (os.environ.get("WEEKLY_SKIP_CT") or "").split(",") if t.strip()],
 }
 
 
@@ -70,10 +60,18 @@ def build_user_message(strava_data: dict, config: dict) -> str:
     else:
         week_start = today - timedelta(days=today.weekday())  # Monday
 
-    days_of_week = []
-    for i in range(7):
-        d = week_start + timedelta(days=i)
-        days_of_week.append({"day": d.strftime("%A"), "date": d.strftime("%Y-%m-%d")})
+    # Generate 4 weeks of dates
+    all_weeks_dates = []
+    for w in range(4):
+        ws = week_start + timedelta(weeks=w)
+        week_days = [
+            {
+                "day": (ws + timedelta(days=i)).strftime("%A"),
+                "date": (ws + timedelta(days=i)).strftime("%Y-%m-%d")
+            }
+            for i in range(7)
+        ]
+        all_weeks_dates.append({"week": w + 1, "days": week_days})
 
     run_days = config.get("run_days") or []
     sessions = config.get("sessions_per_week") or 4
@@ -82,169 +80,79 @@ def build_user_message(strava_data: dict, config: dict) -> str:
     if run_days:
         schedule_note = f"- Preferred running days: {', '.join(run_days)}\n- Sessions per week: {sessions} (choose the best {sessions} from the preferred days above — assign rest to the others)"
 
-    # Cross-training notes
-    ct = config.get("cross_training") or []
-    skip_ct = config.get("weekly_skip_ct") or []
-    ct_note = ""
-    if ct:
-        ct_lines = []
-        for a in ct:
-            days_str = ", ".join(a.get("days", [])) if a.get("days") else "days not specified"
-            skip_note = " (SKIPPING THIS WEEK)" if a["id"] in skip_ct else ""
-            ct_lines.append(f"  - {a['label']}: {days_str}{skip_note}")
-        ct_note = "## Cross-Training Activities (already scheduled — do not add running on these days)\n" + "\n".join(ct_lines)
-
-    # Quality sessions notes
-    quality_note = ""
-    if config.get("quality_enabled"):
-        types = ", ".join(config.get("quality_types") or []) or "any"
-        quality_note = f"## Quality Sessions\nInclude {config['quality_sessions']} quality/anaerobic session(s) per week. Preferred types: {types}."
-
     return f"""
 ## Athlete Profile
 - Goal: {config['goal']}
 {f"- Race: {config['race_name']}" if config.get('race_name') else ""}
 {f"- Target time: {config['target_time']}" if config.get('target_time') else ""}
 - Weekly time budget: {config['weekly_hours_budget']} hours
-- Target week: {week_start.strftime('%Y-%m-%d')} to {(week_start + timedelta(days=6)).strftime('%Y-%m-%d')}
+- Plan start: {week_start.strftime('%Y-%m-%d')} (4-week block)
 {f"- Weeks until race: {weeks_left}" if weeks_left is not None else "- No specific race date set"}
 {schedule_note}
-
-{ct_note}
-
-{quality_note}
-
-## Last 14 Days of Training (from Strava)
-{json.dumps(strava_data, indent=2)}
-
-## Week Schedule to Fill
-{json.dumps(days_of_week, indent=2)}
-
-## Instructions
-Generate the complete 7-day training plan for the week above.
-- Respect the athlete's time budget ({config['weekly_hours_budget']} hrs/week)
-- Apply polarized training (80% easy, 20% hard)
-- Adapt intensity based on recent training load and fatigue signals
-- Include exact dates from the week schedule provided
-- On days with cross-training activities, assign "Cross-Training" or "Rest" (not a run), unless the athlete is skipping that activity this week
-- If quality sessions are enabled, include the specified number of hard/interval/tempo workouts
-- Return ONLY valid JSON matching the schema in your system prompt
-"""
-
-
-def save_plan(plan: dict):
-    data_dir = Path(__file__).parent.parent / "frontend" / "data"
-    data_dir.mkdir(exist_ok=True)
-    plan_path = data_dir / "plan.json"
-
-    # Keep last plan as backup
-    if plan_path.exists():
-        backup_path = data_dir / f"plan_{datetime.today().strftime('%Y%m%d')}_backup.json"
-        backup_path.write_text(plan_path.read_text())
-
-    plan["generated_at"] = datetime.utcnow().isoformat() + "Z"
-    plan["status"] = "pending_approval"
-
-    # Backward-compat: if 4-week format, copy week 1 fields to top level
-    if "weeks" in plan and plan["weeks"]:
-        w1 = plan["weeks"][0]
-        for field in ("week_number", "phase", "weekly_summary", "total_distance_km",
-                      "aerobic_percent", "anaerobic_percent", "days", "coaching_notes",
-                      "recovery_flags", "next_week_preview"):
-            if field in w1 and field not in plan:
-                plan[field] = w1[field]
-
-    plan_path.write_text(json.dumps(plan, indent=2))
-    print(f"Plan saved to {plan_path}")
-
-
-def build_four_week_message(strava_data: dict, config: dict) -> str:
-    """Build user message asking Claude for a full 4-week plan."""
-    weeks_left = weeks_to_race(config.get("race_date"))
-    today = datetime.today()
-
-    if config.get("start_date"):
-        week_start = datetime.strptime(config["start_date"], "%Y-%m-%d")
-    else:
-        week_start = today - timedelta(days=today.weekday())
-
-    # Build 4 weeks of dates
-    four_weeks = []
-    for w in range(4):
-        ws = week_start + timedelta(weeks=w)
-        days_of_week = []
-        for i in range(7):
-            d = ws + timedelta(days=i)
-            days_of_week.append({"day": d.strftime("%A"), "date": d.strftime("%Y-%m-%d")})
-        four_weeks.append({"week": w + 1, "days": days_of_week})
-
-    run_days = config.get("run_days") or []
-    sessions = config.get("sessions_per_week") or 4
-    schedule_note = ""
-    if run_days:
-        schedule_note = f"- Preferred running days: {', '.join(run_days)}\n- Sessions per week: {sessions}"
-
-    ct = config.get("cross_training") or []
-    skip_ct = config.get("weekly_skip_ct") or []
-    ct_note = ""
-    if ct:
-        ct_lines = []
-        for a in ct:
-            days_str = ", ".join(a.get("days", [])) if a.get("days") else "days not specified"
-            skip_note = " (SKIPPING WEEK 1)" if a["id"] in skip_ct else ""
-            ct_lines.append(f"  - {a['label']}: {days_str}{skip_note}")
-        ct_note = "## Cross-Training Activities\n" + "\n".join(ct_lines)
-
-    quality_note = ""
-    if config.get("quality_enabled"):
-        types = ", ".join(config.get("quality_types") or []) or "any"
-        quality_note = f"## Quality Sessions\nInclude {config['quality_sessions']} quality session(s) per week. Preferred types: {types}."
-
-    return f"""
-## Athlete Profile
-- Goal: {config['goal']}
-{f"- Race: {config['race_name']}" if config.get('race_name') else ""}
-{f"- Target time: {config['target_time']}" if config.get('target_time') else ""}
-- Weekly time budget: {config['weekly_hours_budget']} hours
-{f"- Weeks until race: {weeks_left}" if weeks_left is not None else "- No specific race date set"}
-{schedule_note}
-
-{ct_note}
-
-{quality_note}
 
 ## Last 14 Days of Training (from Strava)
 {json.dumps(strava_data, indent=2)}
 
 ## 4-Week Schedule to Fill
-{json.dumps(four_weeks, indent=2)}
+{json.dumps(all_weeks_dates, indent=2)}
+
+## Cross-Training Schedule
+{json.dumps(config.get('cross_training', []), indent=2) if config.get('cross_training') else "None"}
+
+## Quality Sessions Requested
+- Quality sessions per week: {config['quality_sessions']} (0 = only easy/tempo based on plan)
+- Types preferred: {', '.join(config['quality_types']) if config['quality_types'] else 'Coach decides'}
+
+## This Week Exceptions (Week 1)
+Skipping cross-training: {', '.join(config['weekly_skip_ct']) if config['weekly_skip_ct'] else 'None — all usual activities happening'}
 
 ## Instructions
-Generate a complete 4-week periodized training plan.
-- Apply progressive overload: build volume weeks 1-3, recovery/adaptation week 4
-- Respect the athlete's time budget and preferred days
+Generate the complete 4-week training plan for the block above.
+- Respect the athlete's time budget ({config['weekly_hours_budget']} hrs/week)
 - Apply polarized training (80% easy, 20% hard)
-- On cross-training days assign Rest/Cross-Training (not a run)
-- Return ONLY valid JSON in this exact format:
-{{
-  "coaching_overview": "2-3 sentence overview of the 4-week block",
-  "weeks": [
-    {{
-      "week_number": 1,
-      "phase": "Base Building",
-      "weekly_summary": "...",
-      "total_distance_km": 50.0,
-      "aerobic_percent": 82,
-      "anaerobic_percent": 18,
-      "days": [ ... same day schema as single-week format ... ],
-      "coaching_notes": "...",
-      "recovery_flags": [],
-      "next_week_preview": "..."
-    }},
-    ... (4 weeks total)
-  ]
-}}
+- Adapt intensity based on recent training load and fatigue signals
+- Include exact dates from the week schedule provided
+- Build progressively across the 4 weeks
+- Return ONLY valid JSON matching the schema in your system prompt
 """
+
+
+def save_plan(result: dict):
+    data_dir = Path(__file__).parent.parent / "frontend" / "data"
+    data_dir.mkdir(exist_ok=True)
+    plan_path = data_dir / "plan.json"
+
+    if plan_path.exists():
+        backup = data_dir / f"plan_{datetime.today().strftime('%Y%m%d')}_backup.json"
+        backup.write_text(plan_path.read_text())
+
+    # Build the plan object
+    weeks = result.get("weeks", [])
+    first_week = weeks[0] if weeks else {}
+
+    plan = {
+        # 4-week structure
+        "weeks": weeks,
+        "coaching_overview": result.get("coaching_overview", ""),
+        "total_plan_distance_km": result.get("total_plan_distance_km", 0),
+        # Backward compat — first week at top level
+        "week_number":       first_week.get("week_number", 1),
+        "phase":             first_week.get("phase", ""),
+        "weekly_summary":    first_week.get("weekly_summary", ""),
+        "total_distance_km": first_week.get("total_distance_km", 0),
+        "aerobic_percent":   first_week.get("aerobic_percent", 80),
+        "anaerobic_percent": first_week.get("anaerobic_percent", 20),
+        "coaching_notes":    first_week.get("coaching_notes", ""),
+        "recovery_flags":    first_week.get("recovery_flags", []),
+        "days":              first_week.get("days", []),
+        "strava_summary":    result.get("strava_summary", {}),
+        "strava_averages":   result.get("strava_averages", {}),
+        "generated_at":      datetime.utcnow().isoformat() + "Z",
+        "status":            "pending_approval",
+    }
+    plan_path.write_text(json.dumps(plan, indent=2))
+    print(f"Plan saved to {plan_path}")
+    return plan
 
 
 def generate_plan():
@@ -253,9 +161,9 @@ def generate_plan():
     print(f"Fetched {strava_data['totals'].get('runs', 0)} runs")
 
     system_prompt = load_prompt_template()
-    user_message = build_four_week_message(strava_data, TRAINING_CONFIG)
+    user_message = build_user_message(strava_data, TRAINING_CONFIG)
 
-    print("Calling Claude API for 4-week plan...")
+    print("Calling Claude API...")
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
     # Prompt caching: mark the large static methodology prompt as cacheable.
@@ -284,22 +192,17 @@ def generate_plan():
             raw = raw[4:]
     raw = raw.strip()
 
-    plan = json.loads(raw)
-    plan["strava_summary"] = strava_data["totals"]
-    plan["strava_averages"] = strava_data["averages"]
+    result = json.loads(raw)
+    result["strava_summary"] = strava_data["totals"]
+    result["strava_averages"] = strava_data["averages"]
 
-    save_plan(plan)
+    plan = save_plan(result)
     print("Done! Plan is saved and awaiting your approval in the dashboard.")
     return plan
 
 
 if __name__ == "__main__":
     plan = generate_plan()
-    if "weeks" in plan:
-        print(f"\n4-Week Plan generated: {plan.get('coaching_overview','')}")
-        for w in plan["weeks"]:
-            print(f"  Week {w.get('week_number')} ({w.get('phase')}): {w.get('total_distance_km')} km")
-    else:
-        print(f"\nWeek {plan.get('week_number')} — {plan.get('phase')}")
-        print(f"Total distance: {plan.get('total_distance_km')} km")
-        print(f"Aerobic: {plan.get('aerobic_percent')}% / Anaerobic: {plan.get('anaerobic_percent')}%")
+    print(f"\nWeek {plan.get('week_number')} — {plan.get('phase')}")
+    print(f"Total distance: {plan.get('total_distance_km')} km")
+    print(f"Aerobic: {plan.get('aerobic_percent')}% / Anaerobic: {plan.get('anaerobic_percent')}%")
