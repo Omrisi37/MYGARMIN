@@ -11,6 +11,8 @@ def get_access_token():
         "refresh_token": os.environ["STRAVA_REFRESH_TOKEN"],
         "grant_type":    "refresh_token",
     })
+    if not resp.ok:
+        print(f"Strava token error {resp.status_code}: {resp.text}")
     resp.raise_for_status()
     return resp.json()["access_token"]
 
