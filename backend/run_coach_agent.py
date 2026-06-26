@@ -144,6 +144,16 @@ def save_plan(plan: dict):
 
     plan["generated_at"] = datetime.utcnow().isoformat() + "Z"
     plan["status"] = "pending_approval"
+
+    # Backward-compat: if 4-week format, copy week 1 fields to top level
+    if "weeks" in plan and plan["weeks"]:
+        w1 = plan["weeks"][0]
+        for field in ("week_number", "phase", "weekly_summary", "total_distance_km",
+                      "aerobic_percent", "anaerobic_percent", "days", "coaching_notes",
+                      "recovery_flags", "next_week_preview"):
+            if field in w1 and field not in plan:
+                plan[field] = w1[field]
+
     plan_path.write_text(json.dumps(plan, indent=2))
     print(f"Plan saved to {plan_path}")
 
