@@ -1,10 +1,11 @@
 """
-Lightweight session sync — does NOT regenerate the full plan.
+Session sync + analytics refresh.
 
-Fetches the last 48h of Strava activities, matches each to the current
-plan day, marks it as completed with actual stats, and asks Claude for
-a brief session analysis. Only adjusts upcoming sessions if something
-was significantly off from what was planned.
+1. Marks recent Strava activities as completed in plan.json with actual stats
+   and a brief per-session coach analysis.
+2. Refreshes analytics.json with 8-week trend data and recommendations.
+
+Does NOT regenerate or overwrite the training plan.
 """
 import os
 import json
@@ -12,7 +13,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import anthropic
-from strava_client import get_access_token
+from strava_client import get_access_token, fetch_recent_activities
 
 import requests
 
@@ -210,6 +211,81 @@ Otherwise keep null."""
     return json.loads(raw.strip())
 
 
+def _build_weekly_buckets(activities):
+    buckets = {}
+    for act in activities:
+        date = datetime.strptime(act["date"], "%Y-%m-%d")
+        week_start = (date - timedelta(days=date.weekday())).strftime("%Y-%m-%d")
+        buckets.setdefault(week_start, []).append(act)
+    weeks = []
+    for ws in sorted(buckets.keys()):
+        runs = buckets[ws]
+        hrs  = [r["avg_hr"] for r in runs if r.get("avg_hr")]
+        weeks.append({
+            "week_start":  ws,
+            "runs":        len(runs),
+            "total_km":    round(sum(r["distance_km"] for r in runs), 1),
+            "total_hours": round(sum(r["duration_min"] for r in runs) / 60, 1),
+            "avg_hr":      round(sum(hrs) / len(hrs)) if hrs else None,
+            "vo2_max":     None,
+        })
+    return weeks
+
+
+def generate_analytics():
+    """Fetch 8 weeks of running data and produce analytics.json (no plan changes)."""
+    print("Generating analytics from last 8 weeks of Strava runs...")
+    activities = fetch_recent_activities(days=56)
+    if not activities:
+        print("No activities found — skipping analytics")
+        return
+
+    weeks = _build_weekly_buckets(activities)
+    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+
+    prompt = f"""You are an elite running coach analysing an athlete's last 8 weeks of Strava data.
+
+## Weekly data (running only)
+{json.dumps(weeks, indent=2)}
+
+## All activities (last 8 weeks)
+{json.dumps(activities[-30:], indent=2)}
+
+Analyse fitness trends, fatigue signals, and training load. Be specific and personal.
+
+Respond ONLY with valid JSON:
+{{
+  "fitness_trend": "improving|maintaining|declining",
+  "fatigue_level": "low|moderate|high|critical",
+  "acute_chronic_ratio": 1.05,
+  "hr_trend_bpm_per_week": -1.2,
+  "weekly_km_trend": "building|maintaining|tapering",
+  "key_observations": ["3 bullet points max, specific and data-driven"],
+  "warnings": [],
+  "recommendations": ["3 bullet points max, actionable"],
+  "weeks_analysis": {json.dumps([{{"week_start": w["week_start"], "total_km": w["total_km"], "avg_hr": w["avg_hr"], "assessment": "brief"}} for w in weeks], indent=2)}
+}}"""
+
+    response = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=1024,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    raw = response.content[0].text.strip()
+    if raw.startswith("```"):
+        raw = raw.split("```")[1]
+        if raw.startswith("json"):
+            raw = raw[4:]
+    data = json.loads(raw.strip())
+    data["generated_at"] = datetime.utcnow().isoformat() + "Z"
+    data["raw_weeks"] = weeks
+
+    out = Path(__file__).parent.parent / "frontend" / "data" / "analytics.json"
+    out.parent.mkdir(exist_ok=True)
+    out.write_text(json.dumps(data, indent=2))
+    print(f"Analytics saved to {out}")
+
+
 def sync_session():
     print("Fetching recent Strava activities (last 48h)...")
     activities = fetch_recent_all_activities(days=2)
@@ -274,6 +350,9 @@ def sync_session():
         print(f"✅ Marked {updated} session(s) complete with coach analysis")
     else:
         print("No new sessions to update")
+
+    # Always refresh analytics regardless of whether a new session was found
+    generate_analytics()
 
 
 if __name__ == "__main__":
