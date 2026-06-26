@@ -621,3 +621,183 @@ svg text { font-family: inherit; }
   }
   .today-grid-full { grid-column: 1 / -1; }
 }
+
+/* ── View Toggle (Week / 4-Week Plan) ─────────────────────────────────────── */
+.view-toggle {
+  display: flex;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  margin-bottom: 16px;
+  gap: 3px;
+}
+.view-toggle-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  background: none;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.view-toggle-btn.active {
+  background: var(--surface3);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+/* ── Month Week Cards ─────────────────────────────────────────────────────── */
+.month-week {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.month-week-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  cursor: pointer;
+  background: var(--surface2);
+  transition: background 0.15s;
+}
+.month-week-header:hover { background: var(--surface3); }
+.month-week-title { font-size: 14px; font-weight: 700; }
+.month-week-meta { font-size: 12px; color: var(--text-dim); }
+.month-week-chevron { color: var(--text-dim); font-size: 18px; transition: transform 0.2s; }
+.month-week.open .month-week-chevron { transform: rotate(90deg); }
+.month-week-body { display: none; padding: 14px 18px; }
+.month-week.open .month-week-body { display: block; }
+
+/* ── Activity Pills (Cross-Training) ─────────────────────────────────────── */
+.activity-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 13px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.activity-pill.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+.activity-pills-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+/* ── Day Chips (CT day selection) ─────────────────────────────────────────── */
+.day-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.day-chip.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+.ct-activity-block {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+.ct-activity-name { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+.ct-days-row { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* ── Skip Toggle (Weekly Override) ───────────────────────────────────────── */
+.skip-toggle {
+  display: flex;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  gap: 3px;
+  margin-left: auto;
+}
+.skip-toggle-btn {
+  padding: 5px 10px;
+  border-radius: 7px;
+  border: none;
+  background: none;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text-dim);
+  transition: background 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.skip-toggle-btn.doing { }
+.skip-toggle-btn.doing.active { background: var(--green-dim); color: var(--green); }
+.skip-toggle-btn.skipping.active { background: var(--red-dim); color: var(--red); }
+.override-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.override-row:last-child { border-bottom: none; }
+.override-row-name { flex: 1; font-weight: 500; }
+
+/* ── Quality Chips ────────────────────────────────────────────────────────── */
+.quality-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 14px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.quality-chip.active {
+  border-color: var(--orange);
+  color: var(--orange);
+  background: var(--orange-dim);
+}
+.quality-chips-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
