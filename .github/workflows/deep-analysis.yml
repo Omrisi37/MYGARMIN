@@ -43,6 +43,6 @@ jobs:
         run: |
           git config user.name "Running Coach Bot"
           git config user.email "bot@running-coach"
-          git add data/analytics.json data/plan.json data/plan_*_backup.json 2>/dev/null || true
+          git add frontend/data/analytics.json frontend/data/plan.json frontend/data/plan_*_backup.json 2>/dev/null || true
           git commit -m "Deep analysis: $(date +%Y-%m-%d)" || echo "No changes"
           git push
