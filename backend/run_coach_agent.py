@@ -158,22 +158,111 @@ def save_plan(plan: dict):
     print(f"Plan saved to {plan_path}")
 
 
+def build_four_week_message(strava_data: dict, config: dict) -> str:
+    """Build user message asking Claude for a full 4-week plan."""
+    weeks_left = weeks_to_race(config.get("race_date"))
+    today = datetime.today()
+
+    if config.get("start_date"):
+        week_start = datetime.strptime(config["start_date"], "%Y-%m-%d")
+    else:
+        week_start = today - timedelta(days=today.weekday())
+
+    # Build 4 weeks of dates
+    four_weeks = []
+    for w in range(4):
+        ws = week_start + timedelta(weeks=w)
+        days_of_week = []
+        for i in range(7):
+            d = ws + timedelta(days=i)
+            days_of_week.append({"day": d.strftime("%A"), "date": d.strftime("%Y-%m-%d")})
+        four_weeks.append({"week": w + 1, "days": days_of_week})
+
+    run_days = config.get("run_days") or []
+    sessions = config.get("sessions_per_week") or 4
+    schedule_note = ""
+    if run_days:
+        schedule_note = f"- Preferred running days: {', '.join(run_days)}\n- Sessions per week: {sessions}"
+
+    ct = config.get("cross_training") or []
+    skip_ct = config.get("weekly_skip_ct") or []
+    ct_note = ""
+    if ct:
+        ct_lines = []
+        for a in ct:
+            days_str = ", ".join(a.get("days", [])) if a.get("days") else "days not specified"
+            skip_note = " (SKIPPING WEEK 1)" if a["id"] in skip_ct else ""
+            ct_lines.append(f"  - {a['label']}: {days_str}{skip_note}")
+        ct_note = "## Cross-Training Activities\n" + "\n".join(ct_lines)
+
+    quality_note = ""
+    if config.get("quality_enabled"):
+        types = ", ".join(config.get("quality_types") or []) or "any"
+        quality_note = f"## Quality Sessions\nInclude {config['quality_sessions']} quality session(s) per week. Preferred types: {types}."
+
+    return f"""
+## Athlete Profile
+- Goal: {config['goal']}
+{f"- Race: {config['race_name']}" if config.get('race_name') else ""}
+{f"- Target time: {config['target_time']}" if config.get('target_time') else ""}
+- Weekly time budget: {config['weekly_hours_budget']} hours
+{f"- Weeks until race: {weeks_left}" if weeks_left is not None else "- No specific race date set"}
+{schedule_note}
+
+{ct_note}
+
+{quality_note}
+
+## Last 14 Days of Training (from Strava)
+{json.dumps(strava_data, indent=2)}
+
+## 4-Week Schedule to Fill
+{json.dumps(four_weeks, indent=2)}
+
+## Instructions
+Generate a complete 4-week periodized training plan.
+- Apply progressive overload: build volume weeks 1-3, recovery/adaptation week 4
+- Respect the athlete's time budget and preferred days
+- Apply polarized training (80% easy, 20% hard)
+- On cross-training days assign Rest/Cross-Training (not a run)
+- Return ONLY valid JSON in this exact format:
+{{
+  "coaching_overview": "2-3 sentence overview of the 4-week block",
+  "weeks": [
+    {{
+      "week_number": 1,
+      "phase": "Base Building",
+      "weekly_summary": "...",
+      "total_distance_km": 50.0,
+      "aerobic_percent": 82,
+      "anaerobic_percent": 18,
+      "days": [ ... same day schema as single-week format ... ],
+      "coaching_notes": "...",
+      "recovery_flags": [],
+      "next_week_preview": "..."
+    }},
+    ... (4 weeks total)
+  ]
+}}
+"""
+
+
 def generate_plan():
     print("Fetching Strava data...")
     strava_data = fetch_stats_summary(days=14)
     print(f"Fetched {strava_data['totals'].get('runs', 0)} runs")
 
     system_prompt = load_prompt_template()
-    user_message = build_user_message(strava_data, TRAINING_CONFIG)
+    user_message = build_four_week_message(strava_data, TRAINING_CONFIG)
 
-    print("Calling Claude API...")
+    print("Calling Claude API for 4-week plan...")
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
     # Prompt caching: mark the large static methodology prompt as cacheable.
     # On subsequent weekly runs the cache hit saves ~90% of input token cost.
     message = client.messages.create(
         model="claude-haiku-4-5-20251001",
-        max_tokens=4096,
+        max_tokens=8192,
         system=[
             {
                 "type": "text",
@@ -206,6 +295,11 @@ def generate_plan():
 
 if __name__ == "__main__":
     plan = generate_plan()
-    print(f"\nWeek {plan.get('week_number')} — {plan.get('phase')}")
-    print(f"Total distance: {plan.get('total_distance_km')} km")
-    print(f"Aerobic: {plan.get('aerobic_percent')}% / Anaerobic: {plan.get('anaerobic_percent')}%")
+    if "weeks" in plan:
+        print(f"\n4-Week Plan generated: {plan.get('coaching_overview','')}")
+        for w in plan["weeks"]:
+            print(f"  Week {w.get('week_number')} ({w.get('phase')}): {w.get('total_distance_km')} km")
+    else:
+        print(f"\nWeek {plan.get('week_number')} — {plan.get('phase')}")
+        print(f"Total distance: {plan.get('total_distance_km')} km")
+        print(f"Aerobic: {plan.get('aerobic_percent')}% / Anaerobic: {plan.get('anaerobic_percent')}%")
