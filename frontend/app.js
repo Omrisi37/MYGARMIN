@@ -35,9 +35,6 @@ function saveSettings(obj) {
   localStorage.setItem("rc_settings", JSON.stringify({ ...current, ...obj }));
 }
 
-function getGithubToken() {
-  return localStorage.getItem("rc_gh_token") || "";
-}
 
 // ── Navigation ────────────────────────────────────────────────────────────────
 
@@ -93,31 +90,25 @@ async function runDeepAnalysis() {
     garmin_password: s.garmin_password,
   });
   if (ok) showToast("🧠 Analysis running — check back in ~2 min");
-  else showToast("❌ Failed. Check your GitHub token.");
 }
 
 // ── Workflow Trigger ──────────────────────────────────────────────────────────
 
 async function triggerWorkflow(file, inputs = {}) {
-  const token = getGithubToken();
-  if (!token) {
-    showToast("⚠️ Add your GitHub token in Settings first");
-    navigate("settings");
+  try {
+    const res = await fetch("/api/trigger", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ workflow: file, inputs }),
+    });
+    const data = await res.json();
+    if (res.ok && data.ok) return true;
+    showToast("❌ " + (data.error || "Failed to trigger workflow"));
+    return false;
+  } catch {
+    showToast("❌ Network error — try again");
     return false;
   }
-  const res = await fetch(
-    `https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/${file}/dispatches`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `token ${token}`,
-        "Content-Type": "application/json",
-        Accept: "application/vnd.github+json",
-      },
-      body: JSON.stringify({ ref: "main", inputs }),
-    }
-  );
-  return res.status === 204;
 }
 
 async function generatePlan() {
@@ -133,7 +124,6 @@ async function generatePlan() {
     garmin_password: s.garmin_password,
   });
   if (ok) showToast("✅ Plan generating — check back in ~90s");
-  else showToast("❌ Failed. Check your GitHub token.");
 }
 
 // Build a Google Calendar "Add Event" URL for a single workout day
@@ -455,7 +445,6 @@ function renderApprove() {
 function renderSettings() {
   const el = document.getElementById("settings-content");
   const s = getSettings();
-  const token = getGithubToken();
   const d2r = daysToRace(s.race_date);
 
   el.innerHTML = `
@@ -508,18 +497,6 @@ function renderSettings() {
       </div>
     </div>
 
-    <!-- GitHub Token -->
-    <div class="settings-section">
-      <div class="settings-header"><span class="icon">🔑</span> GitHub Token</div>
-      <div class="settings-body">
-        <div class="form-group">
-          <label class="form-label">Personal Access Token (workflow scope)</label>
-          <input id="s-gh-token" class="form-input" type="password" placeholder="ghp_xxxxxxxxxxxx" value="${token||""}"/>
-        </div>
-        <div class="info-box">Needed to trigger plan generation and calendar sync. Create at github.com → Settings → Developer Settings → Personal access tokens → Fine-grained → workflow permission.</div>
-      </div>
-    </div>
-
     <!-- Google Calendar -->
     <div class="settings-section">
       <div class="settings-header"><span class="icon">📅</span> Google Calendar</div>
@@ -541,10 +518,8 @@ function saveAllSettings() {
   const hours = document.getElementById("s-hours").value;
   const garminEmail = document.getElementById("s-garmin-email").value;
   const garminPw = document.getElementById("s-garmin-pw").value;
-  const ghToken = document.getElementById("s-gh-token").value;
 
   saveSettings({ goal, race_name: raceName, race_date: raceDate, target_time: targetTime, weekly_hours: parseFloat(hours), garmin_email: garminEmail, garmin_password: garminPw });
-  if (ghToken) localStorage.setItem("rc_gh_token", ghToken);
 
   showToast("✅ Settings saved");
   renderSettings();
