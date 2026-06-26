@@ -20,7 +20,7 @@ export default async function handler(req, res) {
   }
 
   // Only allow known workflows (security: prevent arbitrary dispatch)
-  const allowed = ["weekly-plan.yml", "deep-analysis.yml"];
+  const allowed = ["weekly-plan.yml", "deep-analysis.yml", "sync-session.yml"];
   if (!allowed.includes(workflow)) {
     return res.status(400).json({ error: "Unknown workflow" });
   }
