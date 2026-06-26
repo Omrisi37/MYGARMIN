@@ -18,10 +18,11 @@ from garmin_client import fetch_stats_summary
 
 
 TRAINING_CONFIG = {
-    "goal": "Marathon",
-    "weekly_hours_budget": 7,
-    "current_weekly_km": 50,
-    "race_date": os.environ.get("RACE_DATE"),  # e.g. "2025-04-27"
+    "goal": os.environ.get("TRAINING_GOAL", "Marathon"),          # Marathon / Half Marathon / 10km
+    "target_time": os.environ.get("TARGET_TIME", ""),             # e.g. "3:45:00"
+    "race_name": os.environ.get("RACE_NAME", ""),                 # e.g. "Tel Aviv Marathon 2026"
+    "weekly_hours_budget": float(os.environ.get("WEEKLY_HOURS", "7")),
+    "race_date": os.environ.get("RACE_DATE"),
 }
 
 
@@ -47,10 +48,18 @@ def build_user_message(garmin_data: dict, config: dict) -> str:
         d = week_start + timedelta(days=i)
         days_of_week.append({"day": d.strftime("%A"), "date": d.strftime("%Y-%m-%d")})
 
+    goal_detail = {
+        "Marathon":      "Full marathon 42.2 km",
+        "Half Marathon": "Half marathon 21.1 km",
+        "10km":          "10 km race",
+    }.get(config['goal'], config['goal'])
+
     return f"""
 ## Athlete Profile
-- Goal: {config['goal']}
-- Weekly time budget: {config['weekly_hours_budget']} hours (~{config['weekly_hours_budget'] * 10} km equivalent)
+- Goal: {goal_detail}
+{f"- Race: {config['race_name']}" if config.get('race_name') else ""}
+{f"- Target time: {config['target_time']}" if config.get('target_time') else ""}
+- Weekly time budget: {config['weekly_hours_budget']} hours
 - Target week: {week_start.strftime('%Y-%m-%d')} to {(week_start + timedelta(days=6)).strftime('%Y-%m-%d')}
 {f"- Weeks until race: {weeks_left}" if weeks_left is not None else "- No specific race date set"}
 
