@@ -22,7 +22,25 @@
           "hr_zone": "\u2014",
           "description": "Recovery and preparation for week ahead.",
           "key_focus": "Recovery",
-          "notes": ""
+          "notes": "",
+          "completed": true,
+          "actual_stats": {
+            "distance_km": 6.31,
+            "duration_min": 39.0,
+            "avg_hr": null,
+            "avg_pace": "6:10",
+            "calories": null,
+            "elevation_m": 60.0,
+            "activity_name": "Evening Run",
+            "activity_type": "Run"
+          },
+          "coach_analysis": "You ran a solid 6.31 km at 6:10/km on a planned rest day\u2014this was a moderate-intensity effort when you should have been recovering. While the pace and duration aren't excessive, running on a designated rest day compromises the recovery and preparation you scheduled. Consider whether you felt compelled to run or if you can truly commit to rest days going forward.",
+          "execution_rating": "slightly-hard",
+          "coach_adjustment": {
+            "day": "next scheduled hard workout",
+            "change": "Consider reducing intensity by 5-10% or shortening duration by 5-10 minutes",
+            "reason": "Cumulative fatigue from skipping rest day may impact quality of your next key session"
+          }
         },
         {
           "day": "Friday",
@@ -35,7 +53,20 @@
           "hr_zone": "\u2014",
           "description": "Gym session (fixed commitment). Light strength or cross-training to complement running.",
           "key_focus": "Strength/Conditioning",
-          "notes": "Blocked cross-training day"
+          "notes": "Blocked cross-training day",
+          "completed": true,
+          "actual_stats": {
+            "distance_km": 0.0,
+            "duration_min": 48.6,
+            "avg_hr": 111.0,
+            "avg_pace": null,
+            "calories": null,
+            "elevation_m": 0,
+            "activity_name": "Afternoon Weight Training",
+            "activity_type": "WeightTraining"
+          },
+          "coach_analysis": "Good execution on your planned cross-training session\u201449 minutes of gym work with an average HR of 111 bpm shows you kept the intensity controlled and complementary to your running, exactly as intended. This moderate-intensity strength work will support your running economy and durability without creating excessive fatigue. Recovery should be straightforward; stay hydrated and get quality sleep tonight.",
+          "execution_rating": "on-plan"
         },
         {
           "day": "Saturday",
@@ -439,7 +470,25 @@
       "hr_zone": "\u2014",
       "description": "Recovery and preparation for week ahead.",
       "key_focus": "Recovery",
-      "notes": ""
+      "notes": "",
+      "completed": true,
+      "actual_stats": {
+        "distance_km": 6.31,
+        "duration_min": 39.0,
+        "avg_hr": null,
+        "avg_pace": "6:10",
+        "calories": null,
+        "elevation_m": 60.0,
+        "activity_name": "Evening Run",
+        "activity_type": "Run"
+      },
+      "coach_analysis": "You ran a solid 6.31 km at 6:10/km on a planned rest day\u2014this was a moderate-intensity effort when you should have been recovering. While the pace and duration aren't excessive, running on a designated rest day compromises the recovery and preparation you scheduled. Consider whether you felt compelled to run or if you can truly commit to rest days going forward.",
+      "execution_rating": "slightly-hard",
+      "coach_adjustment": {
+        "day": "next scheduled hard workout",
+        "change": "Consider reducing intensity by 5-10% or shortening duration by 5-10 minutes",
+        "reason": "Cumulative fatigue from skipping rest day may impact quality of your next key session"
+      }
     },
     {
       "day": "Friday",
@@ -452,7 +501,20 @@
       "hr_zone": "\u2014",
       "description": "Gym session (fixed commitment). Light strength or cross-training to complement running.",
       "key_focus": "Strength/Conditioning",
-      "notes": "Blocked cross-training day"
+      "notes": "Blocked cross-training day",
+      "completed": true,
+      "actual_stats": {
+        "distance_km": 0.0,
+        "duration_min": 48.6,
+        "avg_hr": 111.0,
+        "avg_pace": null,
+        "calories": null,
+        "elevation_m": 0,
+        "activity_name": "Afternoon Weight Training",
+        "activity_type": "WeightTraining"
+      },
+      "coach_analysis": "Good execution on your planned cross-training session\u201449 minutes of gym work with an average HR of 111 bpm shows you kept the intensity controlled and complementary to your running, exactly as intended. This moderate-intensity strength work will support your running economy and durability without creating excessive fatigue. Recovery should be straightforward; stay hydrated and get quality sleep tonight.",
+      "execution_rating": "on-plan"
     },
     {
       "day": "Saturday",
@@ -531,5 +593,6 @@
     "latest_vo2_max": null
   },
   "generated_at": "2026-06-26T18:31:48.697945Z",
-  "status": "pending_approval"
+  "status": "pending_approval",
+  "synced_at": "2026-06-26T18:37:45.129751Z"
 }

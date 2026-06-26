@@ -1,102 +1,63 @@
 {
-  "fitness_trend": "maintaining",
-  "fatigue_level": "moderate",
-  "acute_chronic_ratio": 0.65,
+  "fitness_trend": "declining",
+  "fatigue_level": "high",
+  "acute_chronic_ratio": null,
   "hr_trend_bpm_per_week": null,
   "weekly_km_trend": "tapering",
   "key_observations": [
-    "CRITICAL: Only 9 runs across 8 weeks (average 1.1 runs/week) \u2014 severely undertraining for marathon goal",
-    "Weekly volume collapsed from 23.6 km (Week 1) to 6.3-9.9 km (Weeks 5-8) \u2014 tapering pattern but without prior build phase",
-    "No HR data available \u2014 cannot assess cardiac drift, cardiac efficiency, or true aerobic adaptation",
-    "Pace consistency good (5:39\u20136:18 min/km range) \u2014 suggests no acute fatigue when running, but frequency inadequate",
-    "Total training time only 2.4 hrs/week average vs 7.0 hrs available \u2014 massive underutilization of weekly budget",
-    "No structured training observed: all runs appear easy/conversational pace, no tempo/threshold/VO2 work detected",
-    "VO2 max and training effect data missing \u2014 cannot verify fitness adaptations",
-    "Acute:Chronic ratio 0.65 indicates detraining phase, not periodized build"
+    "Severe volume collapse: 73% drop from Week 1 (23.6km) to Week 5 (6.3km) with only 1 run per week since May 13\u2014indicates injury recovery, detraining, or life disruption",
+    "Pace stability maintained (5:39\u20136:18 min/km) despite reduced volume suggests aerobic base preservation, but insufficient stimulus for fitness development",
+    "12-day gap (May 13\u2192May 29) and extended inactivity periods (May 19-28, June 11-21) disrupt training continuity and aerobic adaptations"
   ],
   "warnings": [
-    "SEVERE UNDERTRAINING: Current volume (9.9 km/week) is insufficient for marathon preparation",
-    "NO HR MONITORING: Cannot diagnose overtraining, fatigue, or aerobic fitness improvements without heart rate data",
-    "MISSING INTENSITY: All runs appear Zone 2 easy pace \u2014 no structured threshold, VO2 max, or speed work",
-    "CONSISTENCY BREAKDOWN: Large gaps between runs (3-16 days) prevent physiological adaptation",
-    "RACE READINESS: At current pace, athlete will not be adequately prepared for marathon distance without immediate volume increase"
+    "Acute detraining risk: 8 weeks of sub-threshold volume will erode VO2max and race-specific fitness if this pattern continues",
+    "Inconsistent commitment: average 1.5 runs/week with irregular scheduling suggests external constraints (injury, illness, motivation) requiring direct assessment",
+    "No heart rate data available: inability to monitor intensity, recovery, or aerobic drift limits coaching precision"
   ],
   "recommendations": [
-    "URGENT: Establish consistent 5-6 runs per week structure to reach 7-hour weekly time budget",
-    "Enable heart rate monitoring (chest strap or wrist-based device) for all future runs \u2014 critical for coaching decisions",
-    "Build volume gradually: target 40-50 km/week over next 4 weeks before entering sustained build phase",
-    "Introduce 1 tempo/threshold run per week (20-30 min at 85-90% max effort) once base volume established",
-    "Add 1 long run per week, building from 12 km to 20+ km over 8-12 weeks",
-    "Maintain 80% easy/Zone 2 pace; 20% tempo/VO2/speed work once aerobic base rebuilt",
-    "Establish a 16-week marathon training block with clear build \u2192 peak \u2192 taper phases",
-    "Re-assess fitness after 4 weeks of consistent training with HR data"
+    "Conduct injury/health screening: determine if tapering is intentional (pre-race) or forced (pain/illness). If forced, return to 3\u20134 runs/week at 70% aerobic intensity once cleared",
+    "Rebuild structured consistency: establish fixed run days (e.g., Mon/Wed/Fri + long run Sunday) with 20\u201325km weekly minimum to halt fitness decay",
+    "Enable HR monitoring: sync chest strap or enable wrist HR on device to quantify intensity zones and prevent drift toward all easy/all hard pacing"
   ],
   "weeks_analysis": [
     {
       "week_start": "2026-05-04",
       "total_km": 23.6,
       "avg_hr": null,
-      "assessment": "baseline week, 3 runs, reasonable volume but insufficient for marathon prep",
-      "load_score": 45,
-      "notes": "Best week of training block; still only 24 km and 2.4 hours"
+      "assessment": "Strong baseline: 3 runs, solid aerobic volume, consistent 6+ min/km pace suggests fitness foundation intact"
     },
     {
       "week_start": "2026-05-11",
       "total_km": 13.7,
       "avg_hr": null,
-      "assessment": "drop in frequency, only 1 run, 42% volume decrease",
-      "load_score": 26,
-      "notes": "One long run (13.7 km) but insufficient stimulus for aerobic development"
-    },
-    {
-      "week_start": "2026-05-18",
-      "total_km": 0.0,
-      "avg_hr": null,
-      "assessment": "RECOVERY WEEK \u2014 no data, likely complete rest",
-      "load_score": 0,
-      "notes": "Week not included in data; inferred from gap"
+      "assessment": "First warning sign: 42% drop to single run. Possible injury onset or external disruption\u2014pace still solid (6:14/km on long run)"
     },
     {
       "week_start": "2026-05-25",
       "total_km": 9.5,
       "avg_hr": null,
-      "assessment": "return to training, 1 run only, 31% of Week 1 volume",
-      "load_score": 18,
-      "notes": "Single 9.5 km run after apparent gap; under-frequency"
+      "assessment": "Continued decline: 12-day gap before single 9.5km run. Detraining acceleration phase; frequency loss more concerning than volume"
     },
     {
       "week_start": "2026-06-01",
       "total_km": 7.2,
       "avg_hr": null,
-      "assessment": "minimal volume, 1 run, continuing detraining trend",
-      "load_score": 14,
-      "notes": "Only 7.2 km; pace still 6:12 but frequency too low"
+      "assessment": "Critical threshold crossed: single 7.2km run represents 70% loss from Week 1. Minimal stimulus for aerobic adaptation"
     },
     {
       "week_start": "2026-06-08",
       "total_km": 6.3,
       "avg_hr": null,
-      "assessment": "lowest volume week, 1 run, clear taper or detraining",
-      "load_score": 12,
-      "notes": "Below minimum weekly volume for marathon training"
-    },
-    {
-      "week_start": "2026-06-15",
-      "total_km": 0.0,
-      "avg_hr": null,
-      "assessment": "RECOVERY/GAP \u2014 no activities logged",
-      "load_score": 0,
-      "notes": "Week not in summary; inferred from date gaps"
+      "assessment": "Nadir: lowest volume (6.3km), but pace still 5:47/km\u2014suggests ability to run but unwillingness/inability to commit consistent frequency"
     },
     {
       "week_start": "2026-06-22",
       "total_km": 9.9,
       "avg_hr": null,
-      "assessment": "slight recovery, 2 runs, still below 10 km target",
-      "load_score": 19,
-      "notes": "Uptick to 2 runs; positive signal but volume inadequate"
+      "assessment": "Slight recovery attempt: 11-day gap, then 2 runs totaling 9.9km. Inconsistent but positive trend reversal if sustained"
     }
   ],
+  "generated_at": "2026-06-26T18:37:54.907288Z",
   "raw_weeks": [
     {
       "week_start": "2026-05-04",
@@ -104,48 +65,7 @@
       "total_km": 23.6,
       "total_hours": 2.4,
       "avg_hr": null,
-      "vo2_max": null,
-      "activities": [
-        {
-          "date": "2026-05-04",
-          "name": "Evening Run",
-          "distance_km": 6.63,
-          "duration_min": 41.8,
-          "avg_hr": null,
-          "max_hr": null,
-          "calories": null,
-          "elevation_gain_m": 76.0,
-          "avg_pace_min_km": "6:18",
-          "training_effect_aerobic": null,
-          "vo2_max": null
-        },
-        {
-          "date": "2026-05-06",
-          "name": "Evening Run",
-          "distance_km": 11.63,
-          "duration_min": 71.0,
-          "avg_hr": null,
-          "max_hr": null,
-          "calories": null,
-          "elevation_gain_m": 133.0,
-          "avg_pace_min_km": "6:06",
-          "training_effect_aerobic": null,
-          "vo2_max": null
-        },
-        {
-          "date": "2026-05-10",
-          "name": "Evening Run",
-          "distance_km": 5.31,
-          "duration_min": 30.0,
-          "avg_hr": null,
-          "max_hr": null,
-          "calories": null,
-          "elevation_gain_m": 49.0,
-          "avg_pace_min_km": "5:39",
-          "training_effect_aerobic": null,
-          "vo2_max": null
-        }
-      ]
+      "vo2_max": null
     },
     {
       "week_start": "2026-05-11",
@@ -153,22 +73,7 @@
       "total_km": 13.7,
       "total_hours": 1.4,
       "avg_hr": null,
-      "vo2_max": null,
-      "activities": [
-        {
-          "date": "2026-05-13",
-          "name": "Evening Run",
-          "distance_km": 13.67,
-          "duration_min": 85.4,
-          "avg_hr": null,
-          "max_hr": null,
-          "calories": null,
-          "elevation_gain_m": 129.0,
-          "avg_pace_min_km": "6:14",
-          "training_effect_aerobic": null,
-          "vo2_max": null
-        }
-      ]
+      "vo2_max": null
     },
     {
       "week_start": "2026-05-25",
@@ -176,22 +81,7 @@
       "total_km": 9.5,
       "total_hours": 1.0,
       "avg_hr": null,
-      "vo2_max": null,
-      "activities": [
-        {
-          "date": "2026-05-29",
-          "name": "Afternoon Run",
-          "distance_km": 9.5,
-          "duration_min": 58.8,
-          "avg_hr": null,
-          "max_hr": null,
-          "calories": null,
-          "elevation_gain_m": 107.0,
-          "avg_pace_min_km": "6:11",
-          "training_effect_aerobic": null,
-          "vo2_max": null
-        }
-      ]
+      "vo2_max": null
     },
     {
       "week_start": "2026-06-01",
@@ -199,22 +89,7 @@
       "total_km": 7.2,
       "total_hours": 0.7,
       "avg_hr": null,
-      "vo2_max": null,
-      "activities": [
-        {
-          "date": "2026-06-04",
-          "name": "Evening Run",
-          "distance_km": 7.23,
-          "duration_min": 44.9,
-          "avg_hr": null,
-          "max_hr": null,
-          "calories": null,
-          "elevation_gain_m": 81.0,
-          "avg_pace_min_km": "6:12",
-          "training_effect_aerobic": null,
-          "vo2_max": null
-        }
-      ]
+      "vo2_max": null
     },
     {
       "week_start": "2026-06-08",
@@ -222,22 +97,7 @@
       "total_km": 6.3,
       "total_hours": 0.6,
       "avg_hr": null,
-      "vo2_max": null,
-      "activities": [
-        {
-          "date": "2026-06-10",
-          "name": "Evening Run",
-          "distance_km": 6.32,
-          "duration_min": 36.6,
-          "avg_hr": null,
-          "max_hr": null,
-          "calories": null,
-          "elevation_gain_m": 62.0,
-          "avg_pace_min_km": "5:47",
-          "training_effect_aerobic": null,
-          "vo2_max": null
-        }
-      ]
+      "vo2_max": null
     },
     {
       "week_start": "2026-06-22",
@@ -245,155 +105,7 @@
       "total_km": 9.9,
       "total_hours": 1.0,
       "avg_hr": null,
-      "vo2_max": null,
-      "activities": [
-        {
-          "date": "2026-06-22",
-          "name": "Evening Run",
-          "distance_km": 3.62,
-          "duration_min": 21.2,
-          "avg_hr": null,
-          "max_hr": null,
-          "calories": null,
-          "elevation_gain_m": 41.0,
-          "avg_pace_min_km": "5:50",
-          "training_effect_aerobic": null,
-          "vo2_max": null
-        },
-        {
-          "date": "2026-06-25",
-          "name": "Evening Run",
-          "distance_km": 6.31,
-          "duration_min": 39.0,
-          "avg_hr": null,
-          "max_hr": null,
-          "calories": null,
-          "elevation_gain_m": 60.0,
-          "avg_pace_min_km": "6:10",
-          "training_effect_aerobic": null,
-          "vo2_max": null
-        }
-      ]
-    }
-  ],
-  "raw_activities": [
-    {
-      "date": "2026-05-04",
-      "name": "Evening Run",
-      "distance_km": 6.63,
-      "duration_min": 41.8,
-      "avg_hr": null,
-      "max_hr": null,
-      "calories": null,
-      "elevation_gain_m": 76.0,
-      "avg_pace_min_km": "6:18",
-      "training_effect_aerobic": null,
-      "vo2_max": null
-    },
-    {
-      "date": "2026-05-06",
-      "name": "Evening Run",
-      "distance_km": 11.63,
-      "duration_min": 71.0,
-      "avg_hr": null,
-      "max_hr": null,
-      "calories": null,
-      "elevation_gain_m": 133.0,
-      "avg_pace_min_km": "6:06",
-      "training_effect_aerobic": null,
-      "vo2_max": null
-    },
-    {
-      "date": "2026-05-10",
-      "name": "Evening Run",
-      "distance_km": 5.31,
-      "duration_min": 30.0,
-      "avg_hr": null,
-      "max_hr": null,
-      "calories": null,
-      "elevation_gain_m": 49.0,
-      "avg_pace_min_km": "5:39",
-      "training_effect_aerobic": null,
-      "vo2_max": null
-    },
-    {
-      "date": "2026-05-13",
-      "name": "Evening Run",
-      "distance_km": 13.67,
-      "duration_min": 85.4,
-      "avg_hr": null,
-      "max_hr": null,
-      "calories": null,
-      "elevation_gain_m": 129.0,
-      "avg_pace_min_km": "6:14",
-      "training_effect_aerobic": null,
-      "vo2_max": null
-    },
-    {
-      "date": "2026-05-29",
-      "name": "Afternoon Run",
-      "distance_km": 9.5,
-      "duration_min": 58.8,
-      "avg_hr": null,
-      "max_hr": null,
-      "calories": null,
-      "elevation_gain_m": 107.0,
-      "avg_pace_min_km": "6:11",
-      "training_effect_aerobic": null,
-      "vo2_max": null
-    },
-    {
-      "date": "2026-06-04",
-      "name": "Evening Run",
-      "distance_km": 7.23,
-      "duration_min": 44.9,
-      "avg_hr": null,
-      "max_hr": null,
-      "calories": null,
-      "elevation_gain_m": 81.0,
-      "avg_pace_min_km": "6:12",
-      "training_effect_aerobic": null,
-      "vo2_max": null
-    },
-    {
-      "date": "2026-06-10",
-      "name": "Evening Run",
-      "distance_km": 6.32,
-      "duration_min": 36.6,
-      "avg_hr": null,
-      "max_hr": null,
-      "calories": null,
-      "elevation_gain_m": 62.0,
-      "avg_pace_min_km": "5:47",
-      "training_effect_aerobic": null,
-      "vo2_max": null
-    },
-    {
-      "date": "2026-06-22",
-      "name": "Evening Run",
-      "distance_km": 3.62,
-      "duration_min": 21.2,
-      "avg_hr": null,
-      "max_hr": null,
-      "calories": null,
-      "elevation_gain_m": 41.0,
-      "avg_pace_min_km": "5:50",
-      "training_effect_aerobic": null,
-      "vo2_max": null
-    },
-    {
-      "date": "2026-06-25",
-      "name": "Evening Run",
-      "distance_km": 6.31,
-      "duration_min": 39.0,
-      "avg_hr": null,
-      "max_hr": null,
-      "calories": null,
-      "elevation_gain_m": 60.0,
-      "avg_pace_min_km": "6:10",
-      "training_effect_aerobic": null,
       "vo2_max": null
     }
-  ],
-  "generated_at": "2026-06-26T18:24:04.684052Z"
+  ]
 }
