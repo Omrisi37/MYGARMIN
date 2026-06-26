@@ -24,11 +24,12 @@ html, body {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
-  overflow: hidden;
 }
 
+body { overflow: auto; }
+
 /* ===== Layout ===== */
-#app { height: 100dvh; display: flex; flex-direction: column; }
+#app { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
 
 .topbar {
   height: var(--top-h);
@@ -250,18 +251,30 @@ html, body {
 .modal .description { font-size: 14px; line-height: 1.6; color: var(--text-dim); margin-top: 12px; }
 
 /* ===== Login Screen ===== */
-#screen-login {
+#login-screen {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100%;
+  min-height: 100dvh;
   text-align: center;
   padding: 40px 24px;
+  background: var(--bg);
 }
-.login-logo { font-size: 64px; margin-bottom: 20px; }
-.login-title { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
-.login-sub { font-size: 15px; color: var(--text-dim); margin-bottom: 40px; line-height: 1.5; }
+.login-icon { font-size: 64px; margin-bottom: 16px; }
+#login-screen h1 { font-size: 28px; font-weight: 800; margin-bottom: 6px; }
+#login-screen p { font-size: 15px; color: var(--text-dim); margin-bottom: 36px; line-height: 1.5; }
+.login-box {
+  width: 100%;
+  max-width: 320px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
 
 /* ===== Loading ===== */
 .spinner {
