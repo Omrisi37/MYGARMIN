@@ -2,8 +2,8 @@ name: Generate Weekly Running Plan
 
 on:
   schedule:
-    - cron: "0 7 * * 1"  # Every Monday 7 AM UTC (adjust to your timezone)
-  workflow_dispatch:       # Manual trigger from GitHub UI
+    - cron: "0 7 * * 1"  # Every Monday 7 AM UTC (9 AM Israel time)
+  workflow_dispatch:
 
 jobs:
   generate-plan:
@@ -24,17 +24,21 @@ jobs:
 
       - name: Generate weekly plan
         env:
-          GARMIN_EMAIL: ${{ secrets.GARMIN_EMAIL }}
-          GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GARMIN_TOKENS: ${{ secrets.GARMIN_TOKENS }}
-          RACE_DATE: ${{ secrets.RACE_DATE }}
+          STRAVA_CLIENT_ID:     ${{ secrets.STRAVA_CLIENT_ID }}
+          STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
+          STRAVA_REFRESH_TOKEN: ${{ secrets.STRAVA_REFRESH_TOKEN }}
+          ANTHROPIC_API_KEY:    ${{ secrets.ANTHROPIC_API_KEY }}
+          TRAINING_GOAL:        ${{ secrets.TRAINING_GOAL }}
+          TARGET_TIME:          ${{ secrets.TARGET_TIME }}
+          RACE_NAME:            ${{ secrets.RACE_NAME }}
+          RACE_DATE:            ${{ secrets.RACE_DATE }}
+          WEEKLY_HOURS:         ${{ secrets.WEEKLY_HOURS }}
         run: python backend/run_coach_agent.py
 
-      - name: Commit plan to repo
+      - name: Commit plan
         run: |
           git config user.name "Running Coach Bot"
           git config user.email "bot@running-coach"
-          git add frontend/data/plan.json frontend/data/plan_*_backup.json || true
-          git commit -m "Weekly plan: $(date +%Y-%m-%d)" || echo "No changes to commit"
+          git add frontend/data/plan.json frontend/data/plan_*_backup.json 2>/dev/null || true
+          git commit -m "Weekly plan: $(date +%Y-%m-%d)" || echo "No changes"
           git push
