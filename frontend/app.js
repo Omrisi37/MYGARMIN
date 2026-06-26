@@ -69,6 +69,7 @@ function navigate(id) {
 
 let currentPlan = null;
 let currentAnalytics = null;
+let completedSessions = {}; // persistent log: { "2026-06-25": { completed, actual_stats, ... } }
 
 async function fetchPlan() {
   try {
@@ -86,9 +87,19 @@ async function fetchAnalytics() {
   } catch { return null; }
 }
 
+async function fetchCompletedSessions() {
+  try {
+    const res = await fetch(`/data/completed_sessions.json?t=${Date.now()}`);
+    if (!res.ok) return {};
+    return await res.json();
+  } catch { return {}; }
+}
+
 async function refreshData() {
   showToast("Refreshing…");
-  [currentPlan, currentAnalytics] = await Promise.all([fetchPlan(), fetchAnalytics()]);
+  [currentPlan, currentAnalytics, completedSessions] = await Promise.all([
+    fetchPlan(), fetchAnalytics(), fetchCompletedSessions(),
+  ]);
   renderScreen(currentScreen);
   showToast("✓ Updated");
 }
@@ -378,6 +389,115 @@ function _ratingLabel(rating) {
   return m[rating] || "✅ Done";
 }
 
+function _getThisWeekDates() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dayOfWeek = today.getDay(); // 0=Sun
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7));
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return d.toISOString().slice(0, 10);
+  });
+}
+
+function _renderRecentCompleted() {
+  // Show completed sessions from the persistent log that are in the current week
+  // but NOT already in the current plan (those are handled by _renderWeekDays)
+  if (!completedSessions || !Object.keys(completedSessions).length) return "";
+
+  const planDates = new Set();
+  (currentPlan?.days || []).forEach(d => d.date && planDates.add(d.date));
+  (currentPlan?.weeks || []).forEach(w => (w.days || []).forEach(d => d.date && planDates.add(d.date)));
+
+  const thisWeek = new Set(_getThisWeekDates());
+  const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
+  const extras = Object.entries(completedSessions)
+    .filter(([date]) => thisWeek.has(date) && !planDates.has(date))
+    .sort(([a], [b]) => a.localeCompare(b));
+
+  if (!extras.length) return "";
+
+  const rowsHtml = extras.map(([date, session]) => {
+    const actual = session.actual_stats || {};
+    const rating = session.execution_rating || "on-plan";
+    const isRun = ["Run","TrailRun","VirtualRun"].includes(actual.activity_type);
+    const distLabel = isRun && actual.distance_km ? `${actual.distance_km} km` : "";
+    const hrLabel   = actual.avg_hr ? `${actual.avg_hr} bpm` : "";
+    const paceLabel = isRun && actual.avg_pace ? `${actual.avg_pace}/km` : "";
+    const durLabel  = !isRun && actual.duration_min ? `${actual.duration_min} min` : "";
+    const calLabel  = !isRun && actual.calories ? `${actual.calories} kcal` : "";
+    const subParts  = [distLabel, durLabel, hrLabel, paceLabel, calLabel].filter(Boolean);
+    const d = new Date(date + "T12:00:00");
+    const abbr = DAYS[d.getDay() === 0 ? 6 : d.getDay() - 1];
+    const title = actual.activity_name || actual.activity_type || "Activity";
+    return `<div class="day-row done" onclick="openCompletedModal('${date}')">
+      <div class="day-abbr">${abbr}</div>
+      <div class="day-dot done-dot">✓</div>
+      <div style="flex:1;min-width:0">
+        <div class="day-name">${title}</div>
+        ${subParts.length ? `<div class="done-sub">${subParts.join(" · ")}</div>` : ""}
+      </div>
+      <div class="done-badge" style="color:${_ratingColor(rating)}">${_ratingLabel(rating)}</div>
+      <div class="day-chevron">›</div>
+    </div>`;
+  }).join("");
+
+  return `<div style="margin-bottom:4px">
+    <div class="card-label" style="padding:0 4px;margin-bottom:6px">COMPLETED THIS WEEK</div>
+    ${rowsHtml}
+  </div>`;
+}
+
+function openCompletedModal(date) {
+  const session = completedSessions?.[date];
+  if (!session) return;
+  const actual = session.actual_stats || {};
+  const rating = session.execution_rating || "on-plan";
+  const isRun = ["Run","TrailRun","VirtualRun"].includes(actual.activity_type);
+  const actLabel = actual.activity_name ? `"${actual.activity_name}"` : (actual.activity_type || "Activity");
+  const hasActual = actual.distance_km || actual.duration_min || actual.avg_hr || actual.calories;
+  const compareHtml = hasActual ? `
+    <div class="compare-grid">
+      <div class="compare-col">
+        <div class="compare-col-label actual">✅ Actual · ${actLabel}</div>
+        ${actual.duration_min            ? `<div class="compare-stat"><strong>${actual.duration_min} min</strong> duration</div>` : ""}
+        ${isRun && actual.distance_km    ? `<div class="compare-stat"><strong>${actual.distance_km} km</strong> distance</div>` : ""}
+        ${actual.avg_hr                  ? `<div class="compare-stat"><strong>${actual.avg_hr} bpm</strong> avg HR</div>` : ""}
+        ${isRun && actual.avg_pace       ? `<div class="compare-stat"><strong>${actual.avg_pace}/km</strong> pace</div>` : ""}
+        ${actual.calories                ? `<div class="compare-stat"><strong>${actual.calories} kcal</strong> burned</div>` : ""}
+        ${actual.elevation_m             ? `<div class="compare-stat"><strong>${actual.elevation_m} m</strong> elevation</div>` : ""}
+      </div>
+    </div>` : "";
+
+  const coachHtml = session.coach_analysis ? `
+    <div class="coach-card">
+      <div class="card-label">🧠 COACH ANALYSIS</div>
+      <p class="text-sm text-mid" style="line-height:1.6">${session.coach_analysis}</p>
+      ${session.coach_adjustment ? `
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,212,170,0.15)">
+          <div class="text-xs" style="color:var(--orange);font-weight:700;margin-bottom:4px">⚡ SUGGESTED ADJUSTMENT</div>
+          <p class="text-sm text-mid"><strong>${session.coach_adjustment.day}:</strong> ${session.coach_adjustment.change}</p>
+          <p class="text-xs text-dim" style="margin-top:2px">${session.coach_adjustment.reason || ""}</p>
+        </div>` : ""}
+    </div>` : "";
+
+  document.getElementById("day-modal-body").innerHTML = `
+    <div style="font-size:28px;margin-bottom:6px">✅</div>
+    <h2 style="font-size:20px;font-weight:700;margin-bottom:2px">${actual.activity_name || actual.activity_type || "Activity"}</h2>
+    <div class="text-sm text-mid" style="margin-bottom:10px">${date}</div>
+    <div style="margin-bottom:12px">
+      <span class="done-badge" style="color:${_ratingColor(rating)}">${_ratingLabel(rating)}</span>
+    </div>
+    ${coachHtml}
+    ${compareHtml}
+    <button class="btn btn-ghost" onclick="closeModal()" style="margin-top:20px">Close</button>
+  `;
+  document.getElementById("day-modal").classList.add("open");
+}
+
 function _renderWeekDays(days, weekOffset) {
   const today = todayDayName();
   return days.map((day, i) => {
@@ -485,6 +605,7 @@ function renderWeek() {
       <div class="page-sub">Week ${weekData.week_number || 1} · ${weekData.phase || ""}</div>
       ${macroTimeline}
       ${toggleHtml}
+      ${_renderRecentCompleted()}
       ${_renderWeekDays(weekData.days || [], 0)}
       <div class="legend" style="margin-top:8px">
         <div class="legend-label">INTENSITY LEGEND</div>
@@ -930,7 +1051,9 @@ async function syncFromStrava() {
   showToast("⏳ Analysing with coach… auto-refreshing in 75s");
   // Auto-refresh after workflow has time to complete
   setTimeout(async () => {
-    [currentPlan, currentAnalytics] = await Promise.all([fetchPlan(), fetchAnalytics()]);
+    [currentPlan, currentAnalytics, completedSessions] = await Promise.all([
+      fetchPlan(), fetchAnalytics(), fetchCompletedSessions(),
+    ]);
     renderScreen(currentScreen);
     showToast("✅ Session synced — tap the day to see coach analysis");
   }, 75000);
@@ -1249,8 +1372,10 @@ async function showApp() {
     btn.addEventListener("click", () => navigate(btn.dataset.nav));
   });
 
-  // Load plan + analytics
-  [currentPlan, currentAnalytics] = await Promise.all([fetchPlan(), fetchAnalytics()]);
+  // Load plan + analytics + completed sessions
+  [currentPlan, currentAnalytics, completedSessions] = await Promise.all([
+    fetchPlan(), fetchAnalytics(), fetchCompletedSessions(),
+  ]);
   navigate("today");
 }
 
