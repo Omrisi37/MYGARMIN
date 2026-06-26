@@ -31,6 +31,10 @@ TRAINING_CONFIG = {
     "start_date":          os.environ.get("START_DATE") or None,
     "run_days":            _parse_run_days(os.environ.get("RUN_DAYS") or ""),
     "sessions_per_week":   int(os.environ.get("SESSIONS_PER_WEEK") or "4"),
+    "cross_training":      json.loads(os.environ.get("CROSS_TRAINING") or "[]"),
+    "quality_sessions":    int(os.environ.get("QUALITY_SESSIONS") or "0"),
+    "quality_types":       [t.strip() for t in (os.environ.get("QUALITY_TYPES") or "").split(",") if t.strip()],
+    "weekly_skip_ct":      [t.strip() for t in (os.environ.get("WEEKLY_SKIP_CT") or "").split(",") if t.strip()],
 }
 
 
@@ -56,10 +60,18 @@ def build_user_message(strava_data: dict, config: dict) -> str:
     else:
         week_start = today - timedelta(days=today.weekday())  # Monday
 
-    days_of_week = []
-    for i in range(7):
-        d = week_start + timedelta(days=i)
-        days_of_week.append({"day": d.strftime("%A"), "date": d.strftime("%Y-%m-%d")})
+    # Generate 4 weeks of dates
+    all_weeks_dates = []
+    for w in range(4):
+        ws = week_start + timedelta(weeks=w)
+        week_days = [
+            {
+                "day": (ws + timedelta(days=i)).strftime("%A"),
+                "date": (ws + timedelta(days=i)).strftime("%Y-%m-%d")
+            }
+            for i in range(7)
+        ]
+        all_weeks_dates.append({"week": w + 1, "days": week_days})
 
     run_days = config.get("run_days") or []
     sessions = config.get("sessions_per_week") or 4
@@ -74,40 +86,73 @@ def build_user_message(strava_data: dict, config: dict) -> str:
 {f"- Race: {config['race_name']}" if config.get('race_name') else ""}
 {f"- Target time: {config['target_time']}" if config.get('target_time') else ""}
 - Weekly time budget: {config['weekly_hours_budget']} hours
-- Target week: {week_start.strftime('%Y-%m-%d')} to {(week_start + timedelta(days=6)).strftime('%Y-%m-%d')}
+- Plan start: {week_start.strftime('%Y-%m-%d')} (4-week block)
 {f"- Weeks until race: {weeks_left}" if weeks_left is not None else "- No specific race date set"}
 {schedule_note}
 
 ## Last 14 Days of Training (from Strava)
 {json.dumps(strava_data, indent=2)}
 
-## Week Schedule to Fill
-{json.dumps(days_of_week, indent=2)}
+## 4-Week Schedule to Fill
+{json.dumps(all_weeks_dates, indent=2)}
+
+## Cross-Training Schedule
+{json.dumps(config.get('cross_training', []), indent=2) if config.get('cross_training') else "None"}
+
+## Quality Sessions Requested
+- Quality sessions per week: {config['quality_sessions']} (0 = only easy/tempo based on plan)
+- Types preferred: {', '.join(config['quality_types']) if config['quality_types'] else 'Coach decides'}
+
+## This Week Exceptions (Week 1)
+Skipping cross-training: {', '.join(config['weekly_skip_ct']) if config['weekly_skip_ct'] else 'None — all usual activities happening'}
 
 ## Instructions
-Generate the complete 7-day training plan for the week above.
+Generate the complete 4-week training plan for the block above.
 - Respect the athlete's time budget ({config['weekly_hours_budget']} hrs/week)
 - Apply polarized training (80% easy, 20% hard)
 - Adapt intensity based on recent training load and fatigue signals
 - Include exact dates from the week schedule provided
+- Build progressively across the 4 weeks
 - Return ONLY valid JSON matching the schema in your system prompt
 """
 
 
-def save_plan(plan: dict):
+def save_plan(result: dict):
     data_dir = Path(__file__).parent.parent / "frontend" / "data"
     data_dir.mkdir(exist_ok=True)
     plan_path = data_dir / "plan.json"
 
-    # Keep last plan as backup
     if plan_path.exists():
-        backup_path = data_dir / f"plan_{datetime.today().strftime('%Y%m%d')}_backup.json"
-        backup_path.write_text(plan_path.read_text())
+        backup = data_dir / f"plan_{datetime.today().strftime('%Y%m%d')}_backup.json"
+        backup.write_text(plan_path.read_text())
 
-    plan["generated_at"] = datetime.utcnow().isoformat() + "Z"
-    plan["status"] = "pending_approval"
+    # Build the plan object
+    weeks = result.get("weeks", [])
+    first_week = weeks[0] if weeks else {}
+
+    plan = {
+        # 4-week structure
+        "weeks": weeks,
+        "coaching_overview": result.get("coaching_overview", ""),
+        "total_plan_distance_km": result.get("total_plan_distance_km", 0),
+        # Backward compat — first week at top level
+        "week_number":       first_week.get("week_number", 1),
+        "phase":             first_week.get("phase", ""),
+        "weekly_summary":    first_week.get("weekly_summary", ""),
+        "total_distance_km": first_week.get("total_distance_km", 0),
+        "aerobic_percent":   first_week.get("aerobic_percent", 80),
+        "anaerobic_percent": first_week.get("anaerobic_percent", 20),
+        "coaching_notes":    first_week.get("coaching_notes", ""),
+        "recovery_flags":    first_week.get("recovery_flags", []),
+        "days":              first_week.get("days", []),
+        "strava_summary":    result.get("strava_summary", {}),
+        "strava_averages":   result.get("strava_averages", {}),
+        "generated_at":      datetime.utcnow().isoformat() + "Z",
+        "status":            "pending_approval",
+    }
     plan_path.write_text(json.dumps(plan, indent=2))
     print(f"Plan saved to {plan_path}")
+    return plan
 
 
 def generate_plan():
@@ -125,7 +170,7 @@ def generate_plan():
     # On subsequent weekly runs the cache hit saves ~90% of input token cost.
     message = client.messages.create(
         model="claude-haiku-4-5-20251001",
-        max_tokens=4096,
+        max_tokens=8192,
         system=[
             {
                 "type": "text",
@@ -147,11 +192,11 @@ def generate_plan():
             raw = raw[4:]
     raw = raw.strip()
 
-    plan = json.loads(raw)
-    plan["strava_summary"] = strava_data["totals"]
-    plan["strava_averages"] = strava_data["averages"]
+    result = json.loads(raw)
+    result["strava_summary"] = strava_data["totals"]
+    result["strava_averages"] = strava_data["averages"]
 
-    save_plan(plan)
+    plan = save_plan(result)
     print("Done! Plan is saved and awaiting your approval in the dashboard.")
     return plan
 

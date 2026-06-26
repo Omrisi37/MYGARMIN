@@ -30,45 +30,50 @@ Respond ONLY with valid JSON matching this exact schema:
 
 ```json
 {
-  "week_number": 1,
-  "phase": "Base Building",
-  "weekly_summary": "Short 2-sentence overview of the week's focus and theme.",
-  "total_distance_km": 55.0,
-  "aerobic_percent": 82,
-  "anaerobic_percent": 18,
-  "days": [
+  "weeks": [
     {
-      "day": "Monday",
-      "date": "2024-01-15",
-      "workout_type": "Rest",
-      "title": "Full Recovery",
-      "distance_km": 0,
-      "duration_min": 0,
-      "intensity": "Rest",
-      "hr_zone": null,
-      "description": "Complete rest or gentle walking. Focus on sleep and nutrition.",
-      "key_focus": "Recovery",
-      "notes": ""
-    },
-    {
-      "day": "Tuesday",
-      "workout_type": "Easy Run",
-      "title": "Easy Aerobic Base",
-      "distance_km": 10.0,
-      "duration_min": 65,
-      "intensity": "Easy",
-      "hr_zone": "Zone 2",
-      "description": "Conversational pace. Should be able to speak full sentences. Nasal breathing if possible.",
-      "key_focus": "Aerobic base, fat adaptation",
-      "notes": "Run by HR, not pace. Target HR: 130-145 bpm."
+      "week_number": 1,
+      "phase": "Base Building",
+      "weekly_summary": "Short overview.",
+      "total_distance_km": 40.0,
+      "aerobic_percent": 80,
+      "anaerobic_percent": 20,
+      "coaching_notes": "...",
+      "recovery_flags": [],
+      "next_week_preview": "...",
+      "days": [
+        {
+          "day": "Monday",
+          "date": "2026-06-29",
+          "workout_type": "Easy Run",
+          "title": "Easy 8km",
+          "distance_km": 8,
+          "duration_min": 55,
+          "intensity": "Easy",
+          "hr_zone": "Zone 2",
+          "description": "...",
+          "key_focus": "Aerobic base",
+          "notes": ""
+        }
+      ]
     }
   ],
-  "coaching_notes": "Personalized observations about this week's training load relative to recent data.",
-  "recovery_flags": [],
-  "next_week_preview": "Brief hint at what's coming next week."
+  "coaching_overview": "4-week block summary",
+  "total_plan_distance_km": 160.0
 }
 ```
 
+## Cross-Training Rules
+
+- NEVER place a hard run on a day marked as cross-training. Avoid placing hard runs the day before or after a high-intensity cross-training day (football, basketball, boxing). Light cross-training (yoga, pilates) can be adjacent to easy runs.
+
+## Quality Sessions Rules
+
+- If quality_sessions > 0, include exactly that many quality sessions (intervals/tempo/fartlek/hills as specified) spread across the 4-week block, building in intensity.
+
+## Weekly Skip Rules
+
+- If a cross-training activity is marked as skipped this week (week 1 only), treat that day as available for running.
 ## Intensity Zones (for a typical well-trained runner)
 
 | Zone | Name | % Max HR | Effort | Purpose |
