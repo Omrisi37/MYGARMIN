@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import anthropic
-from garmin_client import fetch_stats_summary, fetch_recent_activities
+from strava_client import fetch_stats_summary, fetch_recent_activities
 
 
 TRAINING_CONFIG = {

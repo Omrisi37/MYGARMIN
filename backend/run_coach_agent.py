@@ -14,7 +14,7 @@ from pathlib import Path
 
 import anthropic
 
-from garmin_client import fetch_stats_summary
+from strava_client import fetch_stats_summary
 
 
 TRAINING_CONFIG = {

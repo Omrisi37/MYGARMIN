@@ -2,13 +2,6 @@ name: Deep Analysis & Improve Plan
 
 on:
   workflow_dispatch:
-    inputs:
-      garmin_email:
-        description: "Garmin email (from app settings)"
-        required: false
-      garmin_password:
-        description: "Garmin password (from app settings)"
-        required: false
 
 jobs:
   deep-analysis:
@@ -29,15 +22,15 @@ jobs:
 
       - name: Run deep analysis
         env:
-          GARMIN_EMAIL: ${{ inputs.garmin_email || secrets.GARMIN_EMAIL }}
-          GARMIN_PASSWORD: ${{ inputs.garmin_password || secrets.GARMIN_PASSWORD }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GARMIN_TOKENS: ${{ secrets.GARMIN_TOKENS }}
-          RACE_DATE: ${{ secrets.RACE_DATE }}
-          TRAINING_GOAL: ${{ secrets.TRAINING_GOAL }}
-          TARGET_TIME: ${{ secrets.TARGET_TIME }}
-          RACE_NAME: ${{ secrets.RACE_NAME }}
-          WEEKLY_HOURS: ${{ secrets.WEEKLY_HOURS }}
+          STRAVA_CLIENT_ID:     ${{ secrets.STRAVA_CLIENT_ID }}
+          STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
+          STRAVA_REFRESH_TOKEN: ${{ secrets.STRAVA_REFRESH_TOKEN }}
+          ANTHROPIC_API_KEY:    ${{ secrets.ANTHROPIC_API_KEY }}
+          TRAINING_GOAL:        ${{ secrets.TRAINING_GOAL }}
+          TARGET_TIME:          ${{ secrets.TARGET_TIME }}
+          RACE_NAME:            ${{ secrets.RACE_NAME }}
+          RACE_DATE:            ${{ secrets.RACE_DATE }}
+          WEEKLY_HOURS:         ${{ secrets.WEEKLY_HOURS }}
         run: python backend/deep_analysis_agent.py
 
       - name: Commit results

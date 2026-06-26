@@ -78,17 +78,8 @@ async function refreshData() {
 }
 
 async function runDeepAnalysis() {
-  const s = getSettings();
-  if (!s.garmin_email || !s.garmin_password) {
-    showToast("⚠️ Add Garmin credentials in Settings first");
-    navigate("settings");
-    return;
-  }
   showToast("⏳ Starting deep analysis…");
-  const ok = await triggerWorkflow("deep-analysis.yml", {
-    garmin_email: s.garmin_email,
-    garmin_password: s.garmin_password,
-  });
+  const ok = await triggerWorkflow("deep-analysis.yml");
   if (ok) showToast("🧠 Analysis running — check back in ~2 min");
 }
 
@@ -112,17 +103,8 @@ async function triggerWorkflow(file, inputs = {}) {
 }
 
 async function generatePlan() {
-  const s = getSettings();
-  if (!s.garmin_email || !s.garmin_password) {
-    showToast("⚠️ Add Garmin credentials in Settings first");
-    navigate("settings");
-    return;
-  }
   showToast("⏳ Generating plan…");
-  const ok = await triggerWorkflow("weekly-plan.yml", {
-    garmin_email: s.garmin_email,
-    garmin_password: s.garmin_password,
-  });
+  const ok = await triggerWorkflow("weekly-plan.yml");
   if (ok) showToast("✅ Plan generating — check back in ~90s");
 }
 
@@ -210,7 +192,7 @@ function renderToday() {
 
   const statusHtml = plan ? (() => {
     const map = {
-      pending_approval: { cls:"pending",  icon:"⏳", title:"Plan ready for review", sub:"Go to Approve tab to sync to calendar" },
+      pending_approval: { cls:"pending",  icon:"⏳", title:"Plan ready", sub:"Go to Goals tab to add workouts to calendar" },
       approved:         { cls:"approved", icon:"✅", title:"Plan approved", sub:"Ready to sync to Google Calendar" },
       synced:           { cls:"synced",   icon:"📅", title:"Synced to Google Calendar", sub:"Check your calendar" },
     };
@@ -271,28 +253,28 @@ function renderToday() {
     </div>`;
   })() : "";
 
-  const garminHtml = plan?.garmin_summary ? `
+  const stravaHtml = plan?.strava_summary ? `
     <div class="card">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:12px">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        <div class="card-label" style="margin-bottom:0">GARMIN — LAST 14 DAYS</div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <div class="card-label" style="margin-bottom:0">STRAVA — LAST 14 DAYS</div>
       </div>
       <div class="stats-grid" style="margin-bottom:0">
         <div class="stat-box">
-          <div class="stat-val">${plan.garmin_summary.distance_km} <span class="stat-unit">km</span></div>
+          <div class="stat-val">${plan.strava_summary.distance_km} <span class="stat-unit">km</span></div>
           <div class="stat-lbl">Total Distance</div>
         </div>
         <div class="stat-box">
-          <div class="stat-val">${plan.garmin_summary.runs}</div>
+          <div class="stat-val">${plan.strava_summary.runs}</div>
           <div class="stat-lbl">Total Runs</div>
         </div>
         <div class="stat-box">
-          <div class="stat-val">${plan.garmin_averages?.avg_hr || "—"} <span class="stat-unit">bpm</span></div>
+          <div class="stat-val">${plan.strava_averages?.avg_hr || "—"} <span class="stat-unit">bpm</span></div>
           <div class="stat-lbl">Avg Heart Rate</div>
         </div>
         <div class="stat-box">
-          <div class="stat-val">${plan.garmin_averages?.latest_vo2_max || "—"}</div>
-          <div class="stat-lbl">VO₂ Max</div>
+          <div class="stat-val">${plan.strava_summary.duration_hours || "—"}<span class="stat-unit"> h</span></div>
+          <div class="stat-lbl">Total Hours</div>
         </div>
       </div>
       ${plan.generated_at ? `<div class="text-xs text-dim mt-8">Last synced ${new Date(plan.generated_at).toLocaleDateString()}</div>` : ""}
@@ -302,7 +284,7 @@ function renderToday() {
     ${statusHtml}
     ${workoutHtml}
     ${weekHtml}
-    ${garminHtml}
+    ${stravaHtml}
     <button class="btn btn-ghost" onclick="generatePlan()" style="margin-top:4px">
       ⚡ Generate New Plan
     </button>
@@ -347,81 +329,63 @@ function renderWeek() {
   `;
 }
 
-// ── Render: APPROVE ───────────────────────────────────────────────────────────
+// ── Render: GOALS ────────────────────────────────────────────────────────────
 
-function renderApprove() {
-  const el = document.getElementById("approve-content");
-  const plan = currentPlan;
-
-  if (!plan) {
-    el.innerHTML = `<div class="empty"><div class="empty-icon">📭</div><h3>No plan to approve</h3><p>Generate a plan first.</p></div>
-      <button class="btn btn-ghost mt-12" onclick="generatePlan()">⚡ Generate Plan</button>`;
-    return;
-  }
-
-  const isApproved = plan.status === "approved" || plan.status === "synced";
-  const totalHrs = plan.days ? (plan.days.reduce((s,d) => s + (d.duration_min||0), 0) / 60).toFixed(1) : 0;
-  const runDays = plan.days?.filter(d => d.distance_km > 0).length || 0;
-  const startDate = plan.days?.[0]?.date ? new Date(plan.days[0].date).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—";
+function renderGoals() {
+  const el = document.getElementById("goals-content");
+  const s = getSettings();
+  const d2r = daysToRace(s.race_date);
 
   el.innerHTML = `
-    <div style="margin-bottom:16px">
-      <div style="font-size:20px;font-weight:700">Approve Plan</div>
-      <div class="text-sm text-dim">Week starting ${startDate}</div>
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:700">Training Goals</div>
+      <div class="text-sm text-dim">Set your goal and generate a personalised plan</div>
     </div>
 
-    ${isApproved ? `
-    <div class="banner approved">
-      <span class="banner-icon">✅</span>
-      <div><div class="banner-title">Plan Approved</div><div class="banner-sub">Ready to sync to Google Calendar.</div></div>
-    </div>` : `
-    <div class="banner pending">
-      <span class="banner-icon">⏳</span>
-      <div><div class="banner-title">Awaiting your approval</div><div class="banner-sub">Review the plan then approve.</div></div>
-    </div>`}
-
     <div class="card">
-      <div class="card-label">WEEK SUMMARY</div>
-      <div class="stats-grid three" style="margin-bottom:12px">
-        <div class="stat-box">
-          <div class="stat-val green">${plan.total_distance_km}<span class="stat-unit"> km</span></div>
-          <div class="stat-lbl">Total Distance</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-val accent">${totalHrs}<span class="stat-unit"> hrs</span></div>
-          <div class="stat-lbl">Total Time</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-val orange">${runDays}</div>
-          <div class="stat-lbl">Running Days</div>
-        </div>
+      <div class="card-label">🎯 RACE GOAL</div>
+      <div class="form-group">
+        <label class="form-label">Event Type</label>
+        <select id="g-goal" class="form-input">
+          <option value="Marathon" ${s.goal==="Marathon"?"selected":""}>Marathon</option>
+          <option value="Half Marathon" ${s.goal==="Half Marathon"?"selected":""}>Half Marathon</option>
+          <option value="10km" ${s.goal==="10km"?"selected":""}>10 km Race</option>
+        </select>
       </div>
-      <div class="form-row">
-        <span class="form-row-label">Phase</span>
-        <span class="form-row-value">${plan.phase || "—"}</span>
+      <div class="form-group">
+        <label class="form-label">Race Name</label>
+        <input id="g-race-name" class="form-input" type="text" placeholder="e.g. Tel Aviv Marathon 2026" value="${s.race_name||""}"/>
       </div>
-      <div class="form-row">
-        <span class="form-row-label">Aerobic / Anaerobic</span>
-        <span class="form-row-value">${plan.aerobic_percent}% / ${plan.anaerobic_percent}%</span>
+      <div class="form-group">
+        <label class="form-label">Race Date</label>
+        <input id="g-race-date" class="form-input" type="date" value="${s.race_date||""}"/>
       </div>
+      <div class="form-group">
+        <label class="form-label">Target Finish Time</label>
+        <input id="g-target-time" class="form-input" type="text" placeholder="e.g. 3:45:00 (marathon), 1:45:00 (half), 00:48:00 (10km)" value="${s.target_time||""}"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Weekly Hours Budget: <span id="g-hours-val">${s.weekly_hours||7}</span>h</label>
+        <input id="g-hours" type="range" min="3" max="15" step="0.5" value="${s.weekly_hours||7}"
+          oninput="document.getElementById('g-hours-val').textContent=this.value"/>
+      </div>
+      ${d2r !== null ? `<div class="info-box">📅 ${d2r >= 0 ? `${d2r} days to race` : `Race was ${Math.abs(d2r)} days ago`}</div>` : ""}
     </div>
 
-    ${plan.coaching_notes ? `
-    <div class="card">
-      <div class="card-label">COACH'S NOTES</div>
-      <p class="text-sm text-mid" style="line-height:1.6">${plan.coaching_notes}</p>
-    </div>` : ""}
+    <button class="btn btn-green" onclick="saveGoalsAndGenerate()" style="margin-bottom:10px">⚡ Save &amp; Generate Plan</button>
+    <button class="btn btn-ghost" onclick="saveGoalsOnly()">💾 Save Goals Only</button>
+    <p class="text-xs text-dim" style="text-align:center;margin-top:10px">Fetches your latest Strava runs · AI builds a personalised week</p>
 
-    ${plan.recovery_flags?.length ? `
-    <div class="card" style="border-color:rgba(239,68,68,0.3)">
-      <div class="card-label" style="color:var(--red)">⚠️ RECOVERY FLAGS</div>
-      ${plan.recovery_flags.map(f => `<p class="text-sm text-mid" style="margin-bottom:4px">• ${f}</p>`).join("")}
-    </div>` : ""}
+    ${currentPlan ? `
+    <div class="card" style="margin-top:16px">
+      <div class="card-label">CURRENT PLAN</div>
+      <div class="form-row"><span class="form-row-label">Phase</span><span class="form-row-value">${currentPlan.phase||"—"}</span></div>
+      <div class="form-row"><span class="form-row-label">Total Distance</span><span class="form-row-value">${currentPlan.total_distance_km||"—"} km</span></div>
+      ${currentPlan.generated_at ? `<div class="text-xs text-dim mt-8">Generated ${new Date(currentPlan.generated_at).toLocaleDateString()} by Claude AI</div>` : ""}
 
-    <div class="card" style="margin-top:4px">
-      <div class="card-label">ADD TO GOOGLE CALENDAR</div>
-      <p class="text-sm text-mid" style="margin-bottom:12px;line-height:1.5">Tap any workout to open Google Calendar on your device and save it with one tap.</p>
-      ${plan.days.filter(d => d.distance_km > 0).map(day => {
+      <div class="card-label" style="margin-top:14px">ADD TO GOOGLE CALENDAR</div>
+      <p class="text-sm text-mid" style="margin-bottom:10px;line-height:1.5">Tap a workout to add it to your calendar.</p>
+      ${(currentPlan.days||[]).filter(d => d.distance_km > 0).map(day => {
         const url = gcalUrl(day);
         const key = intensityKey(day.intensity);
         return `<a href="${url}" target="_blank" style="text-decoration:none">
@@ -434,66 +398,45 @@ function renderApprove() {
           </div>
         </a>`;
       }).join("")}
-    </div>
-
-    ${plan.generated_at ? `<p class="text-xs text-dim" style="text-align:center;margin-top:12px">Generated ${new Date(plan.generated_at).toLocaleDateString()} by Claude AI</p>` : ""}
+    </div>` : ""}
   `;
+}
+
+function saveGoalsOnly() {
+  _saveGoalFields();
+  showToast("✅ Goals saved");
+  renderGoals();
+}
+
+async function saveGoalsAndGenerate() {
+  _saveGoalFields();
+  showToast("✅ Goals saved");
+  await generatePlan();
+}
+
+function _saveGoalFields() {
+  saveSettings({
+    goal:         document.getElementById("g-goal").value,
+    race_name:    document.getElementById("g-race-name").value,
+    race_date:    document.getElementById("g-race-date").value,
+    target_time:  document.getElementById("g-target-time").value,
+    weekly_hours: parseFloat(document.getElementById("g-hours").value),
+  });
 }
 
 // ── Render: SETTINGS ──────────────────────────────────────────────────────────
 
 function renderSettings() {
   const el = document.getElementById("settings-content");
-  const s = getSettings();
-  const d2r = daysToRace(s.race_date);
 
   el.innerHTML = `
-    <!-- Training Config -->
+    <!-- Strava -->
     <div class="settings-section">
-      <div class="settings-header"><span class="icon">🎯</span> Training Config</div>
+      <div class="settings-header"><span class="icon" style="color:var(--orange)">🔶</span> Strava Connection</div>
       <div class="settings-body">
-        <div class="form-group">
-          <label class="form-label">Goal</label>
-          <select id="s-goal" class="form-input">
-            <option value="Marathon" ${s.goal==="Marathon"?"selected":""}>Marathon</option>
-            <option value="Half Marathon" ${s.goal==="Half Marathon"?"selected":""}>Half Marathon</option>
-            <option value="10km" ${s.goal==="10km"?"selected":""}>10 km Race</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Race Name</label>
-          <input id="s-race-name" class="form-input" type="text" placeholder="e.g. Tel Aviv Marathon 2026" value="${s.race_name||""}"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Race Date</label>
-          <input id="s-race-date" class="form-input" type="date" value="${s.race_date||""}"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Target Time</label>
-          <input id="s-target-time" class="form-input" type="text" placeholder="e.g. 3:45:00 for marathon, 1:45:00 for half, 00:48:00 for 10km" value="${s.target_time||""}"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Weekly Hours Budget: <span id="s-hours-val">${s.weekly_hours||7}</span>h</label>
-          <input id="s-hours" type="range" min="3" max="15" step="0.5" value="${s.weekly_hours||7}"
-            oninput="document.getElementById('s-hours-val').textContent=this.value"/>
-        </div>
-        ${d2r !== null ? `<div class="info-box">📅 ${d2r >= 0 ? `${d2r} days to race` : `Race was ${Math.abs(d2r)} days ago`}</div>` : ""}
-      </div>
-    </div>
-
-    <!-- Garmin -->
-    <div class="settings-section">
-      <div class="settings-header"><span class="icon">⌚</span> Garmin Connect</div>
-      <div class="settings-body">
-        <div class="form-group">
-          <label class="form-label">Email</label>
-          <input id="s-garmin-email" class="form-input" type="email" placeholder="your@email.com" value="${s.garmin_email||""}"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Password</label>
-          <input id="s-garmin-pw" class="form-input" type="password" placeholder="Garmin password" value="${s.garmin_password||""}"/>
-        </div>
-        <div class="warning-box">🔒 Stored locally on your device. Used only when generating a plan.</div>
+        <div class="info-box">✅ Connected via OAuth. Your Strava runs are fetched automatically when generating a plan.</div>
+        <button class="btn btn-accent" onclick="syncFromStrava()" style="margin-top:10px">🔄 Sync from Strava</button>
+        <p class="text-xs text-dim" style="margin-top:6px">Pulls your latest runs and regenerates analytics</p>
       </div>
     </div>
 
@@ -501,28 +444,24 @@ function renderSettings() {
     <div class="settings-section">
       <div class="settings-header"><span class="icon">📅</span> Google Calendar</div>
       <div class="settings-body">
-        <div class="info-box">Tap any workout in the Approve tab to open Google Calendar on your device and add it with one tap. No API keys needed.</div>
+        <div class="info-box">Tap any workout in the Goals tab to open Google Calendar on your device and add it with one tap. No API keys needed.</div>
       </div>
     </div>
 
-    <button class="btn btn-green" onclick="saveAllSettings()" style="margin-bottom:12px">💾 Save Settings</button>
-    <button class="btn btn-ghost" onclick="if(confirm('Log out?'))logout()">Log Out</button>
+    <!-- Account -->
+    <div class="settings-section">
+      <div class="settings-header"><span class="icon">👤</span> Account</div>
+      <div class="settings-body">
+        <button class="btn btn-ghost" onclick="if(confirm('Log out?'))logout()">Log Out</button>
+      </div>
+    </div>
   `;
 }
 
-function saveAllSettings() {
-  const goal = document.getElementById("s-goal").value;
-  const raceName = document.getElementById("s-race-name").value;
-  const raceDate = document.getElementById("s-race-date").value;
-  const targetTime = document.getElementById("s-target-time").value;
-  const hours = document.getElementById("s-hours").value;
-  const garminEmail = document.getElementById("s-garmin-email").value;
-  const garminPw = document.getElementById("s-garmin-pw").value;
-
-  saveSettings({ goal, race_name: raceName, race_date: raceDate, target_time: targetTime, weekly_hours: parseFloat(hours), garmin_email: garminEmail, garmin_password: garminPw });
-
-  showToast("✅ Settings saved");
-  renderSettings();
+async function syncFromStrava() {
+  showToast("⏳ Syncing from Strava…");
+  const ok = await triggerWorkflow("deep-analysis.yml");
+  if (ok) showToast("✅ Sync started — check Analytics in ~2 min");
 }
 
 // ── Day Modal ─────────────────────────────────────────────────────────────────
@@ -638,7 +577,7 @@ function renderAnalytics() {
     <button class="btn btn-accent" onclick="runDeepAnalysis()" style="margin-bottom:16px">
       🧠 Analyse &amp; Improve
     </button>
-    <p class="text-xs text-dim" style="text-align:center;margin-bottom:20px;margin-top:-10px">Fetches 8 weeks of Garmin data · Generates deeper plan</p>
+    <p class="text-xs text-dim" style="text-align:center;margin-bottom:20px;margin-top:-10px">Fetches 8 weeks of Strava data · Generates deeper insights</p>
   `;
 
   if (!a) {
@@ -648,7 +587,7 @@ function renderAnalytics() {
         <div class="text-sm text-dim">8-week performance overview</div>
       </div>
       ${analyseBtn}
-      <div class="empty"><div class="empty-icon">📊</div><h3>No analytics yet</h3><p>Tap "Analyse &amp; Improve" to generate insights from your Garmin data.</p></div>
+      <div class="empty"><div class="empty-icon">📊</div><h3>No analytics yet</h3><p>Tap "Analyse &amp; Improve" to generate insights from your Strava data.</p></div>
     `;
     return;
   }
@@ -756,7 +695,7 @@ function renderAnalytics() {
 function renderScreen(id) {
   if (id === "today")    renderToday();
   if (id === "week")     renderWeek();
-  if (id === "approve")  renderApprove();
+  if (id === "goals")    renderGoals();
   if (id === "analyse")  renderAnalytics();
   if (id === "settings") renderSettings();
 }
