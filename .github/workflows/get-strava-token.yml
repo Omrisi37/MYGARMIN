@@ -3,8 +3,12 @@ name: Get Strava Refresh Token
 on:
   workflow_dispatch:
     inputs:
+      client_id:
+        description: "Your Strava Client ID (number from strava.com/settings/api)"
+        required: true
+        default: ""
       auth_code:
-        description: "Paste the 'code' from the Strava redirect URL here"
+        description: "Leave empty on first run. Paste the code from the redirect URL on second run."
         required: false
         default: ""
 
@@ -12,31 +16,29 @@ jobs:
   get-token:
     runs-on: ubuntu-latest
     steps:
-      - name: Step 1 — Open this URL in your browser to authorize
+      - name: Step 1 — Authorization URL
         run: |
           echo ""
           echo "======================================================"
           echo "OPEN THIS URL IN YOUR BROWSER:"
           echo "======================================================"
-          echo "https://www.strava.com/oauth/authorize?client_id=${{ secrets.STRAVA_CLIENT_ID }}&response_type=code&redirect_uri=http://localhost&approval_prompt=force&scope=activity:read_all"
+          echo "https://www.strava.com/oauth/authorize?client_id=${{ inputs.client_id }}&response_type=code&redirect_uri=http://localhost&approval_prompt=force&scope=activity:read_all"
           echo "======================================================"
-          echo ""
-          echo "After clicking Authorize, the browser goes to localhost"
-          echo "(page won't load — that is fine)."
-          echo "Copy the 'code=XXXX' part from the address bar."
-          echo ""
-          echo "Then re-run this workflow and paste the code in the input field."
+          echo "After authorizing, the browser redirects to localhost"
+          echo "(the page won't load — that is fine)."
+          echo "Copy the full URL from the address bar, find code=XXXX"
+          echo "Re-run this workflow with that code in the second input."
 
       - name: Step 2 — Exchange code for refresh token
         if: ${{ inputs.auth_code != '' }}
         run: |
           pip install requests -q
           python3 - <<'EOF'
-          import requests, os
+          import requests
 
           code = "${{ inputs.auth_code }}"
           resp = requests.post("https://www.strava.com/oauth/token", data={
-              "client_id":     "${{ secrets.STRAVA_CLIENT_ID }}",
+              "client_id":     "${{ inputs.client_id }}",
               "client_secret": "${{ secrets.STRAVA_CLIENT_SECRET }}",
               "code":          code,
               "grant_type":    "authorization_code",
@@ -50,7 +52,7 @@ jobs:
           athlete = data.get("athlete", {})
           print("")
           print("======================================================")
-          print("SUCCESS! Copy this as your STRAVA_REFRESH_TOKEN secret:")
+          print("SUCCESS! Update GitHub secret STRAVA_REFRESH_TOKEN with:")
           print("======================================================")
           print(data["refresh_token"])
           print("======================================================")
