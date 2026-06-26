@@ -17,12 +17,20 @@ import anthropic
 from strava_client import fetch_stats_summary
 
 
+def _parse_run_days(raw):
+    if not raw:
+        return []
+    return [d.strip() for d in raw.split(",") if d.strip()]
+
 TRAINING_CONFIG = {
     "goal":                os.environ.get("TRAINING_GOAL") or "Marathon",
     "target_time":         os.environ.get("TARGET_TIME") or "",
     "race_name":           os.environ.get("RACE_NAME") or "",
     "weekly_hours_budget": float(os.environ.get("WEEKLY_HOURS") or "7"),
     "race_date":           os.environ.get("RACE_DATE") or None,
+    "start_date":          os.environ.get("START_DATE") or None,
+    "run_days":            _parse_run_days(os.environ.get("RUN_DAYS") or ""),
+    "sessions_per_week":   int(os.environ.get("SESSIONS_PER_WEEK") or "4"),
 }
 
 
@@ -41,12 +49,24 @@ def weeks_to_race(race_date_str: str | None) -> int | None:
 def build_user_message(strava_data: dict, config: dict) -> str:
     weeks_left = weeks_to_race(config.get("race_date"))
     today = datetime.today()
-    week_start = today - timedelta(days=today.weekday())  # Monday
+
+    # Determine plan start date
+    if config.get("start_date"):
+        week_start = datetime.strptime(config["start_date"], "%Y-%m-%d")
+    else:
+        week_start = today - timedelta(days=today.weekday())  # Monday
 
     days_of_week = []
     for i in range(7):
         d = week_start + timedelta(days=i)
         days_of_week.append({"day": d.strftime("%A"), "date": d.strftime("%Y-%m-%d")})
+
+    run_days = config.get("run_days") or []
+    sessions = config.get("sessions_per_week") or 4
+
+    schedule_note = ""
+    if run_days:
+        schedule_note = f"- Preferred running days: {', '.join(run_days)}\n- Sessions per week: {sessions} (choose the best {sessions} from the preferred days above — assign rest to the others)"
 
     return f"""
 ## Athlete Profile
@@ -56,6 +76,7 @@ def build_user_message(strava_data: dict, config: dict) -> str:
 - Weekly time budget: {config['weekly_hours_budget']} hours
 - Target week: {week_start.strftime('%Y-%m-%d')} to {(week_start + timedelta(days=6)).strftime('%Y-%m-%d')}
 {f"- Weeks until race: {weeks_left}" if weeks_left is not None else "- No specific race date set"}
+{schedule_note}
 
 ## Last 14 Days of Training (from Strava)
 {json.dumps(strava_data, indent=2)}

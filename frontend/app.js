@@ -338,6 +338,9 @@ function renderGoals() {
   const s = getSettings();
   const d2r = daysToRace(s.race_date);
 
+  const days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+  const savedDays = s.run_days || ["Tuesday","Thursday","Saturday","Sunday"];
+
   el.innerHTML = `
     <div class="page-title">Training Goals</div>
     <div class="page-sub">Set your goal and generate a personalised plan</div>
@@ -363,6 +366,31 @@ function renderGoals() {
       <div class="form-group">
         <label class="form-label">Target Finish Time</label>
         <input id="g-target-time" class="form-input" type="text" placeholder="e.g. 3:45:00 (marathon), 1:45:00 (half), 00:48:00 (10km)" value="${s.target_time||""}"/>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">📆 WEEKLY SCHEDULE</div>
+      <div class="form-group">
+        <label class="form-label">Plan Start Date</label>
+        <input id="g-start-date" class="form-input" type="date" value="${s.start_date||""}"/>
+        <span class="text-xs text-dim" style="margin-top:2px">Leave empty to start from next Monday</span>
+      </div>
+      <div class="form-group" style="margin-top:4px">
+        <label class="form-label">Running Days</label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+          ${days.map(d => `
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;background:var(--surface2);border:1px solid ${savedDays.includes(d)?"var(--accent)":"var(--border)"};border-radius:8px;padding:7px 12px;font-size:13px;font-weight:500;color:${savedDays.includes(d)?"var(--accent)":"var(--text-dim)"};transition:all 0.15s">
+              <input type="checkbox" id="g-day-${d}" value="${d}" ${savedDays.includes(d)?"checked":""} style="accent-color:var(--accent)" onchange="updateDayLabel(this)"/>
+              ${d.slice(0,3)}
+            </label>`).join("")}
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:4px">
+        <label class="form-label">Sessions per Week: <span id="g-sessions-val">${s.sessions_per_week||4}</span></label>
+        <input id="g-sessions" type="range" min="2" max="7" step="1" value="${s.sessions_per_week||4}"
+          oninput="document.getElementById('g-sessions-val').textContent=this.value"/>
+        <div class="text-xs text-dim" style="margin-top:2px">AI will pick the best ${s.sessions_per_week||4} days from your selected days above</div>
       </div>
       <div class="form-group">
         <label class="form-label">Weekly Hours Budget: <span id="g-hours-val">${s.weekly_hours||7}</span>h</label>
@@ -402,6 +430,27 @@ function renderGoals() {
   `;
 }
 
+function updateDayLabel(cb) {
+  const label = cb.closest("label");
+  if (cb.checked) {
+    label.style.borderColor = "var(--accent)";
+    label.style.color = "var(--accent)";
+  } else {
+    label.style.borderColor = "var(--border)";
+    label.style.color = "var(--text-dim)";
+  }
+  document.querySelector(".text-xs.text-dim[style*='margin-top:2px']") &&
+    (document.getElementById("g-sessions-val") &&
+      document.querySelector(`[for="g-sessions"] + * + .text-xs`) &&
+      (document.querySelector(".form-group .text-xs.text-dim").textContent =
+        `AI will pick the best ${document.getElementById("g-sessions").value} days from your selected days above`));
+}
+
+function _getSelectedDays() {
+  const days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+  return days.filter(d => document.getElementById(`g-day-${d}`)?.checked);
+}
+
 function saveGoalsOnly() {
   _saveGoalFields();
   showToast("✅ Goals saved");
@@ -409,19 +458,34 @@ function saveGoalsOnly() {
 }
 
 async function saveGoalsAndGenerate() {
-  _saveGoalFields();
-  showToast("✅ Goals saved");
-  await generatePlan();
+  const fields = _saveGoalFields();
+  showToast("✅ Goals saved — generating plan…");
+  const ok = await triggerWorkflow("weekly-plan.yml", {
+    start_date:       fields.start_date || "",
+    run_days:         fields.run_days.join(","),
+    sessions_per_week: String(fields.sessions_per_week),
+    weekly_hours:     String(fields.weekly_hours),
+    training_goal:    fields.goal || "",
+    target_time:      fields.target_time || "",
+    race_name:        fields.race_name || "",
+    race_date:        fields.race_date || "",
+  });
+  if (ok) showToast("✅ Plan generating — reload in ~90s");
 }
 
 function _saveGoalFields() {
-  saveSettings({
-    goal:         document.getElementById("g-goal").value,
-    race_name:    document.getElementById("g-race-name").value,
-    race_date:    document.getElementById("g-race-date").value,
-    target_time:  document.getElementById("g-target-time").value,
-    weekly_hours: parseFloat(document.getElementById("g-hours").value),
-  });
+  const fields = {
+    goal:              document.getElementById("g-goal").value,
+    race_name:         document.getElementById("g-race-name").value,
+    race_date:         document.getElementById("g-race-date").value,
+    target_time:       document.getElementById("g-target-time").value,
+    start_date:        document.getElementById("g-start-date").value,
+    run_days:          _getSelectedDays(),
+    sessions_per_week: parseInt(document.getElementById("g-sessions").value),
+    weekly_hours:      parseFloat(document.getElementById("g-hours").value),
+  };
+  saveSettings(fields);
+  return fields;
 }
 
 // ── Render: SETTINGS ──────────────────────────────────────────────────────────

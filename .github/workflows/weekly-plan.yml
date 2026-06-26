@@ -4,6 +4,39 @@ on:
   schedule:
     - cron: "0 7 * * 1"  # Every Monday 7 AM UTC (9 AM Israel time)
   workflow_dispatch:
+    inputs:
+      start_date:
+        description: "Plan start date (YYYY-MM-DD, leave empty for next Monday)"
+        required: false
+        default: ""
+      run_days:
+        description: "Comma-separated running days e.g. Monday,Wednesday,Friday,Sunday"
+        required: false
+        default: ""
+      sessions_per_week:
+        description: "Number of sessions per week"
+        required: false
+        default: ""
+      weekly_hours:
+        description: "Weekly hours budget"
+        required: false
+        default: ""
+      training_goal:
+        description: "Training goal override"
+        required: false
+        default: ""
+      target_time:
+        description: "Target finish time override"
+        required: false
+        default: ""
+      race_name:
+        description: "Race name override"
+        required: false
+        default: ""
+      race_date:
+        description: "Race date override (YYYY-MM-DD)"
+        required: false
+        default: ""
 
 jobs:
   generate-plan:
@@ -28,11 +61,14 @@ jobs:
           STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
           STRAVA_REFRESH_TOKEN: ${{ secrets.STRAVA_REFRESH_TOKEN }}
           ANTHROPIC_API_KEY:    ${{ secrets.ANTHROPIC_API_KEY }}
-          TRAINING_GOAL:        ${{ secrets.TRAINING_GOAL }}
-          TARGET_TIME:          ${{ secrets.TARGET_TIME }}
-          RACE_NAME:            ${{ secrets.RACE_NAME }}
-          RACE_DATE:            ${{ secrets.RACE_DATE }}
-          WEEKLY_HOURS:         ${{ secrets.WEEKLY_HOURS }}
+          TRAINING_GOAL:        ${{ inputs.training_goal || secrets.TRAINING_GOAL }}
+          TARGET_TIME:          ${{ inputs.target_time || secrets.TARGET_TIME }}
+          RACE_NAME:            ${{ inputs.race_name || secrets.RACE_NAME }}
+          RACE_DATE:            ${{ inputs.race_date || secrets.RACE_DATE }}
+          WEEKLY_HOURS:         ${{ inputs.weekly_hours || secrets.WEEKLY_HOURS }}
+          START_DATE:           ${{ inputs.start_date }}
+          RUN_DAYS:             ${{ inputs.run_days }}
+          SESSIONS_PER_WEEK:    ${{ inputs.sessions_per_week }}
         run: python backend/run_coach_agent.py
 
       - name: Commit plan
