@@ -156,7 +156,7 @@ def build_weekly_buckets(activities):
 
 
 def save_analytics(data: dict):
-    data_dir = Path(__file__).parent.parent / "data"
+    data_dir = Path(__file__).parent.parent / "frontend" / "data"
     data_dir.mkdir(exist_ok=True)
     path = data_dir / "analytics.json"
     data["generated_at"] = datetime.utcnow().isoformat() + "Z"
@@ -165,7 +165,7 @@ def save_analytics(data: dict):
 
 
 def save_plan(plan: dict):
-    data_dir = Path(__file__).parent.parent / "data"
+    data_dir = Path(__file__).parent.parent / "frontend" / "data"
     plan_path = data_dir / "plan.json"
     if plan_path.exists():
         backup = data_dir / f"plan_{datetime.today().strftime('%Y%m%d')}_backup.json"

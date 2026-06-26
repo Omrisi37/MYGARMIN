@@ -71,7 +71,7 @@ Generate the complete 7-day training plan for the week above.
 
 
 def save_plan(plan: dict):
-    data_dir = Path(__file__).parent.parent / "data"
+    data_dir = Path(__file__).parent.parent / "frontend" / "data"
     data_dir.mkdir(exist_ok=True)
     plan_path = data_dir / "plan.json"
 
