@@ -50,6 +50,21 @@ def weeks_to_race(race_date_str: str | None) -> int | None:
     return max(0, (race - datetime.today()).days // 7)
 
 
+def current_training_phase(weeks_left: int | None) -> str:
+    """Map weeks-to-race to the correct periodization phase."""
+    if weeks_left is None:
+        return "Base Building"
+    if weeks_left >= 13:
+        return "Base Building"
+    if weeks_left >= 9:
+        return "Aerobic Development"
+    if weeks_left >= 5:
+        return "Peak Training"
+    if weeks_left >= 2:
+        return "Taper"
+    return "Race Week"
+
+
 def build_user_message(strava_data: dict, config: dict) -> str:
     weeks_left = weeks_to_race(config.get("race_date"))
     today = datetime.today()
@@ -75,6 +90,7 @@ def build_user_message(strava_data: dict, config: dict) -> str:
 
     run_days = config.get("run_days") or []
     sessions = config.get("sessions_per_week") or 4
+    phase = current_training_phase(weeks_left)
 
     schedule_note = ""
     if run_days:
@@ -87,7 +103,8 @@ def build_user_message(strava_data: dict, config: dict) -> str:
 {f"- Target time: {config['target_time']}" if config.get('target_time') else ""}
 - Weekly time budget: {config['weekly_hours_budget']} hours
 - Plan start: {week_start.strftime('%Y-%m-%d')} (4-week block)
-{f"- Weeks until race: {weeks_left}" if weeks_left is not None else "- No specific race date set"}
+{f"- Weeks until race: {weeks_left} → Current phase: **{phase}**" if weeks_left is not None else "- No specific race date set → Current phase: Base Building"}
+- IMPORTANT: Label all 4 weeks with the correct phase for their position in the training cycle. Week 1 starts at phase "{phase}" (with {weeks_left if weeks_left is not None else "unknown"} weeks to race). Progress appropriately through the block.
 {schedule_note}
 
 ## Last 14 Days of Training (from Strava)

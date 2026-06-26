@@ -316,6 +316,61 @@ function setWeekView(mode) {
   renderWeek();
 }
 
+function _renderMacroTimeline() {
+  const s = getSettings();
+  if (!s.race_date) return "";
+
+  const raceDate = new Date(s.race_date);
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const totalDays = Math.ceil((raceDate - today) / 86400000);
+  if (totalDays <= 0) return "";
+
+  const weeksLeft = Math.floor(totalDays / 7);
+
+  const phases = [
+    { name: "Base Building",      color: "var(--green)",  minWeek: 13 },
+    { name: "Aerobic Development",color: "var(--blue)",   minWeek: 9  },
+    { name: "Peak Training",      color: "var(--orange)", minWeek: 5  },
+    { name: "Taper",              color: "#a855f7",       minWeek: 2  },
+    { name: "Race Week",          color: "var(--red)",    minWeek: 0  },
+  ];
+
+  function phaseFor(w) {
+    for (const p of phases) if (w >= p.minWeek) return p;
+    return phases[phases.length - 1];
+  }
+
+  // Build week-by-week bars (max 20 shown)
+  const totalWeeks = Math.min(weeksLeft, 20);
+  const barsHtml = Array.from({ length: totalWeeks }, (_, i) => {
+    const wLeft = weeksLeft - i;
+    const p = phaseFor(wLeft);
+    const isNow = i === 0;
+    const weekDate = new Date(today.getTime() + i * 7 * 86400000);
+    const label = weekDate.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    return `<div class="timeline-bar${isNow ? " now" : ""}" style="background:${p.color};opacity:${isNow ? 1 : 0.45}"
+      title="Week ${i+1}: ${p.name} · ${label}"></div>`;
+  }).join("");
+
+  const currentPhase = phaseFor(weeksLeft);
+  const raceDateStr = raceDate.toLocaleDateString("en-US", { weekday:"short", month:"long", day:"numeric", year:"numeric" });
+
+  return `
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-label">📅 FULL PLAN — ROAD TO RACE</div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:4px">${s.race_name || "Race Day"} · ${raceDateStr}</div>
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:12px">${weeksLeft} weeks to go · Now in <span style="color:${currentPhase.color};font-weight:700">${currentPhase.name}</span></div>
+      <div class="timeline-bars">${barsHtml}</div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-dim);margin-top:4px">
+        <span>Now</span><span>Race Day 🏁</span>
+      </div>
+      <div class="timeline-legend">
+        ${phases.map(p => `<span><span class="tl-dot" style="background:${p.color}"></span>${p.name}</span>`).join("")}
+      </div>
+    </div>`;
+}
+
 function _renderWeekDays(days, weekOffset) {
   const today = todayDayName();
   return days.map((day, i) => {
@@ -359,6 +414,8 @@ function renderWeek() {
       <button class="view-toggle-btn${weekViewMode === "month" ? " active" : ""}" onclick="setWeekView('month')">4-Week Plan</button>
     </div>` : "";
 
+  const macroTimeline = _renderMacroTimeline();
+
   if (weekViewMode === "month" && hasMonthData) {
     const monthCardsHtml = plan.weeks.map((week, idx) => {
       const dotsHtml = (week.days || []).map(day => {
@@ -386,6 +443,7 @@ function renderWeek() {
     el.innerHTML = `
       <div class="page-title">Training Plan</div>
       <div class="page-sub">4-Week block overview</div>
+      ${macroTimeline}
       ${toggleHtml}
       ${monthCardsHtml}
     `;
@@ -394,6 +452,7 @@ function renderWeek() {
     el.innerHTML = `
       <div class="page-title">This Week</div>
       <div class="page-sub">Week ${weekData.week_number || 1} · ${weekData.phase || ""}</div>
+      ${macroTimeline}
       ${toggleHtml}
       ${_renderWeekDays(weekData.days || [], 0)}
       <div class="legend" style="margin-top:8px">

@@ -913,3 +913,46 @@ svg text { font-family: inherit; }
 }
 .skip-btn.active-doing { border-color: var(--green); color: var(--green); background: var(--green-dim); }
 .skip-btn.active-skip  { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+
+/* ── Macro Timeline ──────────────────────────────────────────────────────────── */
+.timeline-bars {
+  display: flex;
+  gap: 3px;
+  height: 20px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.timeline-bar {
+  flex: 1;
+  border-radius: 3px;
+  transition: opacity 0.15s;
+}
+.timeline-bar.now {
+  opacity: 1 !important;
+  position: relative;
+}
+.timeline-bar.now::after {
+  content: "▲";
+  position: absolute;
+  bottom: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 8px;
+  color: var(--text);
+}
+.timeline-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.tl-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+  vertical-align: middle;
+}
