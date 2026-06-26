@@ -301,8 +301,8 @@ function renderToday() {
     ${workoutHtml}
     ${weekHtml}
     ${stravaHtml}
-    <button class="btn btn-ghost" onclick="generatePlan()" style="margin-top:4px">
-      ⚡ Generate New Plan
+    <button class="btn btn-ghost" onclick="navigate('goals')" style="margin-top:4px">
+      ⚡ Generate / Update Plan
     </button>
   `;
 }

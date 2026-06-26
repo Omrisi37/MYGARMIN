@@ -65,6 +65,26 @@ def current_training_phase(weeks_left: int | None) -> str:
     return "Race Week"
 
 
+def _format_cross_training(cross_training: list, weekly_skip: list) -> str:
+    if not cross_training:
+        return "None"
+    lines = []
+    blocked_days = {}
+    for act in cross_training:
+        skipped = act["id"] in weekly_skip
+        for day in act.get("days", []):
+            status = " (SKIPPED THIS WEEK — day is FREE)" if skipped else " ← BLOCKED, assign Cross-Training here"
+            key = day
+            if key not in blocked_days:
+                blocked_days[key] = []
+            blocked_days[key].append(f"{act.get('emoji','')} {act['label']}{status}")
+    for day, acts in blocked_days.items():
+        lines.append(f"- {day}: " + ", ".join(acts))
+    if not lines:
+        return "None"
+    return "\n".join(lines)
+
+
 def build_user_message(strava_data: dict, config: dict) -> str:
     weeks_left = weeks_to_race(config.get("race_date"))
     today = datetime.today()
@@ -113,8 +133,8 @@ def build_user_message(strava_data: dict, config: dict) -> str:
 ## 4-Week Schedule to Fill
 {json.dumps(all_weeks_dates, indent=2)}
 
-## Cross-Training Schedule
-{json.dumps(config.get('cross_training', []), indent=2) if config.get('cross_training') else "None"}
+## Cross-Training Schedule (FIXED COMMITMENTS — do not place runs on these days)
+{_format_cross_training(config.get('cross_training', []), config.get('weekly_skip_ct', []))}
 
 ## Quality Sessions Requested
 - Quality sessions per week: {config['quality_sessions']} (0 = only easy/tempo based on plan)

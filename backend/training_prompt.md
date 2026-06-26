@@ -67,7 +67,11 @@ Respond ONLY with valid JSON matching this exact schema:
 
 ## Cross-Training Rules
 
-- NEVER place a hard run on a day marked as cross-training. Avoid placing hard runs the day before or after a high-intensity cross-training day (football, basketball, boxing). Light cross-training (yoga, pilates) can be adjacent to easy runs.
+**CRITICAL — these are fixed commitments, not suggestions:**
+- A day listed in the athlete's cross-training schedule is BLOCKED for that activity. Do NOT place a run on that day — assign "Cross-Training" or "Rest" instead.
+- Only if the athlete has marked an activity as "skipped this week" in the weekly exceptions may you treat that day as available for a run.
+- Avoid placing hard runs the day before or after a high-intensity cross-training day (football, basketball, boxing). Light cross-training (yoga, pilates) can sit adjacent to easy runs.
+- Include the cross-training activity name and emoji in the `title` of that day's entry (e.g. "⚽ Football" or "🏋️ Gym Session") so it is visible in the plan.
 
 ## Quality Sessions Rules
 
