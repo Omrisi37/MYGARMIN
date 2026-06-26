@@ -243,13 +243,22 @@ def generate_analytics():
     weeks = _build_weekly_buckets(activities)
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
+    # Build these outside the f-string to avoid {{}} escaping issues
+    weeks_json    = json.dumps(weeks, indent=2)
+    acts_json     = json.dumps(activities[-30:], indent=2)
+    weeks_summary = json.dumps(
+        [{"week_start": w["week_start"], "total_km": w["total_km"], "avg_hr": w["avg_hr"], "assessment": "brief"}
+         for w in weeks],
+        indent=2,
+    )
+
     prompt = f"""You are an elite running coach analysing an athlete's last 8 weeks of Strava data.
 
 ## Weekly data (running only)
-{json.dumps(weeks, indent=2)}
+{weeks_json}
 
 ## All activities (last 8 weeks)
-{json.dumps(activities[-30:], indent=2)}
+{acts_json}
 
 Analyse fitness trends, fatigue signals, and training load. Be specific and personal.
 
@@ -263,7 +272,7 @@ Respond ONLY with valid JSON:
   "key_observations": ["3 bullet points max, specific and data-driven"],
   "warnings": [],
   "recommendations": ["3 bullet points max, actionable"],
-  "weeks_analysis": {json.dumps([{{"week_start": w["week_start"], "total_km": w["total_km"], "avg_hr": w["avg_hr"], "assessment": "brief"}} for w in weeks], indent=2)}
+  "weeks_analysis": {weeks_summary}
 }}"""
 
     response = client.messages.create(
