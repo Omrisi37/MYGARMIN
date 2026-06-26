@@ -958,20 +958,52 @@ svg text { font-family: inherit; }
 }
 
 /* ── Completed sessions ──────────────────────────────────────────────────────── */
-.day-row.done { opacity: 0.9; }
-.day-dot.done-dot { background: var(--green); position: relative; }
-.day-dot.done-dot::after {
-  content: "✓";
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 8px;
+.day-row.done {
+  border-color: rgba(34,197,94,0.25);
+  background: linear-gradient(135deg, var(--surface2) 0%, rgba(34,197,94,0.06) 100%);
+}
+.day-dot.done-dot {
+  width: 18px; height: 18px;
+  background: var(--green);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
   color: #000;
   font-weight: 900;
-  line-height: 1;
+  flex-shrink: 0;
 }
 .done-badge {
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
+  padding: 3px 8px;
+  border-radius: 99px;
+  background: var(--green-dim);
 }
+.done-sub {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+/* Coach analysis card inside modal */
+.coach-card {
+  background: linear-gradient(135deg, var(--surface2) 0%, rgba(0,212,170,0.06) 100%);
+  border: 1px solid rgba(0,212,170,0.2);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.coach-card .card-label { margin-bottom: 8px; color: var(--accent); }
+/* Actual vs planned comparison */
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.compare-col { background: var(--surface2); border-radius: 10px; padding: 10px; }
+.compare-col-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.compare-col-label.actual { color: var(--green); }
+.compare-col-label.planned { color: var(--text-dim); }
+.compare-stat { font-size: 13px; color: var(--text-mid); margin-bottom: 4px; }
+.compare-stat strong { color: var(--text); }

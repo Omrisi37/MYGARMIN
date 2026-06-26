@@ -86,16 +86,35 @@ def save_plan(plan):
     print(f"Plan saved to {plan_path}")
 
 
-def find_matching_day(plan, date_str):
-    """Return (day_dict, week_idx_or_None, day_idx_or_None)."""
-    for di, day in enumerate(plan.get("days", [])):
+def apply_completion_to_plan(plan, date_str, completion):
+    """
+    Write completion fields to every occurrence of this date in the plan
+    (top-level days AND weeks[N].days are separate objects — both must be updated).
+    Returns True if at least one day was found and updated.
+    """
+    found = False
+    for day in plan.get("days", []):
         if day.get("date") == date_str:
-            return day, None, di
-    for wi, week in enumerate(plan.get("weeks", [])):
-        for di, day in enumerate(week.get("days", [])):
+            day.update(completion)
+            found = True
+    for week in plan.get("weeks", []):
+        for day in week.get("days", []):
             if day.get("date") == date_str:
-                return day, wi, di
-    return None, None, None
+                day.update(completion)
+                found = True
+    return found
+
+
+def find_matching_day(plan, date_str):
+    """Return first matching day dict (for reading planned details only)."""
+    for day in plan.get("days", []):
+        if day.get("date") == date_str:
+            return day
+    for week in plan.get("weeks", []):
+        for day in week.get("days", []):
+            if day.get("date") == date_str:
+                return day
+    return None
 
 
 def analyze_session(planned_day, actual):
@@ -166,7 +185,7 @@ def sync_session():
     updated = 0
     for activity in activities:
         date_str = activity["date"]
-        planned_day, week_idx, day_idx = find_matching_day(plan, date_str)
+        planned_day = find_matching_day(plan, date_str)
 
         if not planned_day:
             print(f"No plan day for {date_str} ({activity['type']}: {activity['name']}) — skipping")
@@ -185,24 +204,28 @@ def sync_session():
             print(f"Analysis failed: {e}")
             analysis = {"session_analysis": "Session recorded.", "execution_rating": "on-plan", "adjustment": None}
 
-        planned_day["completed"] = True
-        planned_day["actual_stats"] = {
-            "distance_km":  activity.get("distance_km"),
-            "duration_min": activity.get("duration_min"),
-            "avg_hr":       activity.get("avg_hr"),
-            "avg_pace":     activity.get("avg_pace"),
-            "calories":     activity.get("calories"),
-            "activity_name": activity.get("name"),
-            "activity_type": activity.get("type"),
+        completion = {
+            "completed": True,
+            "actual_stats": {
+                "distance_km":   activity.get("distance_km"),
+                "duration_min":  activity.get("duration_min"),
+                "avg_hr":        activity.get("avg_hr"),
+                "avg_pace":      activity.get("avg_pace"),
+                "calories":      activity.get("calories"),
+                "elevation_m":   activity.get("elevation_m"),
+                "activity_name": activity.get("name"),
+                "activity_type": activity.get("type"),
+            },
+            "coach_analysis":   analysis.get("session_analysis", ""),
+            "execution_rating": analysis.get("execution_rating", "on-plan"),
         }
-        planned_day["coach_analysis"]  = analysis.get("session_analysis", "")
-        planned_day["execution_rating"] = analysis.get("execution_rating", "on-plan")
-
         adj = analysis.get("adjustment")
         if adj:
-            planned_day["coach_adjustment"] = adj
+            completion["coach_adjustment"] = adj
             print(f"Minor adjustment suggested for {adj.get('day')}: {adj.get('change')}")
 
+        # Update ALL occurrences of this date (top-level days + weeks array are separate copies)
+        apply_completion_to_plan(plan, date_str, completion)
         updated += 1
 
     if updated > 0:

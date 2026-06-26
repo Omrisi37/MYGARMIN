@@ -391,14 +391,16 @@ function _renderWeekDays(days, weekOffset) {
     const rating = day.execution_rating;
 
     if (done) {
-      const distLabel = actual?.distance_km ? `${actual.distance_km} km` : (day.distance_km > 0 ? `${day.distance_km} km` : "");
-      const hrLabel = actual?.avg_hr ? ` · ${actual.avg_hr} bpm` : "";
+      const distLabel = actual?.distance_km ? `${actual.distance_km} km` : "";
+      const hrLabel   = actual?.avg_hr       ? `${actual.avg_hr} bpm`   : "";
+      const paceLabel = actual?.avg_pace     ? `${actual.avg_pace}/km`  : "";
+      const subParts  = [distLabel, hrLabel, paceLabel].filter(Boolean);
       return `<div class="day-row done" onclick="openDayModal(${i}, ${weekOffset})">
         <div class="day-abbr">${day.day.slice(0,3).toUpperCase()}</div>
-        <div class="day-dot done-dot"></div>
+        <div class="day-dot done-dot">✓</div>
         <div style="flex:1;min-width:0">
-          <div class="day-name" style="color:var(--text)">${day.title}</div>
-          <div class="text-xs" style="color:var(--text-dim);margin-top:2px">${distLabel}${hrLabel}</div>
+          <div class="day-name">${day.title}</div>
+          ${subParts.length ? `<div class="done-sub">${subParts.join(" · ")}</div>` : ""}
         </div>
         <div class="done-badge" style="color:${_ratingColor(rating)}">${_ratingLabel(rating)}</div>
         <div class="day-chevron">›</div>
@@ -926,7 +928,14 @@ function renderSettings() {
 async function syncFromStrava() {
   showToast("⏳ Syncing last session…");
   const ok = await triggerWorkflow("sync-session.yml");
-  if (ok) showToast("✅ Session sync running — refresh in ~60s");
+  if (!ok) return;
+  showToast("⏳ Analysing with coach… auto-refreshing in 75s");
+  // Auto-refresh after workflow has time to complete
+  setTimeout(async () => {
+    [currentPlan, currentAnalytics] = await Promise.all([fetchPlan(), fetchAnalytics()]);
+    renderScreen(currentScreen);
+    showToast("✅ Session synced — tap the day to see coach analysis");
+  }, 75000);
 }
 
 async function runDeepSync() {
@@ -952,46 +961,70 @@ function openDayModal(i, weekOffset) {
   const actual = day.actual_stats || {};
   const rating = day.execution_rating;
 
+  // ── Completed session modal ──
+  if (done) {
+    const hasActual = actual.distance_km || actual.duration_min || actual.avg_hr;
+    const compareHtml = hasActual ? `
+      <div class="compare-grid">
+        <div class="compare-col">
+          <div class="compare-col-label actual">✅ Actual</div>
+          ${actual.distance_km  ? `<div class="compare-stat"><strong>${actual.distance_km} km</strong> distance</div>` : ""}
+          ${actual.duration_min ? `<div class="compare-stat"><strong>${actual.duration_min} min</strong> duration</div>` : ""}
+          ${actual.avg_hr       ? `<div class="compare-stat"><strong>${actual.avg_hr} bpm</strong> avg HR</div>` : ""}
+          ${actual.avg_pace     ? `<div class="compare-stat"><strong>${actual.avg_pace}/km</strong> pace</div>` : ""}
+          ${actual.calories     ? `<div class="compare-stat"><strong>${actual.calories} kcal</strong></div>` : ""}
+          ${actual.elevation_m  ? `<div class="compare-stat"><strong>${actual.elevation_m} m</strong> elevation</div>` : ""}
+        </div>
+        <div class="compare-col">
+          <div class="compare-col-label planned">📋 Planned</div>
+          ${day.distance_km  ? `<div class="compare-stat"><strong>${day.distance_km} km</strong> distance</div>` : ""}
+          ${day.duration_min ? `<div class="compare-stat"><strong>${day.duration_min} min</strong> duration</div>` : ""}
+          ${day.hr_zone      ? `<div class="compare-stat"><strong>${day.hr_zone}</strong></div>` : ""}
+          ${day.intensity    ? `<div class="compare-stat"><strong>${day.intensity}</strong> intensity</div>` : ""}
+        </div>
+      </div>` : "";
+
+    const coachHtml = day.coach_analysis ? `
+      <div class="coach-card">
+        <div class="card-label">🧠 COACH ANALYSIS</div>
+        <p class="text-sm text-mid" style="line-height:1.6">${day.coach_analysis}</p>
+        ${day.coach_adjustment ? `
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,212,170,0.15)">
+            <div class="text-xs" style="color:var(--orange);font-weight:700;margin-bottom:4px">⚡ SUGGESTED ADJUSTMENT</div>
+            <p class="text-sm text-mid"><strong>${day.coach_adjustment.day}:</strong> ${day.coach_adjustment.change}</p>
+            <p class="text-xs text-dim" style="margin-top:2px">${day.coach_adjustment.reason || ""}</p>
+          </div>` : ""}
+      </div>` : "";
+
+    document.getElementById("day-modal-body").innerHTML = `
+      <div style="font-size:28px;margin-bottom:6px">✅</div>
+      <h2 style="font-size:20px;font-weight:700;margin-bottom:2px">${day.title}</h2>
+      <div class="text-sm text-mid" style="margin-bottom:10px">${day.day}${day.date ? " · " + day.date : ""}</div>
+      <div style="margin-bottom:12px">
+        <span class="done-badge" style="color:${_ratingColor(rating)}">${_ratingLabel(rating)}</span>
+      </div>
+      ${coachHtml}
+      ${compareHtml}
+      ${day.description ? `<p class="text-sm text-mid" style="line-height:1.6;margin-top:4px">${day.description}</p>` : ""}
+      <button class="btn btn-ghost" onclick="closeModal()" style="margin-top:20px">Close</button>
+    `;
+    document.getElementById("day-modal").classList.add("open");
+    return;
+  }
+
+  // ── Upcoming/planned session modal ──
   const plannedStatsHtml = day.distance_km > 0 ? `
     <div class="stats-grid" style="margin-bottom:14px">
-      <div class="stat-box"><div class="stat-val">${day.distance_km}<span class="stat-unit"> km</span></div><div class="stat-lbl">Planned</div></div>
-      <div class="stat-box"><div class="stat-val">${day.duration_min}<span class="stat-unit"> min</span></div><div class="stat-lbl">Planned</div></div>
-    </div>` : "";
-
-  const actualStatsHtml = done && (actual.distance_km || actual.duration_min) ? `
-    <div class="card-label" style="margin-bottom:8px">ACTUAL (STRAVA)</div>
-    <div class="stats-grid" style="margin-bottom:14px">
-      ${actual.distance_km ? `<div class="stat-box"><div class="stat-val green">${actual.distance_km}<span class="stat-unit"> km</span></div><div class="stat-lbl">Distance</div></div>` : ""}
-      ${actual.duration_min ? `<div class="stat-box"><div class="stat-val green">${actual.duration_min}<span class="stat-unit"> min</span></div><div class="stat-lbl">Duration</div></div>` : ""}
-      ${actual.avg_hr ? `<div class="stat-box"><div class="stat-val">${actual.avg_hr}<span class="stat-unit"> bpm</span></div><div class="stat-lbl">Avg HR</div></div>` : ""}
-      ${actual.avg_pace ? `<div class="stat-box"><div class="stat-val">${actual.avg_pace}<span class="stat-unit">/km</span></div><div class="stat-lbl">Avg Pace</div></div>` : ""}
-    </div>` : "";
-
-  const coachHtml = done && day.coach_analysis ? `
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px">
-      <div class="card-label" style="margin-bottom:6px">🧠 COACH SAYS</div>
-      <p class="text-sm text-mid" style="line-height:1.6">${day.coach_analysis}</p>
-      ${day.coach_adjustment ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
-        <div class="text-xs" style="color:var(--orange);font-weight:700;margin-bottom:4px">⚡ MINOR ADJUSTMENT</div>
-        <p class="text-sm text-mid">${day.coach_adjustment.day}: ${day.coach_adjustment.change}</p>
-        <p class="text-xs text-dim" style="margin-top:2px">${day.coach_adjustment.reason || ""}</p>
-      </div>` : ""}
-    </div>` : "";
-
-  const ratingHtml = done && rating ? `
-    <div style="margin-bottom:12px">
-      <span style="font-size:13px;font-weight:700;color:${_ratingColor(rating)}">${_ratingLabel(rating)}</span>
+      <div class="stat-box"><div class="stat-val">${day.distance_km}<span class="stat-unit"> km</span></div><div class="stat-lbl">Distance</div></div>
+      <div class="stat-box"><div class="stat-val">${day.duration_min}<span class="stat-unit"> min</span></div><div class="stat-lbl">Duration</div></div>
     </div>` : "";
 
   document.getElementById("day-modal-body").innerHTML = `
-    <div style="font-size:32px;margin-bottom:8px">${done ? "✅" : workoutEmoji(day.workout_type, day.intensity)}</div>
+    <div style="font-size:32px;margin-bottom:8px">${workoutEmoji(day.workout_type, day.intensity)}</div>
     <h2 style="font-size:20px;font-weight:700;margin-bottom:4px">${day.title}</h2>
     <div class="text-sm text-mid">${day.day}${day.date ? " · " + day.date : ""}</div>
     <div style="margin:12px 0"><span class="day-badge ${key}">${day.intensity}</span>${day.hr_zone ? ` <span class="day-badge easy" style="margin-left:6px">${day.hr_zone}</span>` : ""}</div>
-    ${ratingHtml}
-    ${coachHtml}
-    ${done && (actual.distance_km || actual.duration_min) ? actualStatsHtml : plannedStatsHtml}
-    ${done ? `<div class="card-label" style="margin-bottom:6px">PLANNED</div>` : ""}
+    ${plannedStatsHtml}
     <p class="text-sm text-mid" style="line-height:1.6;margin-bottom:10px">${day.description||""}</p>
     ${day.key_focus ? `<p class="text-sm"><strong>Focus:</strong> <span class="text-mid">${day.key_focus}</span></p>` : ""}
     ${day.notes ? `<p class="text-sm mt-8"><strong>Notes:</strong> <span class="text-mid">${day.notes}</span></p>` : ""}
