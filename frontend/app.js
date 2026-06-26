@@ -47,7 +47,7 @@ function navigate(id) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
   document.getElementById(`screen-${id}`).classList.add("active");
-  document.querySelector(`[data-nav="${id}"]`).classList.add("active");
+  document.querySelectorAll(`[data-nav="${id}"]`).forEach(b => b.classList.add("active"));
   currentScreen = id;
   renderScreen(id);
 }
