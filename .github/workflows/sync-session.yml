@@ -35,6 +35,6 @@ jobs:
           git stash --include-untracked
           git pull --rebase origin main
           git stash pop || true
-          git add frontend/data/plan.json
+          git add frontend/data/plan.json frontend/data/analytics.json
           git commit -m "Session sync: $(date +%Y-%m-%d)" || echo "No changes"
           git push

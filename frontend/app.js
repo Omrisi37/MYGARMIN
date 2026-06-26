@@ -93,11 +93,6 @@ async function refreshData() {
   showToast("✓ Updated");
 }
 
-async function runDeepAnalysis() {
-  showToast("⏳ Starting deep analysis…");
-  const ok = await triggerWorkflow("deep-analysis.yml");
-  if (ok) showToast("🧠 Analysis running — check back in ~2 min");
-}
 
 // ── Workflow Trigger ──────────────────────────────────────────────────────────
 
@@ -905,10 +900,8 @@ function renderSettings() {
       <div class="settings-header"><span class="icon" style="color:var(--orange)">🔶</span> Strava Connection</div>
       <div class="settings-body">
         <div class="info-box">✅ Connected via OAuth. Your Strava runs are fetched automatically when generating a plan.</div>
-        <button class="btn btn-accent" onclick="syncFromStrava()" style="margin-top:10px">🔄 Sync Last Session</button>
-        <p class="text-xs text-dim" style="margin-top:6px">Marks today's workout as done + coach gives session feedback. Does not change your plan.</p>
-        <button class="btn btn-ghost" onclick="runDeepSync()" style="margin-top:8px">🧠 Full Plan Analysis</button>
-        <p class="text-xs text-dim" style="margin-top:4px">Analyses last 8 weeks and regenerates your full plan from scratch.</p>
+        <button class="btn btn-accent" onclick="syncFromStrava()" style="margin-top:10px">🔄 Sync Session</button>
+        <p class="text-xs text-dim" style="margin-top:6px">Marks completed workouts · Coach analyses each session · Refreshes the Analytics tab. Does not change your plan.</p>
       </div>
     </div>
 
@@ -943,11 +936,6 @@ async function syncFromStrava() {
   }, 75000);
 }
 
-async function runDeepSync() {
-  showToast("⏳ Starting full analysis…");
-  const ok = await triggerWorkflow("deep-analysis.yml");
-  if (ok) showToast("🧠 Full analysis running — check back in ~2 min");
-}
 
 // ── Day Modal ─────────────────────────────────────────────────────────────────
 
@@ -1125,19 +1113,16 @@ function renderAnalytics() {
   const el = document.getElementById("analyse-content");
   const a = currentAnalytics;
 
-  const analyseBtn = `
-    <button class="btn btn-accent" onclick="runDeepAnalysis()" style="margin-bottom:16px">
-      🧠 Analyse &amp; Improve
-    </button>
-    <p class="text-xs text-dim" style="text-align:center;margin-bottom:20px;margin-top:-10px">Fetches 8 weeks of Strava data · Generates deeper insights</p>
-  `;
-
   if (!a) {
     el.innerHTML = `
       <div class="page-title">Analytics</div>
       <div class="page-sub">8-week performance overview</div>
-      ${analyseBtn}
-      <div class="empty"><div class="empty-icon">📊</div><h3>No analytics yet</h3><p>Tap "Analyse &amp; Improve" to generate insights from your Strava data.</p></div>
+      <div class="empty">
+        <div class="empty-icon">📊</div>
+        <h3>No analytics yet</h3>
+        <p>Sync a session from Settings — analytics update automatically with every sync.</p>
+        <button class="btn btn-ghost" onclick="navigate('settings')" style="margin-top:12px">Go to Settings →</button>
+      </div>
     `;
     return;
   }
@@ -1148,9 +1133,7 @@ function renderAnalytics() {
 
   el.innerHTML = `
     <div class="page-title">Analytics</div>
-    <div class="page-sub">${a.generated_at ? "Last analysed " + new Date(a.generated_at).toLocaleDateString() : "8-week performance overview"}</div>
-
-    ${analyseBtn}
+    <div class="page-sub">${a.generated_at ? "Updated " + new Date(a.generated_at).toLocaleDateString() + " · auto-refreshes on sync" : "8-week performance overview"}</div>
 
     <!-- Status cards -->
     <div class="stats-grid" style="margin-bottom:14px">
