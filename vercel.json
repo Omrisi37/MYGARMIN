@@ -1,3 +1,6 @@
 {
-  "outputDirectory": "frontend"
+  "outputDirectory": "frontend",
+  "functions": {
+    "frontend/api/*.js": { "runtime": "nodejs20.x" }
+  }
 }
