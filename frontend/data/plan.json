@@ -498,7 +498,24 @@
       "hr_zone": "\u2014",
       "description": "Active recovery or complete rest.",
       "key_focus": "Recovery",
-      "notes": ""
+      "notes": "",
+      "completed": true,
+      "actual_stats": {
+        "distance_km": 6.31,
+        "duration_min": 39.0,
+        "avg_hr": null,
+        "avg_pace": "6:10",
+        "calories": null,
+        "activity_name": "Evening Run",
+        "activity_type": "Run"
+      },
+      "coach_analysis": "You ran 6.31 km when a complete rest day was scheduled\u2014this was an unplanned effort that broke the recovery protocol. The 6:10/km pace and 39-minute duration suggest an easy, conversational effort rather than hard running, which is good judgment on your part. However, rest days exist for a reason; next time, honor the plan with true recovery or communicate if you need to adjust your training schedule.",
+      "execution_rating": "too-hard",
+      "coach_adjustment": {
+        "day": "Next scheduled rest day",
+        "change": "Stick to active recovery only (walk, easy 20-min jog max, or complete rest)",
+        "reason": "Unplanned running on recovery days accumulates fatigue and undermines adaptation. Trust the plan."
+      }
     },
     {
       "day": "Friday",
@@ -511,7 +528,24 @@
       "hr_zone": "Zone 2 + Zone 5 (strides only)",
       "description": "Repeat Wednesday structure: 5 km easy, then 6 \u00d7 100 m strides. Maintains neuromuscular stimulus while respecting recovery.",
       "key_focus": "Form, running economy",
-      "notes": "Second quality session; 48 hours from Wednesday session."
+      "notes": "Second quality session; 48 hours from Wednesday session.",
+      "completed": true,
+      "actual_stats": {
+        "distance_km": 0.0,
+        "duration_min": 48.6,
+        "avg_hr": 111.0,
+        "avg_pace": null,
+        "calories": null,
+        "activity_name": "Afternoon Weight Training",
+        "activity_type": "WeightTraining"
+      },
+      "coach_analysis": "You completely substituted today's running workout with afternoon weight training instead. While strength work is valuable, this wasn't the planned quality session\u2014you missed the neuromuscular stimulus from the strides and the easy aerobic base. If you needed to shift to weights today, that's fine, but we should understand why and ensure the running session gets rescheduled.",
+      "execution_rating": "skipped",
+      "coach_adjustment": {
+        "day": "Thursday or Friday",
+        "change": "Reinstate the Easy 5km + 6\u00d7100m Strides session",
+        "reason": "Quality run was missed entirely today. This session is important for maintaining running fitness and neuromuscular sharpness\u2014reschedule it before the weekend."
+      }
     },
     {
       "day": "Saturday",
@@ -551,5 +585,6 @@
     "latest_vo2_max": null
   },
   "generated_at": "2026-06-26T15:34:58.706319Z",
-  "status": "pending_approval"
+  "status": "pending_approval",
+  "synced_at": "2026-06-26T16:20:13.652445Z"
 }
