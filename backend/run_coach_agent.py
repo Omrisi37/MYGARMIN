@@ -22,6 +22,15 @@ def _parse_run_days(raw):
         return []
     return [d.strip() for d in raw.split(",") if d.strip()]
 
+def _parse_json_env(key, default):
+    raw = os.environ.get(key, "")
+    if not raw or raw.strip() in ("", "[]", "{}"):
+        return default
+    try:
+        return json.loads(raw)
+    except Exception:
+        return default
+
 TRAINING_CONFIG = {
     "goal":                os.environ.get("TRAINING_GOAL") or "Marathon",
     "target_time":         os.environ.get("TARGET_TIME") or "",
@@ -31,6 +40,11 @@ TRAINING_CONFIG = {
     "start_date":          os.environ.get("START_DATE") or None,
     "run_days":            _parse_run_days(os.environ.get("RUN_DAYS") or ""),
     "sessions_per_week":   int(os.environ.get("SESSIONS_PER_WEEK") or "4"),
+    "cross_training":      _parse_json_env("CROSS_TRAINING", []),
+    "weekly_skip_ct":      _parse_json_env("WEEKLY_SKIP_CT", []),
+    "quality_enabled":     os.environ.get("QUALITY_ENABLED", "false").lower() == "true",
+    "quality_sessions":    int(os.environ.get("QUALITY_SESSIONS") or "2"),
+    "quality_types":       [t.strip() for t in (os.environ.get("QUALITY_TYPES") or "").split(",") if t.strip()],
 }
 
 
@@ -68,6 +82,24 @@ def build_user_message(strava_data: dict, config: dict) -> str:
     if run_days:
         schedule_note = f"- Preferred running days: {', '.join(run_days)}\n- Sessions per week: {sessions} (choose the best {sessions} from the preferred days above — assign rest to the others)"
 
+    # Cross-training notes
+    ct = config.get("cross_training") or []
+    skip_ct = config.get("weekly_skip_ct") or []
+    ct_note = ""
+    if ct:
+        ct_lines = []
+        for a in ct:
+            days_str = ", ".join(a.get("days", [])) if a.get("days") else "days not specified"
+            skip_note = " (SKIPPING THIS WEEK)" if a["id"] in skip_ct else ""
+            ct_lines.append(f"  - {a['label']}: {days_str}{skip_note}")
+        ct_note = "## Cross-Training Activities (already scheduled — do not add running on these days)\n" + "\n".join(ct_lines)
+
+    # Quality sessions notes
+    quality_note = ""
+    if config.get("quality_enabled"):
+        types = ", ".join(config.get("quality_types") or []) or "any"
+        quality_note = f"## Quality Sessions\nInclude {config['quality_sessions']} quality/anaerobic session(s) per week. Preferred types: {types}."
+
     return f"""
 ## Athlete Profile
 - Goal: {config['goal']}
@@ -77,6 +109,10 @@ def build_user_message(strava_data: dict, config: dict) -> str:
 - Target week: {week_start.strftime('%Y-%m-%d')} to {(week_start + timedelta(days=6)).strftime('%Y-%m-%d')}
 {f"- Weeks until race: {weeks_left}" if weeks_left is not None else "- No specific race date set"}
 {schedule_note}
+
+{ct_note}
+
+{quality_note}
 
 ## Last 14 Days of Training (from Strava)
 {json.dumps(strava_data, indent=2)}
@@ -90,6 +126,8 @@ Generate the complete 7-day training plan for the week above.
 - Apply polarized training (80% easy, 20% hard)
 - Adapt intensity based on recent training load and fatigue signals
 - Include exact dates from the week schedule provided
+- On days with cross-training activities, assign "Cross-Training" or "Rest" (not a run), unless the athlete is skipping that activity this week
+- If quality sessions are enabled, include the specified number of hard/interval/tempo workouts
 - Return ONLY valid JSON matching the schema in your system prompt
 """
 
