@@ -22,7 +22,20 @@
           "hr_zone": "Zone 2-3",
           "description": "Strength and conditioning session. Focus on core, legs, and upper body stability for running.",
           "key_focus": "Injury prevention",
-          "notes": "Fixed commitment\u2014blocked day"
+          "notes": "Fixed commitment\u2014blocked day",
+          "completed": true,
+          "actual_stats": {
+            "distance_km": 0.0,
+            "duration_min": 48.6,
+            "avg_hr": 111.0,
+            "avg_pace": null,
+            "calories": null,
+            "elevation_m": 0,
+            "activity_name": "Afternoon Weight Training",
+            "activity_type": "WeightTraining"
+          },
+          "coach_analysis": "You nailed the cross-training session\u2014nearly 49 minutes of focused strength work with a solid avg HR of 111 bpm shows good intensity without overdoing it. This is exactly the kind of session that builds running resilience; the core and leg stability work will pay dividends in your next few runs. Recovery-wise, you're in good shape\u2014nothing here that should compromise your mid-week training.",
+          "execution_rating": "great"
         },
         {
           "day": "Saturday",
@@ -439,7 +452,20 @@
       "hr_zone": "Zone 2-3",
       "description": "Strength and conditioning session. Focus on core, legs, and upper body stability for running.",
       "key_focus": "Injury prevention",
-      "notes": "Fixed commitment\u2014blocked day"
+      "notes": "Fixed commitment\u2014blocked day",
+      "completed": true,
+      "actual_stats": {
+        "distance_km": 0.0,
+        "duration_min": 48.6,
+        "avg_hr": 111.0,
+        "avg_pace": null,
+        "calories": null,
+        "elevation_m": 0,
+        "activity_name": "Afternoon Weight Training",
+        "activity_type": "WeightTraining"
+      },
+      "coach_analysis": "You nailed the cross-training session\u2014nearly 49 minutes of focused strength work with a solid avg HR of 111 bpm shows good intensity without overdoing it. This is exactly the kind of session that builds running resilience; the core and leg stability work will pay dividends in your next few runs. Recovery-wise, you're in good shape\u2014nothing here that should compromise your mid-week training.",
+      "execution_rating": "great"
     },
     {
       "day": "Saturday",
@@ -531,5 +557,6 @@
     "latest_vo2_max": null
   },
   "generated_at": "2026-06-26T18:18:25.375810Z",
-  "status": "pending_approval"
+  "status": "pending_approval",
+  "synced_at": "2026-06-26T18:19:30.861379Z"
 }
