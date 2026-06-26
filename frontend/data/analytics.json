@@ -1,90 +1,90 @@
 {
   "fitness_trend": "declining",
   "fatigue_level": "high",
-  "acute_chronic_ratio": 0.62,
+  "acute_chronic_ratio": 0.35,
   "hr_trend_bpm_per_week": null,
   "weekly_km_trend": "tapering",
   "key_observations": [
     "CRITICAL: Training volume has collapsed from 23.6 km (Week 1) to 9.9 km (Week 6) \u2014 58% reduction over 8 weeks",
-    "Athlete is severely undertrained relative to 7-hour weekly budget \u2014 currently logging only 1\u20132 runs per week when capacity allows 5\u20136",
-    "Large gaps between runs (5\u201316 days) indicate either injury recovery, motivation loss, or life disruption \u2014 not structured periodization",
-    "Pace is stable (5:39\u20136:18 min/km) but volume deficit means aerobic base is likely deteriorating",
-    "No HR or VO2 max data available \u2014 cannot assess cardiac drift or fitness improvements; relying on pace + volume analysis only",
-    "Week 1 (May 4) had structured 3-run week; Weeks 2\u20136 degraded to single-run weeks with massive gaps",
-    "Current trajectory is detraining, not base building \u2014 athlete is < 2 hours/week vs 7-hour budget"
+    "Only 2 runs in last 14 days (June 22\u201325) \u2014 severely under the 7.0 hour/week budget (~3 hours actual)",
+    "Frequency dropped from 3 runs/week to 1 run/week between weeks 2\u20135, suggesting prolonged recovery or loss of consistency",
+    "Pace remains stable (5:47\u20136:18 min/km) but NO HR data available to assess cardiac drift or aerobic gains",
+    "No VO2 max data recorded \u2014 cannot evaluate fitness improvement or training response",
+    "Large gaps in training (8 days between May 29 and Jun 4; 6 days between Jun 10 and Jun 22) indicate inconsistent commitment or possible injury/illness",
+    "Athlete is significantly UNDERTRAINING relative to 7-hour weekly budget and marathon goal"
   ],
   "warnings": [
-    "\u26a0\ufe0f VOLUME CRISIS: If marathon is within 12\u201316 weeks, this athlete is severely behind in aerobic development. Long run consistency is missing entirely.",
-    "\u26a0\ufe0f ADHERENCE PATTERN: Erratic run frequency (1\u20133 runs/week) suggests external constraints or motivational challenges \u2014 address root cause before programming.",
-    "\u26a0\ufe0f NO QUALITY WORK: All runs appear easy-pace (steady state, 6:00\u20136:20 min/km). Zero tempo, threshold, or VO2 max sessions in 8 weeks.",
-    "\u26a0\ufe0f LONG RUN ABSENT: For marathon prep, no run exceeds 13.67 km (Week 2). Athlete needs 18\u201322 km long runs; currently 40% of required volume.",
-    "\u26a0\ufe0f DATA BLIND SPOT: Missing HR data prevents fatigue quantification. Cannot calculate Training Load, Acute:Chronic ratio is estimated as 0.62 (severe undertraining)."
+    "UNDERTRAINING ALERT: Last 7 days = 0.6\u20131.0 hours/week vs 7.0 hour target. This is 85\u201390% below target capacity.",
+    "NO HEART RATE DATA: Unable to assess cardiac drift, anaerobic threshold, or true fitness response. Recommend enabling HR monitor (Garmin, Polar, Apple Watch).",
+    "INCONSISTENT TRAINING PATTERN: Erratic run frequency and large recovery gaps suggest either lack of structure, recurring injury, or lifestyle constraints. Need clarity on barriers.",
+    "INSUFFICIENT VOLUME FOR MARATHON: At current pace (~9\u201313.7 km runs), athlete is not building the aerobic base or long-run capacity needed for marathon training.",
+    "NO INTENSITY WORK: All runs appear easy-paced (5:47\u20136:18 min/km). No tempo, threshold, or speed work detected \u2014 essential for race readiness."
   ],
   "recommendations": [
-    "IMMEDIATE: Establish 4-run minimum per week (Mon, Wed, Fri, Sun) to use 7-hour budget effectively \u2014 current 1\u20132 run pattern wastes capacity",
-    "STRUCTURE: Return to consistent easy-run base (Zone 2, 80% of volume) with one dedicated quality day (Thursday: tempo or threshold work)",
-    "LONG RUN: Introduce/resume weekly long run (Sunday) starting 10 km, progressing +1.5 km weekly until reaching 20\u201322 km by marathon peak",
-    "INTENSITY: Add threshold/tempo session 1x/week (20\u201330 min at Z3, pace ~5:30\u20135:50 min/km) to rebuild aerobic capacity and VO2 max",
-    "ENABLE HR MONITOR: Sync HR data to Strava immediately \u2014 without it, cannot track cardiac drift, zone distribution, or real overtraining risk",
-    "REALISTIC TIMELINE: If marathon goal is < 12 weeks away, this athlete is 4\u20136 weeks behind; recommend spring 2027 marathon for proper 16-week build",
-    "WEEKLY STRUCTURE: Mon (easy 8 km), Tue (rest), Wed (easy 8 km), Thu (tempo 10 km: 10 min Z2 + 20 min Z3 + 10 min Z2), Fri (rest), Sat (easy 6 km), Sun (long run 10\u219222 km progression)"
+    "IMMEDIATE: Establish HR monitoring (chest strap or wrist device) for all future runs \u2014 critical for load assessment and fatigue detection.",
+    "PHASE 1 (Next 2 weeks): Rebuild consistency with 4 runs/week at 5.0\u20136.0 km each = ~22\u201324 km total. Focus on returning to routine, not intensity.",
+    "PHASE 2 (Weeks 3\u20134): Increase to 5 runs/week with one long run (12\u201314 km) + one tempo/threshold session. Target 35\u201340 km/week.",
+    "Clarify training barriers: Are there injury concerns, time constraints, or motivation issues? Address root cause before progressing volume.",
+    "Set a race target date (suggest 16\u201320 weeks out) \u2014 enables proper periodization and peak timing.",
+    "Implement 80% Zone 2 (easy aerobic), 10% Zone 3 (tempo), 10% Zone 4\u20135 (speed work) once volume normalizes.",
+    "Add 1 strength/mobility session/week (lower body focus for marathon resilience)."
   ],
   "weeks_analysis": [
     {
       "week_start": "2026-05-04",
       "total_km": 23.6,
       "avg_hr": null,
-      "assessment": "Best week of cycle \u2014 3 structured runs, solid 23.6 km base. Only baseline week with reasonable consistency.",
-      "load_score": 58
+      "assessment": "Strong baseline week \u2014 3 runs, good variety in distance (5\u201312 km), consistent easy pace (6:06\u20136:18). This is the training level needed.",
+      "load_score": 65
     },
     {
       "week_start": "2026-05-11",
       "total_km": 13.7,
       "avg_hr": null,
-      "assessment": "Collapse begins \u2014 single 13.67 km run after 3-day gap. Volume drops 42%. Likely fatigue or disruption event.",
-      "load_score": 34
+      "assessment": "Sharp drop to 1 run only (13.67 km). Possible recovery week or start of inconsistency. Red flag.",
+      "load_score": 38
     },
     {
       "week_start": "2026-05-18",
       "total_km": 0.0,
       "avg_hr": null,
-      "assessment": "MISSING DATA \u2014 12-day gap, no recorded activity. Possible rest week (unplanned) or data sync issue.",
+      "assessment": "NO RUNS RECORDED. 7-day gap indicates either rest, illness, travel, or lost data.",
       "load_score": 0
     },
     {
       "week_start": "2026-05-25",
       "total_km": 9.5,
       "avg_hr": null,
-      "assessment": "Continued undertraining \u2014 single 9.5 km run, 16-day gap from prior activity. Chronic load eroding.",
-      "load_score": 24
+      "assessment": "1 run only. Large gap since May 13. Pattern of undertraining established.",
+      "load_score": 26
     },
     {
       "week_start": "2026-06-01",
       "total_km": 7.2,
       "avg_hr": null,
-      "assessment": "Trough \u2014 lowest volume week at 7.2 km (only 1 run). 6-day gap. Athlete is severely detraining.",
-      "load_score": 18
+      "assessment": "1 run only. Continued low frequency. Athlete is not hitting 7-hour target.",
+      "load_score": 20
     },
     {
       "week_start": "2026-06-08",
       "total_km": 6.3,
       "avg_hr": null,
-      "assessment": "Stagnation \u2014 marginal 6.3 km single run. 6-day gap continues. No recovery or build progression evident.",
-      "load_score": 16
+      "assessment": "1 run only. Pace quickens slightly (5:47), but volume remains critically low.",
+      "load_score": 17
     },
     {
       "week_start": "2026-06-15",
       "total_km": 0.0,
       "avg_hr": null,
-      "assessment": "MISSING DATA \u2014 12-day gap (Jun 10\u201322). Another unrecorded period. Pattern suggests life disruption.",
+      "assessment": "NO RUNS RECORDED. Another 7-day gap.",
       "load_score": 0
     },
     {
       "week_start": "2026-06-22",
       "total_km": 9.9,
       "avg_hr": null,
-      "assessment": "Slight recovery \u2014 2 runs (3.62 + 6.31 km) after 12-day absence. Still far below capacity. No structured intensity.",
-      "load_score": 25
+      "assessment": "2 runs (3.62 km + 6.31 km). Slight uptick in frequency but still only 1.0 hour/week vs 7.0 target. Pace stable (5:50\u20136:10).",
+      "load_score": 27
     }
   ],
   "raw_weeks": [
@@ -385,5 +385,5 @@
       "vo2_max": null
     }
   ],
-  "generated_at": "2026-06-26T15:16:39.808867Z"
+  "generated_at": "2026-06-26T15:29:10.627456Z"
 }
