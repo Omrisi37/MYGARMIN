@@ -1,0 +1,32 @@
+{
+  "fitness_trend": "improving",
+  "fatigue_level": "moderate",
+  "acute_chronic_ratio": 1.05,
+  "hr_trend_bpm_per_week": -1.2,
+  "weekly_km_trend": "building",
+  "key_observations": [
+    "Avg HR at easy pace dropped ~4 bpm over 8 weeks — clear aerobic fitness gain",
+    "Week 6 had a 19% mileage increase — slightly aggressive but no HR alarm",
+    "VO2 max trending up from 52.1 to 54.3 — responding well to polarized training",
+    "Long runs consistently in Zone 2 — excellent discipline on easy days"
+  ],
+  "warnings": [],
+  "recommendations": [
+    "Keep 80% of this week's runs in Zone 2 — aerobic base is building well",
+    "Ready for a longer tempo session — lactate threshold improving",
+    "Consider adding a mid-week strides session to sharpen leg speed"
+  ],
+  "weeks_analysis": [
+    { "week_start": "2026-04-27", "total_km": 32.5, "avg_hr": 158, "vo2_max": 52.1, "assessment": "solid base week", "load_score": 62 },
+    { "week_start": "2026-05-04", "total_km": 35.0, "avg_hr": 157, "vo2_max": 52.4, "assessment": "good progression", "load_score": 67 },
+    { "week_start": "2026-05-11", "total_km": 36.5, "avg_hr": 156, "vo2_max": 52.8, "assessment": "aerobic gains visible", "load_score": 70 },
+    { "week_start": "2026-05-18", "total_km": 34.0, "avg_hr": 155, "vo2_max": 53.0, "assessment": "cutback week — smart", "load_score": 65 },
+    { "week_start": "2026-05-25", "total_km": 38.0, "avg_hr": 155, "vo2_max": 53.4, "assessment": "building phase", "load_score": 73 },
+    { "week_start": "2026-06-01", "total_km": 45.2, "avg_hr": 154, "vo2_max": 53.8, "assessment": "aggressive but HR stable", "load_score": 82 },
+    { "week_start": "2026-06-08", "total_km": 42.0, "avg_hr": 153, "vo2_max": 54.1, "assessment": "strong week", "load_score": 78 },
+    { "week_start": "2026-06-15", "total_km": 44.5, "avg_hr": 152, "vo2_max": 54.3, "assessment": "peak form building", "load_score": 81 }
+  ],
+  "raw_weeks": [],
+  "raw_activities": [],
+  "generated_at": "2026-06-22T07:00:00Z"
+}
