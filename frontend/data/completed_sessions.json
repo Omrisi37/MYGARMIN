@@ -1,0 +1,34 @@
+{
+  "2026-06-26": {
+    "completed": true,
+    "actual_stats": {
+      "distance_km": 0.0,
+      "duration_min": 48.6,
+      "avg_hr": 111.0,
+      "avg_pace": null,
+      "calories": null,
+      "elevation_m": 0,
+      "activity_name": "Afternoon Weight Training",
+      "activity_type": "WeightTraining"
+    },
+    "coach_analysis": "Good commitment to the plan\u201449 minutes of gym work with an average HR of 111 bpm suggests you kept the intensity controlled, which is exactly right for a cross-training day. This light-to-moderate effort will build supportive strength without hammering your central nervous system before your next running session. You're balancing the training week well.",
+    "execution_rating": "on-plan",
+    "logged_at": "2026-06-27T18:34:20.196186Z"
+  },
+  "2026-06-27": {
+    "completed": true,
+    "actual_stats": {
+      "distance_km": 5.75,
+      "duration_min": 68.3,
+      "avg_hr": 158.0,
+      "avg_pace": "11:52",
+      "calories": null,
+      "elevation_m": 10.0,
+      "activity_name": "Football",
+      "activity_type": "Run"
+    },
+    "coach_analysis": "Solid execution of your football commitment\u2014you maintained an aerobic-focused effort at 158 bpm average, which is right in that sustainable cross-training zone for building work capacity without compromising your running. The 5.75 km over 68 minutes shows you stayed engaged with good intensity variation typical of football, hitting the aerobic and leg-strength targets you planned for. This session delivered exactly what you needed.",
+    "execution_rating": "great",
+    "logged_at": "2026-06-27T18:34:22.594048Z"
+  }
+}
