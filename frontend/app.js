@@ -324,6 +324,7 @@ function renderToday() {
     </div>` : "";
 
   el.innerHTML = `
+    ${_workflowBanner()}
     ${statusHtml}
     ${workoutHtml}
     ${weekHtml}
@@ -354,82 +355,146 @@ function _phaseColor(phase) {
   return m[phase] || "var(--text-dim)";
 }
 
+// ── Workflow status banner ─────────────────────────────────────────────────────
+
+function _setWorkflowPending(action, label) {
+  localStorage.setItem("rc_pending_workflow", JSON.stringify({
+    action, label, triggered_at: new Date().toISOString(),
+  }));
+}
+
+function _clearWorkflowPending() {
+  localStorage.removeItem("rc_pending_workflow");
+}
+
+function _workflowBanner() {
+  const raw = localStorage.getItem("rc_pending_workflow");
+  if (!raw) return "";
+  try {
+    const { label, triggered_at } = JSON.parse(raw);
+    const age = Math.round((Date.now() - new Date(triggered_at).getTime()) / 1000);
+    if (age > 360) { _clearWorkflowPending(); return ""; }
+    return `<div class="workflow-banner">
+      <div style="display:flex;align-items:center;gap:10px;flex:1">
+        <div class="workflow-spinner">⏳</div>
+        <div>
+          <div style="font-weight:600;font-size:13px">${label}</div>
+          <div style="font-size:11px;color:var(--text-dim)">${age}s elapsed · auto-updating when ready</div>
+        </div>
+      </div>
+      <button onclick="_clearWorkflowPending();renderScreen(currentScreen)"
+        style="background:none;border:none;color:var(--text-dim);font-size:18px;cursor:pointer;line-height:1;padding:4px 0 4px 8px">✕</button>
+    </div>`;
+  } catch { return ""; }
+}
+
+// ── Full roadmap view ─────────────────────────────────────────────────────────
+
 function _renderRoadmap(plan) {
   const weeks4 = plan.weeks || [];
   const roadmap = plan.roadmap || [];
 
   if (!weeks4.length && !roadmap.length) {
-    return `<div class="empty"><div class="empty-icon">🗺</div><h3>No roadmap yet</h3><p>Generate a plan with a race date set.</p></div>`;
+    return `<div class="empty"><div class="empty-icon">🗺</div><h3>No roadmap yet</h3><p>Generate a plan with a race date set to see all weeks.</p></div>`;
   }
+
+  const todayStr = new Date().toISOString().slice(0, 10);
 
   const allWeeks = [
     ...weeks4.map((w, i) => ({
       week_number: w.week_number || i + 1,
       week_start: w.days?.[0]?.date || "",
+      week_end:   w.days?.[6]?.date || "",
       phase: w.phase || "",
       total_km: w.total_distance_km || 0,
-      key_sessions: (w.days || [])
-        .filter(d => d.intensity !== "Rest" && d.distance_km > 0)
-        .slice(0, 2)
-        .map(d => `${d.title} (${d.distance_km}km)`),
       weekly_summary: w.weekly_summary || "",
+      days: w.days || [],
       is_detail: true,
+      key_sessions: [],
     })),
-    ...roadmap.map(w => ({ ...w, is_detail: false })),
+    ...roadmap.map(w => ({
+      ...w,
+      week_end: w.week_start
+        ? new Date(new Date(w.week_start + "T12:00:00").getTime() + 6 * 86400000).toISOString().slice(0,10)
+        : "",
+      is_detail: false,
+    })),
   ];
-
-  const todayStr = new Date().toISOString().slice(0, 10);
-
-  const rows = allWeeks.map(w => {
-    const color = _phaseColor(w.phase);
-    const isCurrentWeek = w.week_start <= todayStr &&
-      new Date(new Date(w.week_start).getTime() + 7 * 86400000).toISOString().slice(0,10) > todayStr;
-    const dateLabel = w.week_start
-      ? new Date(w.week_start + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })
-      : "";
-
-    const keySessions = (w.key_sessions || []).map(s =>
-      `<div style="font-size:11px;color:var(--text-dim);margin-top:2px">• ${s}</div>`
-    ).join("");
-
-    return `<div class="roadmap-week${isCurrentWeek ? " now" : ""}" style="border-left:3px solid ${color}">
-      <div style="display:flex;align-items:center;gap:8px">
-        <div style="min-width:52px;font-size:11px;color:var(--text-dim)">${dateLabel}</div>
-        <div style="flex:1">
-          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-            <span style="font-size:13px;font-weight:700">Week ${w.week_number}</span>
-            <span class="day-badge" style="background:${color}20;color:${color};border:1px solid ${color}40;font-size:10px">${w.phase}</span>
-            ${isCurrentWeek ? `<span class="day-badge easy" style="font-size:10px">← Now</span>` : ""}
-            ${w.is_detail ? `<span style="font-size:10px;color:var(--accent)">Full detail ›</span>` : ""}
-          </div>
-          <div style="font-size:12px;color:var(--text-mid);margin-top:2px">${w.total_km || w.total_distance_km || 0} km · ${w.weekly_summary || ""}</div>
-          ${keySessions}
-        </div>
-      </div>
-    </div>`;
-  }).join("");
 
   const s = getSettings();
   const d2r = daysToRace(s.race_date);
-  const raceLabel = s.race_date
-    ? `<div style="display:flex;align-items:center;gap:8px;margin-top:4px">
-        <div style="min-width:52px;font-size:11px;color:var(--text-dim)">${new Date(s.race_date + "T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"})}</div>
-        <div style="flex:1;display:flex;align-items:center;gap:6px">
-          <span style="font-size:13px;font-weight:700">🏁 Race Day</span>
-          <span class="day-badge" style="background:var(--red)20;color:var(--red);border:1px solid var(--red)40;font-size:10px">${s.race_name || "Race"}</span>
-          ${d2r !== null && d2r >= 0 ? `<span style="font-size:11px;color:var(--text-dim)">${d2r} days away</span>` : ""}
-        </div>
-      </div>`
-    : "";
 
-  return `
-    <div class="card" style="padding:14px">
-      <div class="card-label" style="margin-bottom:12px">🗺 FULL PLAN — WEEK BY WEEK</div>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        ${rows}
-        ${raceLabel ? `<div class="roadmap-week" style="border-left:3px solid var(--red)">${raceLabel}</div>` : ""}
+  const hasRoadmapData = roadmap.length > 0;
+
+  const cardsHtml = allWeeks.map((week, idx) => {
+    const color = _phaseColor(week.phase);
+    const isCurrentWeek = week.week_start && week.week_end
+      ? week.week_start <= todayStr && week.week_end >= todayStr
+      : false;
+
+    const dateRange = week.week_start
+      ? `${new Date(week.week_start + "T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"})} – ${new Date((week.week_end||week.week_start) + "T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"})}`
+      : "";
+
+    // Dots row
+    const dotsHtml = week.is_detail
+      ? (week.days).map(day => {
+          const dc = _intensityColor(day.intensity);
+          return `<div class="month-week-dot" style="background:${dc}">${day.day?.[0] || ""}</div>`;
+        }).join("")
+      : (week.key_sessions || []).map(() =>
+          `<div class="month-week-dot" style="background:${color}55">•</div>`
+        ).join("");
+
+    // Body
+    const bodyHtml = week.is_detail
+      ? _renderWeekDays(week.days, idx)
+      : `<div style="padding:8px 0 4px">
+          ${(week.key_sessions || []).map(s => `<div class="day-row" style="opacity:0.85">
+            <div class="day-dot" style="background:${color}"></div>
+            <div class="day-name">${s}</div>
+          </div>`).join("") || `<div class="text-sm text-dim" style="padding:6px 0">${week.weekly_summary || "Overview week"}</div>`}
+          <div class="text-xs text-dim" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">Regenerate plan to unlock full day-by-day detail for this week.</div>
+        </div>`;
+
+    return `
+      <div class="month-week${isCurrentWeek ? " race-now" : ""}">
+        <div class="month-week-header" onclick="toggleMonthWeek('race-${idx}')">
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px">
+              <span style="font-weight:700;font-size:14px">Week ${week.week_number || idx+1}</span>
+              <span class="day-badge" style="background:${color}20;color:${color};border:1px solid ${color}40;font-size:10px">${week.phase}</span>
+              ${isCurrentWeek ? `<span class="day-badge easy" style="font-size:10px">← Now</span>` : ""}
+            </div>
+            <div class="text-xs text-dim">${dateRange} · ${week.total_km || week.total_distance_km || 0} km</div>
+          </div>
+          <div style="color:var(--text-dim);font-size:18px">›</div>
+        </div>
+        <div class="month-week-dots">${dotsHtml}</div>
+        <div class="month-week-body" id="month-week-body-race-${idx}">
+          ${bodyHtml}
+        </div>
+      </div>`;
+  }).join("");
+
+  const raceCard = s.race_date ? `
+    <div class="month-week" style="border-left:3px solid var(--red);border-radius:10px">
+      <div style="padding:14px 18px;display:flex;align-items:center;gap:10px">
+        <div style="font-size:22px">🏁</div>
+        <div>
+          <div style="font-weight:700;font-size:14px">${s.race_name || "Race Day"}</div>
+          <div class="text-xs text-dim">${new Date(s.race_date+"T12:00:00").toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}
+            ${d2r !== null && d2r >= 0 ? ` · ${d2r} days away` : ""}</div>
+        </div>
       </div>
-    </div>`;
+    </div>` : "";
+
+  const noRoadmapNote = !hasRoadmapData && weeks4.length > 0 ? `
+    <div class="info-box" style="margin:8px 0">
+      Showing current 4-week block only. Regenerate your plan to unlock the full week-by-week roadmap to race day.
+    </div>` : "";
+
+  return `${noRoadmapNote}${cardsHtml}${raceCard}`;
 }
 
 function _renderMacroTimeline() {
@@ -684,6 +749,7 @@ function renderWeek() {
     el.innerHTML = `
       <div class="page-title">Full Plan</div>
       <div class="page-sub">Every week from now to race day</div>
+      ${_workflowBanner()}
       ${macroTimeline}
       ${toggleHtml}
       ${_renderRoadmap(plan)}
@@ -727,6 +793,7 @@ function renderWeek() {
     el.innerHTML = `
       <div class="page-title">This Week</div>
       <div class="page-sub">Week ${weekData.week_number || 1} · ${weekData.phase || ""}</div>
+      ${_workflowBanner()}
       ${macroTimeline}
       ${toggleHtml}
       ${_renderRecentCompleted()}
@@ -1148,7 +1215,17 @@ async function saveGoalsAndGenerate() {
     quality_types:    (fields.quality_types || []).join(","),
     weekly_skip_ct:   (fields.weekly_skip_ct || []).join(","),
   });
-  if (ok) showToast("✅ Plan generating — reload in ~90s");
+  if (!ok) return;
+  _setWorkflowPending("generate", "Generating your personalised plan… this takes about 90 seconds");
+  navigate("week");
+  setTimeout(async () => {
+    [currentPlan, currentAnalytics, completedSessions] = await Promise.all([
+      fetchPlan(), fetchAnalytics(), fetchCompletedSessions(),
+    ]);
+    _clearWorkflowPending();
+    renderScreen(currentScreen);
+    showToast("✅ New plan is ready — check your week view!", 6000);
+  }, 90000);
 }
 
 function _saveGoalFields() {
@@ -1208,17 +1285,18 @@ function renderSettings() {
 }
 
 async function syncFromStrava() {
-  showToast("⏳ Syncing last session…");
+  showToast("⏳ Syncing session with Strava…");
   const ok = await triggerWorkflow("sync-session.yml");
   if (!ok) return;
-  showToast("⏳ Analysing with coach… auto-refreshing in 75s");
-  // Auto-refresh after workflow has time to complete
+  _setWorkflowPending("sync", "Syncing session · coach is analysing your run…");
+  renderScreen(currentScreen);
   setTimeout(async () => {
     [currentPlan, currentAnalytics, completedSessions] = await Promise.all([
       fetchPlan(), fetchAnalytics(), fetchCompletedSessions(),
     ]);
+    _clearWorkflowPending();
     renderScreen(currentScreen);
-    showToast("✅ Session synced — tap the day to see coach analysis");
+    showToast("✅ Session synced — tap the day to see coach analysis", 5000);
   }, 75000);
 }
 
