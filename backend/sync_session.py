@@ -252,6 +252,91 @@ def _build_weekly_buckets(activities):
     return weeks
 
 
+def apply_coach_adjustment(plan, adjustment):
+    """
+    Rewrite the specific future plan day the coach flagged.
+    Finds the next upcoming occurrence of the named day, calls Claude to
+    update just that session, and patches it in-place in plan (both locations).
+    """
+    target_day_name = (adjustment.get("day") or "").strip()
+    change = adjustment.get("change", "")
+    reason = adjustment.get("reason", "")
+    if not target_day_name or not change:
+        return False
+
+    today = datetime.utcnow().date().isoformat()
+
+    # Find the next upcoming, not-yet-completed occurrence of that day name
+    target_day = None
+    target_date = None
+
+    all_days = list(plan.get("days", []))
+    for week in plan.get("weeks", []):
+        all_days.extend(week.get("days", []))
+
+    for day in sorted(all_days, key=lambda d: d.get("date", "")):
+        if (day.get("day", "").lower() == target_day_name.lower()
+                and day.get("date", "") > today
+                and not day.get("completed")):
+            target_day = day
+            target_date = day["date"]
+            break
+
+    if not target_day:
+        print(f"No upcoming {target_day_name} found to adjust")
+        return False
+
+    print(f"Applying adjustment to {target_day_name} ({target_date}): {change}")
+
+    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    prompt = f"""A running coach is adjusting one planned training session based on athlete performance.
+
+COACH INSTRUCTION:
+- Adjustment: {change}
+- Reason: {reason}
+
+CURRENT PLANNED SESSION ({target_day_name}, {target_date}):
+{json.dumps(target_day, indent=2)}
+
+Rewrite this session to implement the adjustment. Preserve all JSON field names.
+Only change what is necessary: title, description, intensity, distance_km, duration_min, hr_zone.
+Add a note in `notes` explaining this was coach-adjusted.
+Respond ONLY with the updated JSON object for this single day — no extra text."""
+
+    try:
+        response = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=512,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        raw = response.content[0].text.strip()
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+        updated = json.loads(raw.strip())
+        # Lock date/day so the AI can't shift them
+        updated["date"] = target_date
+        updated["day"] = target_day_name
+        updated["coach_adjusted"] = True
+        updated["adjustment_note"] = change
+
+        # Apply to both plan.days and plan.weeks[N].days
+        for day in plan.get("days", []):
+            if day.get("date") == target_date:
+                day.update(updated)
+        for week in plan.get("weeks", []):
+            for day in week.get("days", []):
+                if day.get("date") == target_date:
+                    day.update(updated)
+
+        print(f"✅ Adjusted {target_day_name} ({target_date}) → {updated.get('title', '')}")
+        return True
+    except Exception as e:
+        print(f"Adjustment apply failed: {e}")
+        return False
+
+
 def generate_analytics():
     """Fetch 8 weeks of running data and produce analytics.json (no plan changes)."""
     print("Generating analytics from last 8 weeks of Strava runs...")
@@ -329,6 +414,8 @@ def sync_session():
         return
 
     updated = 0
+    pending_adjustments = []
+
     for activity in activities:
         date_str = activity["date"]
         planned_day = find_matching_day(plan, date_str)
@@ -368,7 +455,8 @@ def sync_session():
         adj = analysis.get("adjustment")
         if adj:
             completion["coach_adjustment"] = adj
-            print(f"Minor adjustment suggested for {adj.get('day')}: {adj.get('change')}")
+            pending_adjustments.append(adj)
+            print(f"Adjustment suggested for {adj.get('day')}: {adj.get('change')}")
 
         # Update ALL occurrences of this date (top-level days + weeks array are separate copies)
         apply_completion_to_plan(plan, date_str, completion)
@@ -376,9 +464,17 @@ def sync_session():
         save_completed_session(date_str, completion)
         updated += 1
 
+    # Apply real plan adjustments to future days before saving
+    adjustments_applied = 0
+    for adj in pending_adjustments:
+        if apply_coach_adjustment(plan, adj):
+            adjustments_applied += 1
+
     if updated > 0:
         save_plan(plan)
         print(f"✅ Marked {updated} session(s) complete with coach analysis")
+        if adjustments_applied:
+            print(f"✅ Applied {adjustments_applied} coach adjustment(s) to future plan days")
     else:
         print("No new sessions to update")
 

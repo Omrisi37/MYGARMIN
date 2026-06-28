@@ -60,10 +60,22 @@ Respond ONLY with valid JSON matching this exact schema:
       ]
     }
   ],
+  "roadmap": [
+    {
+      "week_number": 5,
+      "week_start": "2026-07-27",
+      "phase": "Aerobic Development",
+      "total_km": 52,
+      "key_sessions": ["Long 22km easy", "Tempo 10km @ 5:05/km"],
+      "weekly_summary": "Building aerobic base with progressive long run"
+    }
+  ],
   "coaching_overview": "4-week block summary",
   "total_plan_distance_km": 160.0
 }
 ```
+
+**`roadmap`** contains one entry per remaining week from week 5 to race day (provided in the prompt as "Roadmap Week Slots"). Each entry is a brief summary only — no `days` array. The `weeks` array (full day detail) covers only weeks 1–4.
 
 ## Cross-Training Rules
 
