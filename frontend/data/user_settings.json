@@ -2,8 +2,8 @@
   "goal": "Half Marathon",
   "race_name": "",
   "race_date": "2026-10-09",
-  "target_time": "2:00",
-  "start_date": "2026-08-25",
+  "target_time": "2:00:00",
+  "start_date": "2026-06-25",
   "run_days": [
     "Monday",
     "Wednesday"
@@ -46,5 +46,5 @@
   "weekly_skip_ct": [
     "[]"
   ],
-  "saved_at": "2026-06-28T11:04:04.985200Z"
+  "saved_at": "2026-06-28T11:06:55.263773Z"
 }
