@@ -1,0 +1,50 @@
+{
+  "goal": "Half Marathon",
+  "race_name": "",
+  "race_date": "2026-10-09",
+  "target_time": "2:00",
+  "start_date": "2026-08-25",
+  "run_days": [
+    "Monday",
+    "Wednesday"
+  ],
+  "sessions_per_week": 2,
+  "weekly_hours": 4.0,
+  "cross_training": [
+    {
+      "id": "football",
+      "label": "Football",
+      "emoji": "\u26bd",
+      "days": [
+        "Saturday"
+      ]
+    },
+    {
+      "id": "pilates",
+      "label": "Pilates",
+      "emoji": "\ud83e\uddd8",
+      "days": [
+        "Tuesday"
+      ]
+    },
+    {
+      "id": "gym",
+      "label": "Gym",
+      "emoji": "\ud83c\udfcb\ufe0f",
+      "days": [
+        "Friday"
+      ]
+    }
+  ],
+  "quality_enabled": true,
+  "quality_sessions": 1,
+  "quality_types": [
+    "intervals",
+    "tempo",
+    "fartlek"
+  ],
+  "weekly_skip_ct": [
+    "[]"
+  ],
+  "saved_at": "2026-06-28T11:04:04.985200Z"
+}
