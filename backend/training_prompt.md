@@ -92,6 +92,8 @@ Respond ONLY with valid JSON matching this exact schema:
 
 Always include the target pace in the session `description` and `title` where relevant, e.g. "6 × 1km @ 4:45/km with 90s recovery".
 
+**Bridging current fitness to target:** If the profile includes both "Current Fitness" and "Target Paces", the athlete is not yet at their target fitness level. Week 1-2 sessions should use paces close to (or slightly faster than) the current fitness paces. Progress paces toward the target values across the 4-week block — do NOT prescribe target paces the athlete cannot yet sustain.
+
 ## Volume Progression Rules
 
 **CRITICAL — apply these in every 4-week block:**

@@ -53,59 +53,99 @@ RACE_DISTANCES_KM = {
 }
 
 def _parse_time_to_seconds(time_str: str) -> int | None:
-    """Parse 'H:MM:SS' or 'MM:SS' to total seconds."""
+    """
+    Parse a race target time to total seconds.
+    Accepts: 'H:MM:SS', 'H:MM' (hours:minutes), 'H.MM' (hours.minutes).
+    A two-part input is ALWAYS treated as H:MM — never MM:SS —
+    because no meaningful race takes under 60 minutes for a marathon/half.
+    """
     if not time_str:
         return None
-    parts = [p.strip() for p in time_str.strip().split(":")]
+    # Normalise separators
+    cleaned = time_str.strip().replace(".", ":").replace(",", ":")
+    parts = [p.strip() for p in cleaned.split(":")]
     try:
         if len(parts) == 3:
-            return int(parts[0]) * 3600 + int(parts[1]) * 60 + int(parts[2])
-        if len(parts) == 2:
-            return int(parts[0]) * 60 + int(parts[1])
+            total = int(parts[0]) * 3600 + int(parts[1]) * 60 + int(parts[2])
+        elif len(parts) == 2:
+            # Always H:MM — e.g. "3:45" = 3 h 45 min
+            total = int(parts[0]) * 3600 + int(parts[1]) * 60
+        else:
+            return None
+        return total if total > 0 else None
     except ValueError:
-        pass
-    return None
+        return None
+
 
 def _fmt_pace(sec_per_km: float) -> str:
     """Format seconds-per-km as 'M:SS /km'."""
     sec_per_km = round(sec_per_km)
     return f"{sec_per_km // 60}:{sec_per_km % 60:02d} /km"
 
+
+def _pace_str_to_sec(pace_str: str | None) -> float | None:
+    """Convert 'M:SS' pace string from Strava to seconds-per-km."""
+    if not pace_str:
+        return None
+    try:
+        m, s = pace_str.split(":")
+        return int(m) * 60 + int(s)
+    except Exception:
+        return None
+
+
 def calculate_training_paces(target_time_str: str, goal: str) -> dict | None:
     """
     Derive athlete-specific training paces from target finish time.
-    Uses Jack Daniels VDOT-inspired multipliers.
-    Returns a dict with pace strings, or None if target_time is not set.
+    Uses Jack Daniels VDOT-inspired multipliers anchored to race pace.
+    Returns None if target time is missing or produces an implausible pace.
     """
     total_sec = _parse_time_to_seconds(target_time_str)
     if not total_sec:
         return None
 
-    dist_km = None
+    dist_km = RACE_DISTANCES_KM.get("marathon")  # default
     for key, km in RACE_DISTANCES_KM.items():
         if key in goal.lower():
             dist_km = km
             break
-    if dist_km is None:
-        dist_km = RACE_DISTANCES_KM["marathon"]  # default
 
-    race_pace = total_sec / dist_km  # seconds per km at target race pace
+    race_pace_sec = total_sec / dist_km  # sec/km at target race pace
 
-    # For non-marathon events, derive an equivalent marathon pace for training zones
-    # so the same multipliers apply sensibly
-    if dist_km < 21:
-        # Shorter race = faster pace; equivalent easy pace is still based on race pace
-        mp_equiv = race_pace * 1.10  # proxy "marathon pace" for zone anchoring
-    else:
-        mp_equiv = race_pace if dist_km >= 42 else race_pace * 1.05
+    # Sanity check: realistic range 2:30/km (elite) to 9:00/km (walker)
+    if not (150 <= race_pace_sec <= 540):
+        print(f"Warning: computed race pace {_fmt_pace(race_pace_sec)} looks implausible for '{target_time_str}' — skipping pace block")
+        return None
 
+    # Jack Daniels multipliers applied to race pace (sec/km)
+    # All "slower" paces have LARGER sec/km values (more time per km)
     return {
-        "race_pace":      _fmt_pace(race_pace),
-        "marathon_pace":  _fmt_pace(mp_equiv * 1.04),          # MP: ~4% slower than race (for marathon), or proxy
-        "easy_pace":      _fmt_pace(mp_equiv * 1.29),          # Easy: ~29% slower than MP
-        "long_run_pace":  _fmt_pace(mp_equiv * 1.20),          # Long run: ~20% slower than MP
-        "tempo_pace":     _fmt_pace(mp_equiv * 0.95),          # Tempo/LT: ~5% faster than MP
-        "interval_pace":  _fmt_pace(mp_equiv * 0.88),          # Interval/VO2max: ~12% faster than MP
+        "race_pace":     _fmt_pace(race_pace_sec),
+        "easy_pace":     _fmt_pace(race_pace_sec * 1.30),   # 30% slower than race pace
+        "long_run_pace": _fmt_pace(race_pace_sec * 1.20),   # 20% slower
+        "marathon_pace": _fmt_pace(race_pace_sec * 1.05),   # 5% slower (for HM/10k plans)
+        "tempo_pace":    _fmt_pace(race_pace_sec * 0.94),   # 6% faster (LT)
+        "interval_pace": _fmt_pace(race_pace_sec * 0.87),   # 13% faster (VO2max)
+    }
+
+
+def _extract_current_fitness_paces(strava_data: dict) -> dict | None:
+    """
+    Derive current easy and tempo paces from the athlete's recent Strava runs.
+    Uses the median pace across recent runs as a proxy for current easy aerobic pace.
+    """
+    activities = strava_data.get("activities", [])
+    if not activities:
+        return None
+    pace_secs = [_pace_str_to_sec(a.get("avg_pace_min_km")) for a in activities]
+    pace_secs = sorted([p for p in pace_secs if p and 120 < p < 600])
+    if not pace_secs:
+        return None
+    # Median recent pace ≈ easy/aerobic pace (most training is easy)
+    median_pace = pace_secs[len(pace_secs) // 2]
+    return {
+        "current_easy_pace": _fmt_pace(median_pace),
+        "current_tempo_estimate": _fmt_pace(median_pace * 0.88),
     }
 
 
@@ -183,19 +223,33 @@ def build_user_message(strava_data: dict, config: dict) -> str:
         schedule_note = f"- Preferred running days: {', '.join(run_days)}\n- Sessions per week: {sessions} (choose the best {sessions} from the preferred days above — assign rest to the others)"
 
     paces = calculate_training_paces(config.get("target_time", ""), config.get("goal", "Marathon"))
-    paces_block = ""
-    if paces:
-        paces_block = f"""
-## Training Paces (derived from target {config.get('target_time', '')} {config.get('goal', '')})
-- Easy / Zone 1-2:        {paces['easy_pace']}
-- Long Run:               {paces['long_run_pace']}
-- Marathon Pace (MP):     {paces['marathon_pace']}
-- Tempo / LT:             {paces['tempo_pace']}
-- Interval / VO2max:      {paces['interval_pace']}
-- Target Race Pace:       {paces['race_pace']}
+    current_fitness = _extract_current_fitness_paces(strava_data)
 
-USE THESE EXACT PACES in every session description. Do not use generic pace ranges.
-"""
+    paces_block = ""
+    if paces or current_fitness:
+        lines = ["## Training Paces"]
+        if current_fitness:
+            lines.append(f"### Current Fitness (from Strava)")
+            lines.append(f"- Current easy/aerobic pace:    {current_fitness['current_easy_pace']}")
+            lines.append(f"- Current tempo estimate:       {current_fitness['current_tempo_estimate']}")
+            lines.append("")
+        if paces:
+            lines.append(f"### Target Paces (derived from {config.get('target_time','')} {config.get('goal','')})")
+            lines.append(f"- Easy / Zone 1-2:        {paces['easy_pace']}")
+            lines.append(f"- Long Run:               {paces['long_run_pace']}")
+            lines.append(f"- Marathon Pace (MP):     {paces['marathon_pace']}")
+            lines.append(f"- Tempo / LT:             {paces['tempo_pace']}")
+            lines.append(f"- Interval / VO2max:      {paces['interval_pace']}")
+            lines.append(f"- Target Race Pace:       {paces['race_pace']}")
+            lines.append("")
+            if current_fitness:
+                lines.append("START sessions at paces close to current fitness, progressing toward target paces over the 4-week block. Do not prescribe target paces the athlete cannot yet sustain.")
+            lines.append("USE THESE PACES explicitly in every session description — no generic ranges.")
+        else:
+            lines.append("No target time set — base all paces on the current Strava fitness paces above.")
+            lines.append("Easy runs: at or slightly slower than current easy pace.")
+            lines.append("Tempo runs: ~12% faster than current easy pace.")
+        paces_block = "\n".join(lines) + "\n"
 
     return f"""
 ## Athlete Profile

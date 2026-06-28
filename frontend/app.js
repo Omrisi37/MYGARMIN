@@ -638,6 +638,44 @@ function renderWeek() {
   }
 }
 
+// ── Time picker helpers ───────────────────────────────────────────────────────
+
+function _parseTargetTime(str) {
+  // Returns { h, m } from stored "H:MM:SS" or "H:MM" or ""
+  if (!str) return { h: 3, m: 45 };
+  const parts = str.split(":").map(Number);
+  if (parts.length >= 2) return { h: parts[0], m: parts[1] };
+  return { h: 3, m: 45 };
+}
+
+function _renderTimePicker(savedTime) {
+  const { h, m } = _parseTargetTime(savedTime);
+  const hourOpts = Array.from({ length: 7 }, (_, i) =>
+    `<option value="${i}" ${i === h ? "selected" : ""}>${i}h</option>`
+  ).join("");
+  const minOpts = [0,5,10,15,20,25,30,35,40,45,50,55].map(v =>
+    `<option value="${v}" ${v === m ? "selected" : ""}>${String(v).padStart(2,"0")}m</option>`
+  ).join("");
+  return `<div style="display:flex;gap:8px;align-items:center">
+    <select id="g-time-h" class="form-input" style="flex:1" onchange="_updateTimePreview()">${hourOpts}</select>
+    <select id="g-time-m" class="form-input" style="flex:1" onchange="_updateTimePreview()">${minOpts}</select>
+  </div>`;
+}
+
+function _updateTimePreview() {
+  const h = parseInt(document.getElementById("g-time-h")?.value || "0");
+  const m = parseInt(document.getElementById("g-time-m")?.value || "0");
+  const el = document.getElementById("g-time-preview");
+  if (el) el.textContent = h === 0 && m === 0 ? "No target time set" : `Target: ${h}h ${m}m`;
+}
+
+function _readTargetTime() {
+  const h = parseInt(document.getElementById("g-time-h")?.value || "0");
+  const m = parseInt(document.getElementById("g-time-m")?.value || "0");
+  if (h === 0 && m === 0) return "";
+  return `${h}:${String(m).padStart(2,"0")}:00`;
+}
+
 // ── Render: GOALS ────────────────────────────────────────────────────────────
 
 function renderGoals() {
@@ -729,7 +767,8 @@ function renderGoals() {
       </div>
       <div class="form-group">
         <label class="form-label">Target Finish Time</label>
-        <input id="g-target-time" class="form-input" type="text" placeholder="e.g. 3:45:00 (marathon), 1:45:00 (half), 00:48:00 (10km)" value="${s.target_time||""}"/>
+        ${_renderTimePicker(s.target_time || "")}
+        <div class="text-xs text-dim" style="margin-top:4px" id="g-time-preview"></div>
       </div>
     </div>
 
@@ -1013,7 +1052,7 @@ function _saveGoalFields() {
     goal:              document.getElementById("g-goal").value,
     race_name:         document.getElementById("g-race-name").value,
     race_date:         document.getElementById("g-race-date").value,
-    target_time:       document.getElementById("g-target-time").value,
+    target_time:       _readTargetTime(),
     start_date:        document.getElementById("g-start-date").value,
     run_days:          _getSelectedDays(),
     sessions_per_week: parseInt(document.getElementById("g-sessions").value),
