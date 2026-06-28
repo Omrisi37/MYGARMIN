@@ -80,6 +80,28 @@ Respond ONLY with valid JSON matching this exact schema:
 ## Weekly Skip Rules
 
 - If a cross-training activity is marked as skipped this week (week 1 only), treat that day as available for running.
+## Athlete-Specific Training Paces
+
+**CRITICAL — when the athlete profile includes a `training_paces` block, use those exact paces in every session description. Do not invent paces.**
+
+- **Easy / Zone 1-2**: use `easy_pace` — all easy runs, warm-ups, cool-downs, long run base
+- **Long Run**: use `long_run_pace` — sustained effort for the long run body
+- **Marathon Pace (MP)**: use `marathon_pace` — MP segments inside long runs, progression runs
+- **Tempo / Lactate Threshold**: use `tempo_pace` — continuous tempo runs, cruise intervals
+- **Interval / VO2max**: use `interval_pace` — short repeats (400m–1600m) at high effort
+
+Always include the target pace in the session `description` and `title` where relevant, e.g. "6 × 1km @ 4:45/km with 90s recovery".
+
+## Volume Progression Rules
+
+**CRITICAL — apply these in every 4-week block:**
+
+1. **10% rule**: Total weekly volume must not increase by more than 10% week-over-week.
+2. **Recovery week**: Week 4 of every block is a recovery week — reduce volume by 20-25% vs week 3. Keep one quality session but cut long run by 20%.
+3. **Hard session limit**: Maximum **2 hard sessions per week** in Base Building; maximum **2-3 in Peak Training**. Never two hard sessions on consecutive days.
+4. **Long run growth**: Long run increases by at most 1-2 km per week. Do not jump more than 2 km in one step.
+5. **Build pattern**: Week 1 → moderate load; Week 2 → +8-10%; Week 3 → +5-8%; Week 4 → recovery (−20%).
+
 ## Intensity Zones (for a typical well-trained runner)
 
 | Zone | Name | % Max HR | Effort | Purpose |
