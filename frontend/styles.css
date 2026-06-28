@@ -1020,3 +1020,28 @@ svg text { font-family: inherit; }
   background: rgba(0,212,170,0.06);
   border-color: var(--accent) !important;
 }
+
+/* ── Workflow status banner ───────────────────────────────────────────────── */
+.workflow-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(249,115,22,0.12) 0%, rgba(249,115,22,0.06) 100%);
+  border: 1px solid rgba(249,115,22,0.3);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+.workflow-spinner {
+  font-size: 20px;
+  animation: spin-pulse 2s ease-in-out infinite;
+}
+@keyframes spin-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.9); }
+}
+/* Current week highlight in race/roadmap view */
+.month-week.race-now {
+  border-left: 3px solid var(--accent);
+  background: rgba(0,212,170,0.04);
+}
