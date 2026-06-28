@@ -34,6 +34,28 @@ function logout() {
   location.reload();
 }
 
+// ── Manual Skips ──────────────────────────────────────────────────────────────
+
+function getManualSkips() {
+  try { return JSON.parse(localStorage.getItem("rc_manual_skips") || "{}"); } catch { return {}; }
+}
+
+function markDaySkipped(date, dayTitle) {
+  const skips = getManualSkips();
+  skips[date] = { skipped: true, title: dayTitle, skipped_at: new Date().toISOString() };
+  localStorage.setItem("rc_manual_skips", JSON.stringify(skips));
+  closeModal();
+  renderScreen(currentScreen);
+}
+
+function unmarkDaySkipped(date) {
+  const skips = getManualSkips();
+  delete skips[date];
+  localStorage.setItem("rc_manual_skips", JSON.stringify(skips));
+  closeModal();
+  renderScreen(currentScreen);
+}
+
 // ── Settings (stored in localStorage) ────────────────────────────────────────
 
 function getSettings() {
@@ -700,6 +722,20 @@ function _renderWeekDays(days, weekOffset) {
       </div>`;
     }
 
+    const manualSkip = day.date ? getManualSkips()[day.date] : null;
+    if (manualSkip) {
+      return `<div class="day-row done" onclick="openDayModal(${i}, ${weekOffset})">
+        <div class="day-abbr">${day.day.slice(0,3).toUpperCase()}</div>
+        <div class="day-dot" style="background:var(--text-dim);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center">⏭</div>
+        <div style="flex:1;min-width:0">
+          <div class="day-name" style="color:var(--text-dim)">${day.title}</div>
+          <div style="font-size:10px;color:var(--text-dim)">Skipped / Rest</div>
+        </div>
+        <div class="done-badge" style="color:var(--text-dim)">⏭ Skipped</div>
+        <div class="day-chevron">›</div>
+      </div>`;
+    }
+
     return `<div class="day-row${isToday ? " today" : ""}" onclick="openDayModal(${i}, ${weekOffset})">
       <div class="day-abbr${isToday ? " today" : ""}">${day.day.slice(0,3).toUpperCase()}</div>
       <div class="day-dot ${key}"></div>
@@ -1359,10 +1395,24 @@ function openDayModal(i, weekOffset) {
   }
 
   // ── Upcoming/planned session modal ──
+  const manualSkip = day.date ? getManualSkips()[day.date] : null;
+
   const plannedStatsHtml = day.distance_km > 0 ? `
     <div class="stats-grid" style="margin-bottom:14px">
       <div class="stat-box"><div class="stat-val">${day.distance_km}<span class="stat-unit"> km</span></div><div class="stat-lbl">Distance</div></div>
       <div class="stat-box"><div class="stat-val">${day.duration_min}<span class="stat-unit"> min</span></div><div class="stat-lbl">Duration</div></div>
+    </div>` : "";
+
+  const skipBtnHtml = day.date ? (
+    manualSkip
+      ? `<button class="btn btn-ghost" onclick="unmarkDaySkipped('${day.date}')" style="margin-top:10px;color:var(--text-mid)">↩ Undo Skip</button>`
+      : `<button class="btn btn-ghost" onclick="markDaySkipped('${day.date}', \`${day.title.replace(/`/g,"'")}\`)" style="margin-top:10px;color:var(--text-dim)">⏭ Mark as Rest / Skipped</button>`
+  ) : "";
+
+  const skippedBanner = manualSkip ? `
+    <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+      <span style="font-size:18px">⏭</span>
+      <span class="text-sm text-dim">You marked this day as skipped / rest.</span>
     </div>` : "";
 
   document.getElementById("day-modal-body").innerHTML = `
@@ -1370,11 +1420,13 @@ function openDayModal(i, weekOffset) {
     <h2 style="font-size:20px;font-weight:700;margin-bottom:4px">${day.title}</h2>
     <div class="text-sm text-mid">${day.day}${day.date ? " · " + day.date : ""}</div>
     <div style="margin:12px 0"><span class="day-badge ${key}">${day.intensity}</span>${day.hr_zone ? ` <span class="day-badge easy" style="margin-left:6px">${day.hr_zone}</span>` : ""}</div>
+    ${skippedBanner}
     ${plannedStatsHtml}
     <p class="text-sm text-mid" style="line-height:1.6;margin-bottom:10px">${day.description||""}</p>
     ${day.key_focus ? `<p class="text-sm"><strong>Focus:</strong> <span class="text-mid">${day.key_focus}</span></p>` : ""}
     ${day.notes ? `<p class="text-sm mt-8"><strong>Notes:</strong> <span class="text-mid">${day.notes}</span></p>` : ""}
-    <button class="btn btn-ghost" onclick="closeModal()" style="margin-top:20px">Close</button>
+    ${skipBtnHtml}
+    <button class="btn btn-ghost" onclick="closeModal()" style="margin-top:10px">Close</button>
   `;
   document.getElementById("day-modal").classList.add("open");
 }
