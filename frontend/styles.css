@@ -1007,3 +1007,16 @@ svg text { font-family: inherit; }
 .compare-col-label.planned { color: var(--text-dim); }
 .compare-stat { font-size: 13px; color: var(--text-mid); margin-bottom: 4px; }
 .compare-stat strong { color: var(--text); }
+
+/* ── Roadmap view ───────────────────────────────────────────────────────────── */
+.roadmap-week {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface2);
+  border-left: 3px solid var(--border);
+  transition: background 0.15s;
+}
+.roadmap-week.now {
+  background: rgba(0,212,170,0.06);
+  border-color: var(--accent) !important;
+}

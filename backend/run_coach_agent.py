@@ -201,7 +201,7 @@ def build_user_message(strava_data: dict, config: dict) -> str:
     else:
         week_start = today - timedelta(days=today.weekday())  # Monday
 
-    # Generate 4 weeks of dates
+    # Generate 4 weeks of dates (full detail)
     all_weeks_dates = []
     for w in range(4):
         ws = week_start + timedelta(weeks=w)
@@ -213,6 +213,19 @@ def build_user_message(strava_data: dict, config: dict) -> str:
             for i in range(7)
         ]
         all_weeks_dates.append({"week": w + 1, "days": week_days})
+
+    # Generate roadmap week slots: week 5 → race (max 24 weeks ahead, summary only)
+    roadmap_slots = []
+    if weeks_left and weeks_left > 4:
+        for w in range(4, min(weeks_left, 28)):
+            ws = week_start + timedelta(weeks=w)
+            wtr = weeks_left - w
+            roadmap_slots.append({
+                "week": w + 1,
+                "week_start": ws.strftime("%Y-%m-%d"),
+                "weeks_to_race": wtr,
+                "phase": current_training_phase(wtr),
+            })
 
     run_days = config.get("run_days") or []
     sessions = config.get("sessions_per_week") or 4
@@ -266,8 +279,11 @@ def build_user_message(strava_data: dict, config: dict) -> str:
 ## Last 14 Days of Training (from Strava)
 {json.dumps(strava_data, indent=2)}
 
-## 4-Week Schedule to Fill
+## 4-Week Schedule to Fill (full day detail required)
 {json.dumps(all_weeks_dates, indent=2)}
+
+## Roadmap Week Slots (weeks 5 → race — brief summary only, no days array)
+{json.dumps(roadmap_slots, indent=2) if roadmap_slots else "No race date set — generate 4-week block only."}
 
 ## Cross-Training Schedule (FIXED COMMITMENTS — do not place runs on these days)
 {_format_cross_training(config.get('cross_training', []), config.get('weekly_skip_ct', []))}
@@ -344,8 +360,9 @@ def save_plan(result: dict):
     first_week = weeks[0] if weeks else {}
 
     plan = {
-        # 4-week structure
+        # 4-week structure + full roadmap to race
         "weeks": weeks,
+        "roadmap": result.get("roadmap", []),
         "coaching_overview": result.get("coaching_overview", ""),
         "total_plan_distance_km": result.get("total_plan_distance_km", 0),
         # Backward compat — first week at top level

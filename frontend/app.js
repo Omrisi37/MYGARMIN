@@ -343,6 +343,95 @@ function setWeekView(mode) {
   renderWeek();
 }
 
+function _phaseColor(phase) {
+  const m = {
+    "Base Building":       "var(--green)",
+    "Aerobic Development": "var(--blue)",
+    "Peak Training":       "var(--orange)",
+    "Taper":               "#a855f7",
+    "Race Week":           "var(--red)",
+  };
+  return m[phase] || "var(--text-dim)";
+}
+
+function _renderRoadmap(plan) {
+  const weeks4 = plan.weeks || [];
+  const roadmap = plan.roadmap || [];
+
+  if (!weeks4.length && !roadmap.length) {
+    return `<div class="empty"><div class="empty-icon">🗺</div><h3>No roadmap yet</h3><p>Generate a plan with a race date set.</p></div>`;
+  }
+
+  const allWeeks = [
+    ...weeks4.map((w, i) => ({
+      week_number: w.week_number || i + 1,
+      week_start: w.days?.[0]?.date || "",
+      phase: w.phase || "",
+      total_km: w.total_distance_km || 0,
+      key_sessions: (w.days || [])
+        .filter(d => d.intensity !== "Rest" && d.distance_km > 0)
+        .slice(0, 2)
+        .map(d => `${d.title} (${d.distance_km}km)`),
+      weekly_summary: w.weekly_summary || "",
+      is_detail: true,
+    })),
+    ...roadmap.map(w => ({ ...w, is_detail: false })),
+  ];
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+
+  const rows = allWeeks.map(w => {
+    const color = _phaseColor(w.phase);
+    const isCurrentWeek = w.week_start <= todayStr &&
+      new Date(new Date(w.week_start).getTime() + 7 * 86400000).toISOString().slice(0,10) > todayStr;
+    const dateLabel = w.week_start
+      ? new Date(w.week_start + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })
+      : "";
+
+    const keySessions = (w.key_sessions || []).map(s =>
+      `<div style="font-size:11px;color:var(--text-dim);margin-top:2px">• ${s}</div>`
+    ).join("");
+
+    return `<div class="roadmap-week${isCurrentWeek ? " now" : ""}" style="border-left:3px solid ${color}">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="min-width:52px;font-size:11px;color:var(--text-dim)">${dateLabel}</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <span style="font-size:13px;font-weight:700">Week ${w.week_number}</span>
+            <span class="day-badge" style="background:${color}20;color:${color};border:1px solid ${color}40;font-size:10px">${w.phase}</span>
+            ${isCurrentWeek ? `<span class="day-badge easy" style="font-size:10px">← Now</span>` : ""}
+            ${w.is_detail ? `<span style="font-size:10px;color:var(--accent)">Full detail ›</span>` : ""}
+          </div>
+          <div style="font-size:12px;color:var(--text-mid);margin-top:2px">${w.total_km || w.total_distance_km || 0} km · ${w.weekly_summary || ""}</div>
+          ${keySessions}
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+
+  const s = getSettings();
+  const d2r = daysToRace(s.race_date);
+  const raceLabel = s.race_date
+    ? `<div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+        <div style="min-width:52px;font-size:11px;color:var(--text-dim)">${new Date(s.race_date + "T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"})}</div>
+        <div style="flex:1;display:flex;align-items:center;gap:6px">
+          <span style="font-size:13px;font-weight:700">🏁 Race Day</span>
+          <span class="day-badge" style="background:var(--red)20;color:var(--red);border:1px solid var(--red)40;font-size:10px">${s.race_name || "Race"}</span>
+          ${d2r !== null && d2r >= 0 ? `<span style="font-size:11px;color:var(--text-dim)">${d2r} days away</span>` : ""}
+        </div>
+      </div>`
+    : "";
+
+  return `
+    <div class="card" style="padding:14px">
+      <div class="card-label" style="margin-bottom:12px">🗺 FULL PLAN — WEEK BY WEEK</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${rows}
+        ${raceLabel ? `<div class="roadmap-week" style="border-left:3px solid var(--red)">${raceLabel}</div>` : ""}
+      </div>
+    </div>`;
+}
+
 function _renderMacroTimeline() {
   const s = getSettings();
   if (!s.race_date) return "";
@@ -549,7 +638,10 @@ function _renderWeekDays(days, weekOffset) {
     return `<div class="day-row${isToday ? " today" : ""}" onclick="openDayModal(${i}, ${weekOffset})">
       <div class="day-abbr${isToday ? " today" : ""}">${day.day.slice(0,3).toUpperCase()}</div>
       <div class="day-dot ${key}"></div>
-      <div class="day-name">${day.title}</div>
+      <div style="flex:1;min-width:0">
+        <div class="day-name">${day.title}</div>
+        ${day.coach_adjusted ? `<div style="font-size:10px;color:var(--orange)">⚡ Coach adjusted</div>` : ""}
+      </div>
       ${day.distance_km > 0 ? `<div class="text-sm text-mid">${day.distance_km}km</div>` : ""}
       <div class="day-badge ${key}">${day.intensity}</div>
       <div class="day-chevron">›</div>
@@ -576,15 +668,28 @@ function renderWeek() {
   }
 
   const hasMonthData = Array.isArray(plan.weeks) && plan.weeks.length > 0;
+  const hasRoadmap = hasMonthData || Array.isArray(plan.roadmap) && plan.roadmap.length > 0;
   const weekData = hasMonthData ? (plan.weeks[0] || plan) : plan;
 
   const toggleHtml = hasMonthData ? `
     <div class="view-toggle">
       <button class="view-toggle-btn${weekViewMode === "week" ? " active" : ""}" onclick="setWeekView('week')">This Week</button>
       <button class="view-toggle-btn${weekViewMode === "month" ? " active" : ""}" onclick="setWeekView('month')">4-Week Plan</button>
+      ${hasRoadmap ? `<button class="view-toggle-btn${weekViewMode === "race" ? " active" : ""}" onclick="setWeekView('race')">📍 To Race</button>` : ""}
     </div>` : "";
 
   const macroTimeline = _renderMacroTimeline();
+
+  if (weekViewMode === "race") {
+    el.innerHTML = `
+      <div class="page-title">Full Plan</div>
+      <div class="page-sub">Every week from now to race day</div>
+      ${macroTimeline}
+      ${toggleHtml}
+      ${_renderRoadmap(plan)}
+    `;
+    return;
+  }
 
   if (weekViewMode === "month" && hasMonthData) {
     const monthCardsHtml = plan.weeks.map((week, idx) => {
