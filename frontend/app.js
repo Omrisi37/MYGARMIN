@@ -340,7 +340,7 @@ function renderToday() {
 let weekViewMode = "week";
 
 function setWeekView(mode) {
-  weekViewMode = mode;
+  weekViewMode = mode === "race" ? "week" : mode;
   renderWeek();
 }
 
@@ -740,22 +740,9 @@ function renderWeek() {
     <div class="view-toggle">
       <button class="view-toggle-btn${weekViewMode === "week" ? " active" : ""}" onclick="setWeekView('week')">This Week</button>
       <button class="view-toggle-btn${weekViewMode === "month" ? " active" : ""}" onclick="setWeekView('month')">4-Week Plan</button>
-      ${hasRoadmap ? `<button class="view-toggle-btn${weekViewMode === "race" ? " active" : ""}" onclick="setWeekView('race')">📍 To Race</button>` : ""}
     </div>` : "";
 
   const macroTimeline = _renderMacroTimeline();
-
-  if (weekViewMode === "race") {
-    el.innerHTML = `
-      <div class="page-title">Full Plan</div>
-      <div class="page-sub">Every week from now to race day</div>
-      ${_workflowBanner()}
-      ${macroTimeline}
-      ${toggleHtml}
-      ${_renderRoadmap(plan)}
-    `;
-    return;
-  }
 
   if (weekViewMode === "month" && hasMonthData) {
     const monthCardsHtml = plan.weeks.map((week, idx) => {
