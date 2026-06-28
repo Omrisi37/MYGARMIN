@@ -43,6 +43,72 @@ def load_prompt_template():
     return prompt_path.read_text()
 
 
+# ── Training pace calculator ──────────────────────────────────────────────────
+
+RACE_DISTANCES_KM = {
+    "marathon":      42.195,
+    "half marathon": 21.0975,
+    "10km":          10.0,
+    "10k":           10.0,
+}
+
+def _parse_time_to_seconds(time_str: str) -> int | None:
+    """Parse 'H:MM:SS' or 'MM:SS' to total seconds."""
+    if not time_str:
+        return None
+    parts = [p.strip() for p in time_str.strip().split(":")]
+    try:
+        if len(parts) == 3:
+            return int(parts[0]) * 3600 + int(parts[1]) * 60 + int(parts[2])
+        if len(parts) == 2:
+            return int(parts[0]) * 60 + int(parts[1])
+    except ValueError:
+        pass
+    return None
+
+def _fmt_pace(sec_per_km: float) -> str:
+    """Format seconds-per-km as 'M:SS /km'."""
+    sec_per_km = round(sec_per_km)
+    return f"{sec_per_km // 60}:{sec_per_km % 60:02d} /km"
+
+def calculate_training_paces(target_time_str: str, goal: str) -> dict | None:
+    """
+    Derive athlete-specific training paces from target finish time.
+    Uses Jack Daniels VDOT-inspired multipliers.
+    Returns a dict with pace strings, or None if target_time is not set.
+    """
+    total_sec = _parse_time_to_seconds(target_time_str)
+    if not total_sec:
+        return None
+
+    dist_km = None
+    for key, km in RACE_DISTANCES_KM.items():
+        if key in goal.lower():
+            dist_km = km
+            break
+    if dist_km is None:
+        dist_km = RACE_DISTANCES_KM["marathon"]  # default
+
+    race_pace = total_sec / dist_km  # seconds per km at target race pace
+
+    # For non-marathon events, derive an equivalent marathon pace for training zones
+    # so the same multipliers apply sensibly
+    if dist_km < 21:
+        # Shorter race = faster pace; equivalent easy pace is still based on race pace
+        mp_equiv = race_pace * 1.10  # proxy "marathon pace" for zone anchoring
+    else:
+        mp_equiv = race_pace if dist_km >= 42 else race_pace * 1.05
+
+    return {
+        "race_pace":      _fmt_pace(race_pace),
+        "marathon_pace":  _fmt_pace(mp_equiv * 1.04),          # MP: ~4% slower than race (for marathon), or proxy
+        "easy_pace":      _fmt_pace(mp_equiv * 1.29),          # Easy: ~29% slower than MP
+        "long_run_pace":  _fmt_pace(mp_equiv * 1.20),          # Long run: ~20% slower than MP
+        "tempo_pace":     _fmt_pace(mp_equiv * 0.95),          # Tempo/LT: ~5% faster than MP
+        "interval_pace":  _fmt_pace(mp_equiv * 0.88),          # Interval/VO2max: ~12% faster than MP
+    }
+
+
 def weeks_to_race(race_date_str: str | None) -> int | None:
     if not race_date_str:
         return None
@@ -116,6 +182,21 @@ def build_user_message(strava_data: dict, config: dict) -> str:
     if run_days:
         schedule_note = f"- Preferred running days: {', '.join(run_days)}\n- Sessions per week: {sessions} (choose the best {sessions} from the preferred days above — assign rest to the others)"
 
+    paces = calculate_training_paces(config.get("target_time", ""), config.get("goal", "Marathon"))
+    paces_block = ""
+    if paces:
+        paces_block = f"""
+## Training Paces (derived from target {config.get('target_time', '')} {config.get('goal', '')})
+- Easy / Zone 1-2:        {paces['easy_pace']}
+- Long Run:               {paces['long_run_pace']}
+- Marathon Pace (MP):     {paces['marathon_pace']}
+- Tempo / LT:             {paces['tempo_pace']}
+- Interval / VO2max:      {paces['interval_pace']}
+- Target Race Pace:       {paces['race_pace']}
+
+USE THESE EXACT PACES in every session description. Do not use generic pace ranges.
+"""
+
     return f"""
 ## Athlete Profile
 - Goal: {config['goal']}
@@ -126,6 +207,7 @@ def build_user_message(strava_data: dict, config: dict) -> str:
 {f"- Weeks until race: {weeks_left} → Current phase: **{phase}**" if weeks_left is not None else "- No specific race date set → Current phase: Base Building"}
 - IMPORTANT: Label all 4 weeks with the correct phase for their position in the training cycle. Week 1 starts at phase "{phase}" (with {weeks_left if weeks_left is not None else "unknown"} weeks to race). Progress appropriately through the block.
 {schedule_note}
+{paces_block}
 
 ## Last 14 Days of Training (from Strava)
 {json.dumps(strava_data, indent=2)}
@@ -143,13 +225,22 @@ def build_user_message(strava_data: dict, config: dict) -> str:
 ## This Week Exceptions (Week 1)
 Skipping cross-training: {', '.join(config['weekly_skip_ct']) if config['weekly_skip_ct'] else 'None — all usual activities happening'}
 
+## Volume Progression for This Block
+- Week 1: establish base load from recent Strava data
+- Week 2: increase total volume by ~8-10% vs Week 1
+- Week 3: increase by ~5-8% vs Week 2 (cumulative peak)
+- Week 4: RECOVERY — reduce volume by 20-25% vs Week 3; keep one quality session; shorten long run by 20%
+- Long run: grow by at most 1-2 km per week, never jump more than 2 km in one step
+- Hard sessions: max 2 per week; never on consecutive days; never the day before/after the long run
+
 ## Instructions
 Generate the complete 4-week training plan for the block above.
 - Respect the athlete's time budget ({config['weekly_hours_budget']} hrs/week)
 - Apply polarized training (80% easy, 20% hard)
+- Use the exact training paces provided above in every session description
 - Adapt intensity based on recent training load and fatigue signals
 - Include exact dates from the week schedule provided
-- Build progressively across the 4 weeks
+- Build progressively following the volume progression rules above
 - Return ONLY valid JSON matching the schema in your system prompt
 """
 
@@ -225,6 +316,28 @@ def save_plan(result: dict):
 
     plan_path.write_text(json.dumps(plan, indent=2))
     print(f"Plan saved to {plan_path}")
+
+    # Save settings to user_settings.json so any device can restore them
+    settings = {
+        "goal":              TRAINING_CONFIG.get("goal", ""),
+        "race_name":         TRAINING_CONFIG.get("race_name", ""),
+        "race_date":         TRAINING_CONFIG.get("race_date", ""),
+        "target_time":       TRAINING_CONFIG.get("target_time", ""),
+        "start_date":        TRAINING_CONFIG.get("start_date", ""),
+        "run_days":          TRAINING_CONFIG.get("run_days", []),
+        "sessions_per_week": TRAINING_CONFIG.get("sessions_per_week", 4),
+        "weekly_hours":      TRAINING_CONFIG.get("weekly_hours_budget", 7),
+        "cross_training":    TRAINING_CONFIG.get("cross_training", []),
+        "quality_enabled":   TRAINING_CONFIG.get("quality_sessions", 0) > 0,
+        "quality_sessions":  TRAINING_CONFIG.get("quality_sessions", 2),
+        "quality_types":     TRAINING_CONFIG.get("quality_types", []),
+        "weekly_skip_ct":    TRAINING_CONFIG.get("weekly_skip_ct", []),
+        "saved_at":          datetime.utcnow().isoformat() + "Z",
+    }
+    settings_path = data_dir / "user_settings.json"
+    settings_path.write_text(json.dumps(settings, indent=2))
+    print(f"Settings saved to {settings_path}")
+
     return plan
 
 

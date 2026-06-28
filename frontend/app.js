@@ -95,6 +95,25 @@ async function fetchCompletedSessions() {
   } catch { return {}; }
 }
 
+async function fetchUserSettings() {
+  try {
+    const res = await fetch(`/data/user_settings.json?t=${Date.now()}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch { return null; }
+}
+
+async function restoreSettingsIfEmpty(remoteSettings) {
+  if (!remoteSettings) return;
+  const local = getSettings();
+  // If the user has no goal saved locally, restore from the server copy
+  if (!local.goal && !local.race_date) {
+    const { saved_at, ...fields } = remoteSettings;
+    saveSettings(fields);
+    console.log("Settings restored from user_settings.json");
+  }
+}
+
 async function refreshData() {
   showToast("Refreshing…");
   [currentPlan, currentAnalytics, completedSessions] = await Promise.all([
@@ -1372,10 +1391,14 @@ async function showApp() {
     btn.addEventListener("click", () => navigate(btn.dataset.nav));
   });
 
-  // Load plan + analytics + completed sessions
-  [currentPlan, currentAnalytics, completedSessions] = await Promise.all([
-    fetchPlan(), fetchAnalytics(), fetchCompletedSessions(),
+  // Load plan + analytics + completed sessions + remote settings
+  const [plan, analytics, completed, remoteSettings] = await Promise.all([
+    fetchPlan(), fetchAnalytics(), fetchCompletedSessions(), fetchUserSettings(),
   ]);
+  currentPlan = plan;
+  currentAnalytics = analytics;
+  completedSessions = completed;
+  await restoreSettingsIfEmpty(remoteSettings);
   navigate("today");
 }
 
