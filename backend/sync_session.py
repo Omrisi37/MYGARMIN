@@ -382,7 +382,7 @@ Respond ONLY with valid JSON:
 
     response = client.messages.create(
         model="claude-haiku-4-5-20251001",
-        max_tokens=1024,
+        max_tokens=2048,
         messages=[{"role": "user", "content": prompt}],
     )
     raw = response.content[0].text.strip()
@@ -390,7 +390,17 @@ Respond ONLY with valid JSON:
         raw = raw.split("```")[1]
         if raw.startswith("json"):
             raw = raw[4:]
-    data = json.loads(raw.strip())
+    raw = raw.strip()
+    # Attempt to recover a truncated JSON response
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        # Find the last complete top-level key by truncating to the last '}'
+        last_brace = raw.rfind("}")
+        if last_brace != -1:
+            data = json.loads(raw[:last_brace + 1])
+        else:
+            raise
     data["generated_at"] = datetime.utcnow().isoformat() + "Z"
     data["raw_weeks"] = weeks
 
