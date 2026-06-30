@@ -48,12 +48,81 @@ function markDaySkipped(date, dayTitle) {
   renderScreen(currentScreen);
 }
 
+function markDayRescheduled(fromDate, toDate, dayTitle) {
+  const skips = getManualSkips();
+  skips[fromDate] = { skipped: true, rescheduled_to: toDate, title: dayTitle, skipped_at: new Date().toISOString() };
+  skips[toDate] = skips[toDate] || {};
+  skips[toDate].moved_from = fromDate;
+  skips[toDate].moved_title = dayTitle;
+  localStorage.setItem("rc_manual_skips", JSON.stringify(skips));
+  closeModal();
+  renderScreen(currentScreen);
+}
+
 function unmarkDaySkipped(date) {
   const skips = getManualSkips();
+  const entry = skips[date];
+  // Clean up cross-references
+  if (entry?.rescheduled_to) {
+    const target = skips[entry.rescheduled_to];
+    if (target) { delete target.moved_from; delete target.moved_title; if (!Object.keys(target).length) delete skips[entry.rescheduled_to]; }
+  }
+  if (entry?.moved_from && skips[entry.moved_from]) {
+    delete skips[entry.moved_from].rescheduled_to;
+  }
   delete skips[date];
   localStorage.setItem("rc_manual_skips", JSON.stringify(skips));
   closeModal();
   renderScreen(currentScreen);
+}
+
+function showSkipOrRescheduleModal(date, dayTitle) {
+  // Collect upcoming run days from plan (next 7 days, excluding today/past)
+  const today = new Date().toISOString().slice(0, 10);
+  const upcoming = [];
+  if (currentPlan) {
+    const allDays = [
+      ...(currentPlan.days || []),
+      ...((currentPlan.weeks || []).flatMap(w => w.days || []))
+    ];
+    const seen = new Set();
+    for (const d of allDays) {
+      if (d.date && d.date > date && !d.completed && !seen.has(d.date)) {
+        seen.add(d.date);
+        upcoming.push(d);
+      }
+    }
+    upcoming.sort((a, b) => a.date.localeCompare(b.date));
+  }
+  const upcomingOptions = upcoming.slice(0, 7).map(d =>
+    `<option value="${d.date}">${d.day} ${d.date} — ${d.title}</option>`
+  ).join("");
+
+  document.getElementById("day-modal-body").innerHTML = `
+    <div style="font-size:32px;margin-bottom:8px">⏭</div>
+    <h2 style="font-size:18px;font-weight:700;margin-bottom:6px">Skip or Reschedule?</h2>
+    <p class="text-sm text-mid" style="margin-bottom:18px">${dayTitle}</p>
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${upcomingOptions ? `
+      <div style="background:var(--surface2);border-radius:10px;padding:14px">
+        <div class="text-sm" style="font-weight:600;margin-bottom:8px">📅 Move to another day</div>
+        <select id="reschedule-target" style="width:100%;background:var(--surface3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px">
+          <option value="">— pick a day —</option>
+          ${upcomingOptions}
+        </select>
+        <button class="btn" style="margin-top:10px;width:100%" onclick="
+          const t=document.getElementById('reschedule-target').value;
+          if(t) markDayRescheduled('${date}', t, \`${dayTitle.replace(/`/g,"'")}\`);
+        ">Confirm Move</button>
+      </div>` : ""}
+
+      <button class="btn btn-ghost" onclick="markDaySkipped('${date}', \`${dayTitle.replace(/`/g,"'")}\`)" style="color:var(--text-dim)">
+        🛌 Just Rest — mark as skipped
+      </button>
+      <button class="btn btn-ghost" onclick="closeModal()" style="margin-top:4px">Cancel</button>
+    </div>
+  `;
 }
 
 // ── Settings (stored in localStorage) ────────────────────────────────────────
@@ -575,12 +644,12 @@ function _renderMacroTimeline() {
 }
 
 function _ratingColor(rating) {
-  const m = { "great":"var(--green)", "on-plan":"var(--green)", "slightly-hard":"var(--orange)", "too-hard":"var(--red)", "too-easy":"var(--blue)", "skipped":"var(--text-dim)" };
+  const m = { "great":"var(--green)", "on-plan":"var(--green)", "slightly-hard":"var(--orange)", "too-hard":"var(--red)", "too-easy":"var(--blue)", "skipped":"var(--text-dim)", "swapped":"var(--text-dim)" };
   return m[rating] || "var(--green)";
 }
 
 function _ratingLabel(rating) {
-  const m = { "great":"✨ Great", "on-plan":"✅ On plan", "slightly-hard":"⚠️ Slightly hard", "too-hard":"🔴 Too hard", "too-easy":"💤 Too easy", "skipped":"⏭ Skipped" };
+  const m = { "great":"✨ Great", "on-plan":"✅ On plan", "slightly-hard":"⚠️ Slightly hard", "too-hard":"🔴 Too hard", "too-easy":"💤 Too easy", "skipped":"⏭ Skipped", "swapped":"📅 Day swapped" };
   return m[rating] || "✅ Done";
 }
 
@@ -723,15 +792,25 @@ function _renderWeekDays(days, weekOffset) {
     }
 
     const manualSkip = day.date ? getManualSkips()[day.date] : null;
-    if (manualSkip) {
+    if (manualSkip && (manualSkip.skipped || manualSkip.moved_from)) {
+      const isRescheduled = !!manualSkip.rescheduled_to;
+      const isMovedHere   = !!manualSkip.moved_from;
+      const subLabel = isRescheduled
+        ? `Moved → ${manualSkip.rescheduled_to}`
+        : isMovedHere
+          ? `↩ Moved from ${manualSkip.moved_from} · ${manualSkip.moved_title || ""}`
+          : "Skipped / Rest";
+      const badgeLabel = isRescheduled ? "📅 Moved" : isMovedHere ? "↩ From earlier" : "⏭ Skipped";
+      const dotIcon = isMovedHere ? "↩" : "⏭";
+
       return `<div class="day-row done" onclick="openDayModal(${i}, ${weekOffset})">
         <div class="day-abbr">${day.day.slice(0,3).toUpperCase()}</div>
-        <div class="day-dot" style="background:var(--text-dim);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center">⏭</div>
+        <div class="day-dot" style="background:var(--text-dim);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center">${dotIcon}</div>
         <div style="flex:1;min-width:0">
           <div class="day-name" style="color:var(--text-dim)">${day.title}</div>
-          <div style="font-size:10px;color:var(--text-dim)">Skipped / Rest</div>
+          <div style="font-size:10px;color:var(--text-dim)">${subLabel}</div>
         </div>
-        <div class="done-badge" style="color:var(--text-dim)">⏭ Skipped</div>
+        <div class="done-badge" style="color:var(--text-dim)">${badgeLabel}</div>
         <div class="day-chevron">›</div>
       </div>`;
     }
@@ -1378,13 +1457,26 @@ function openDayModal(i, weekOffset) {
           </div>` : ""}
       </div>` : "";
 
+    const swapBanner = day.day_swap ? `
+      <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:18px">📅</span>
+        <span class="text-sm text-dim">Day swap detected — you moved this run from ${day.swapped_from_date || "another day"} to here. Nice flexibility!</span>
+      </div>` : "";
+
+    const swappedDayBanner = (done && rating === "swapped") ? `
+      <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:18px">🔄</span>
+        <span class="text-sm text-dim">${day.coach_analysis || "You swapped this day — your run was credited to the planned run day."}</span>
+      </div>` : "";
+
     document.getElementById("day-modal-body").innerHTML = `
-      <div style="font-size:28px;margin-bottom:6px">✅</div>
+      <div style="font-size:28px;margin-bottom:6px">${rating === "swapped" ? "🔄" : "✅"}</div>
       <h2 style="font-size:20px;font-weight:700;margin-bottom:2px">${day.title}</h2>
       <div class="text-sm text-mid" style="margin-bottom:10px">${day.day}${day.date ? " · " + day.date : ""}</div>
       <div style="margin-bottom:12px">
         <span class="done-badge" style="color:${_ratingColor(rating)}">${_ratingLabel(rating)}</span>
       </div>
+      ${swapBanner}${swappedDayBanner}
       ${coachHtml}
       ${compareHtml}
       ${day.description ? `<p class="text-sm text-mid" style="line-height:1.6;margin-top:4px">${day.description}</p>` : ""}
@@ -1405,8 +1497,8 @@ function openDayModal(i, weekOffset) {
 
   const skipBtnHtml = day.date ? (
     manualSkip
-      ? `<button class="btn btn-ghost" onclick="unmarkDaySkipped('${day.date}')" style="margin-top:10px;color:var(--text-mid)">↩ Undo Skip</button>`
-      : `<button class="btn btn-ghost" onclick="markDaySkipped('${day.date}', \`${day.title.replace(/`/g,"'")}\`)" style="margin-top:10px;color:var(--text-dim)">⏭ Mark as Rest / Skipped</button>`
+      ? `<button class="btn btn-ghost" onclick="unmarkDaySkipped('${day.date}')" style="margin-top:10px;color:var(--text-mid)">↩ Undo</button>`
+      : `<button class="btn btn-ghost" onclick="showSkipOrRescheduleModal('${day.date}', \`${day.title.replace(/`/g,"'")}\`)" style="margin-top:10px;color:var(--text-dim)">⏭ Skip / Move to Another Day</button>`
   ) : "";
 
   const skippedBanner = manualSkip ? `

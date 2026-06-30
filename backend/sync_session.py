@@ -138,6 +138,61 @@ def find_matching_day(plan, date_str):
     return None
 
 
+def _all_plan_days(plan):
+    """Yield every day dict across both top-level days and weeks arrays."""
+    seen = set()
+    for day in plan.get("days", []):
+        d = day.get("date")
+        if d and d not in seen:
+            seen.add(d)
+            yield day
+    for week in plan.get("weeks", []):
+        for day in week.get("days", []):
+            d = day.get("date")
+            if d and d not in seen:
+                seen.add(d)
+                yield day
+
+
+def _is_run_workout(day):
+    """True if this plan day is a run (not rest/cross-training)."""
+    wtype = (day.get("workout_type") or "").lower()
+    title = (day.get("title") or "").lower()
+    intensity = (day.get("intensity") or "").lower()
+    non_run_keywords = {"rest", "cross", "pilates", "yoga", "gym", "swim", "cycl", "football",
+                        "basketball", "tennis", "boxing", "walk", "hike"}
+    if any(k in wtype for k in non_run_keywords):
+        return False
+    if any(k in title for k in non_run_keywords):
+        return False
+    if intensity == "rest":
+        return False
+    return True
+
+
+def find_swapped_run_day(plan, activity_date_str, lookback_days=3):
+    """
+    When a run was logged on a cross-training/rest day, look back up to
+    lookback_days to find a planned (not yet completed) run day.
+    Returns the swap candidate day dict, or None.
+    """
+    act_date = datetime.strptime(activity_date_str, "%Y-%m-%d").date()
+    candidates = []
+    for day in _all_plan_days(plan):
+        d = day.get("date")
+        if not d or day.get("completed"):
+            continue
+        day_date = datetime.strptime(d, "%Y-%m-%d").date()
+        delta = (act_date - day_date).days
+        if 1 <= delta <= lookback_days and _is_run_workout(day):
+            candidates.append((delta, day))
+    if not candidates:
+        return None
+    # Return the closest preceding run day
+    candidates.sort(key=lambda x: x[0])
+    return candidates[0][1]
+
+
 RUNNING_TYPES = {"Run", "TrailRun", "VirtualRun"}
 
 def _activity_label(act_type: str) -> str:
@@ -162,7 +217,7 @@ def _activity_label(act_type: str) -> str:
     return labels.get(act_type, act_type)
 
 
-def analyze_session(planned_day, actual):
+def analyze_session(planned_day, actual, swapped_from=None):
     """Ask Claude for a brief coaching take on the session — works for all activity types."""
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
@@ -185,8 +240,17 @@ def analyze_session(planned_day, actual):
         actual_parts.append(f"Elevation: {actual['elevation_m']} m")
     actual_summary = ", ".join(actual_parts) or "Activity recorded — no detailed stats available"
 
+    swap_note = ""
+    if swapped_from:
+        swap_note = (
+            f"\nNOTE: The athlete intentionally swapped days — they moved their planned "
+            f"'{swapped_from.get('title', 'run')}' (originally scheduled for "
+            f"{swapped_from.get('day', swapped_from.get('date', ''))}) to today. "
+            f"The planned activity for today was different. Acknowledge the flexibility positively."
+        )
+
     if is_running:
-        context = "You are an elite running coach. Give a brief analysis of this run vs what was planned."
+        context = f"You are an elite running coach. Give a brief analysis of this run vs what was planned.{swap_note}"
         adjustment_note = "Set 'adjustment' (not null) ONLY if effort deviated significantly (>20% from target HR/pace) AND a specific upcoming running session should change."
     else:
         context = (
@@ -428,21 +492,56 @@ def sync_session():
 
     for activity in activities:
         date_str = activity["date"]
+        act_type = activity.get("type", "")
         planned_day = find_matching_day(plan, date_str)
 
         if not planned_day:
-            print(f"No plan day for {date_str} ({activity['type']}: {activity['name']}) — skipping")
+            print(f"No plan day for {date_str} ({act_type}: {activity['name']}) — skipping")
             continue
 
         if planned_day.get("completed"):
             print(f"{date_str} already marked complete — skipping")
             continue
 
-        print(f"Matching {activity['type']} '{activity['name']}' → plan day '{planned_day.get('title')}' on {date_str}")
+        # ── Day-swap detection ─────────────────────────────────────────────
+        # If a run was logged on a day planned as rest/cross-training,
+        # look back up to 3 days for a planned run day the athlete likely moved.
+        swapped_from = None
+        if act_type in RUNNING_TYPES and not _is_run_workout(planned_day):
+            swap_candidate = find_swapped_run_day(plan, date_str, lookback_days=3)
+            if swap_candidate:
+                swapped_from = swap_candidate
+                original_planned_day = planned_day  # cross-training day stays untouched
+                planned_day = swap_candidate         # run will be credited here
+                print(
+                    f"Day-swap detected: run on {date_str} (planned '{original_planned_day.get('title')}') "
+                    f"→ crediting to planned run '{planned_day.get('title')}' on {planned_day.get('date')}"
+                )
+                # Mark the cross-training day as swapped (not completed, but noted)
+                apply_completion_to_plan(plan, date_str, {
+                    "completed": True,
+                    "swapped": True,
+                    "execution_rating": "swapped",
+                    "actual_stats": {"activity_type": act_type, "activity_name": activity.get("name")},
+                    "coach_analysis": (
+                        f"You moved your {swap_candidate.get('title', 'run')} from "
+                        f"{swap_candidate.get('day', swap_candidate.get('date', ''))} "
+                        f"to today — the planned {original_planned_day.get('title', 'cross-training')} "
+                        f"was skipped. Day-swap recorded automatically."
+                    ),
+                })
+                save_completed_session(date_str, {
+                    "completed": True,
+                    "swapped": True,
+                    "execution_rating": "swapped",
+                    "actual_stats": {"activity_type": act_type, "activity_name": activity.get("name")},
+                })
+
+        print(f"Matching {act_type} '{activity['name']}' → plan day '{planned_day.get('title')}' on {planned_day.get('date')}")
         print("Asking Claude for session analysis...")
 
         try:
-            analysis = analyze_session(planned_day, activity)
+            analysis = analyze_session(planned_day, activity, swapped_from=swapped_from)
         except Exception as e:
             print(f"Analysis failed: {e}")
             analysis = {"session_analysis": "Session recorded.", "execution_rating": "on-plan", "adjustment": None}
@@ -462,6 +561,9 @@ def sync_session():
             "coach_analysis":   analysis.get("session_analysis", ""),
             "execution_rating": analysis.get("execution_rating", "on-plan"),
         }
+        if swapped_from:
+            completion["day_swap"] = True
+            completion["swapped_from_date"] = date_str
         adj = analysis.get("adjustment")
         if adj:
             completion["coach_adjustment"] = adj
