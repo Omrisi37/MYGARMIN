@@ -337,21 +337,57 @@ function renderToday() {
     </div>`;
   })() : "";
 
-  const workoutHtml = todayWorkout ? `
-    <div class="workout-hero">
-      <div class="card-label">TODAY'S WORKOUT</div>
-      <div class="wo-emoji">${workoutEmoji(todayWorkout.workout_type, todayWorkout.intensity)}</div>
-      <div class="wo-title">${todayWorkout.title}</div>
-      <div class="wo-sub">${todayWorkout.intensity === "Rest" ? "Recovery is training too" :
-        `${todayWorkout.distance_km} km · ${todayWorkout.duration_min} min`}</div>
-      ${todayWorkout.description ? `<div class="wo-desc">${todayWorkout.description}</div>` : ""}
-    </div>` : `
-    <div class="workout-hero">
-      <div class="card-label">TODAY'S WORKOUT</div>
-      <div class="wo-emoji">📭</div>
-      <div class="wo-title">No plan yet</div>
-      <div class="wo-sub">Generate your first plan below</div>
-    </div>`;
+  const workoutHtml = (() => {
+    if (!todayWorkout) return `
+      <div class="workout-hero">
+        <div class="card-label">TODAY'S WORKOUT</div>
+        <div class="wo-emoji">📭</div>
+        <div class="wo-title">No plan yet</div>
+        <div class="wo-sub">Generate your first plan below</div>
+      </div>`;
+
+    const done   = todayWorkout.completed;
+    const actual = todayWorkout.actual_stats || {};
+    const rating = todayWorkout.execution_rating;
+    const isSwap = rating === "swapped";
+    const isRun  = ["Run","TrailRun","VirtualRun"].includes(actual.activity_type);
+
+    if (done) {
+      // Show what was actually done
+      const actName  = actual.activity_name || actual.activity_type || "Activity";
+      const actEmoji = isSwap ? "🔄" : (isRun ? "✅" : "✅");
+      const subParts = [
+        isRun && actual.distance_km  ? `${actual.distance_km} km`  : "",
+        actual.duration_min          ? `${actual.duration_min} min` : "",
+        actual.avg_hr                ? `${actual.avg_hr} bpm`       : "",
+        isRun && actual.avg_pace     ? `${actual.avg_pace}/km`      : "",
+      ].filter(Boolean);
+      const ratingBadge = `<span style="font-size:12px;padding:2px 8px;border-radius:10px;background:var(--surface2);color:${_ratingColor(rating)}">${_ratingLabel(rating)}</span>`;
+      const coachNote = todayWorkout.coach_analysis
+        ? `<div class="wo-desc" style="margin-top:10px;font-style:italic;color:var(--text-dim)">"${todayWorkout.coach_analysis}"</div>`
+        : "";
+      return `
+        <div class="workout-hero">
+          <div class="card-label">TODAY · COMPLETED</div>
+          <div class="wo-emoji">${actEmoji}</div>
+          <div class="wo-title">${actName}</div>
+          ${subParts.length ? `<div class="wo-sub">${subParts.join(" · ")}</div>` : ""}
+          <div style="margin-top:8px">${ratingBadge}</div>
+          ${coachNote}
+          ${isSwap ? "" : `<div class="text-xs text-dim" style="margin-top:8px">Planned: ${todayWorkout.title}</div>`}
+        </div>`;
+    }
+
+    return `
+      <div class="workout-hero">
+        <div class="card-label">TODAY'S WORKOUT</div>
+        <div class="wo-emoji">${workoutEmoji(todayWorkout.workout_type, todayWorkout.intensity)}</div>
+        <div class="wo-title">${todayWorkout.title}</div>
+        <div class="wo-sub">${todayWorkout.intensity === "Rest" ? "Recovery is training too" :
+          `${todayWorkout.distance_km} km · ${todayWorkout.duration_min} min`}</div>
+        ${todayWorkout.description ? `<div class="wo-desc">${todayWorkout.description}</div>` : ""}
+      </div>`;
+  })();
 
   const weekHtml = plan ? (() => {
     const runs = plan.days?.filter(d => d.distance_km > 0) || [];
@@ -411,7 +447,7 @@ function renderToday() {
           <div class="stat-lbl">Total Hours</div>
         </div>
       </div>
-      ${plan.generated_at ? `<div class="text-xs text-dim mt-8">Last synced ${new Date(plan.generated_at).toLocaleDateString()}</div>` : ""}
+      ${(plan.synced_at || plan.generated_at) ? `<div class="text-xs text-dim mt-8">Last synced ${new Date(plan.synced_at || plan.generated_at).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}</div>` : ""}
     </div>` : "";
 
   el.innerHTML = `
