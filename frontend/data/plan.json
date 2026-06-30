@@ -113,7 +113,25 @@
           "hr_zone": "Zone 1\u20132",
           "description": "Pilates session for core stability, flexibility, and movement quality. Low-intensity complement to running.",
           "key_focus": "Core strength, mobility",
-          "notes": "Light cross-training; pairs well with running recovery."
+          "notes": "Light cross-training; pairs well with running recovery.",
+          "completed": true,
+          "actual_stats": {
+            "distance_km": 6.85,
+            "duration_min": 40.9,
+            "avg_hr": 163.3,
+            "avg_pace": "5:58",
+            "calories": null,
+            "elevation_m": 62.0,
+            "activity_name": "Evening Run",
+            "activity_type": "Run"
+          },
+          "coach_analysis": "You substituted a restorative Pilates session with a hard evening run at 163 bpm average heart rate and 5:58/km pace\u2014this is a significant deviation from the planned low-intensity cross-training. While the run itself looks solid, you've missed the opportunity for active recovery and mobility work that your body likely needs. Going forward, honor your cross-training days as planned, especially after harder running sessions.",
+          "execution_rating": "skipped",
+          "coach_adjustment": {
+            "day": "Next scheduled cross-training",
+            "change": "Complete the Pilates session as originally planned before returning to running workouts",
+            "reason": "Substituting structured recovery work with hard running increases injury risk and prevents the adaptations that cross-training provides"
+          }
         },
         {
           "day": "Wednesday",
@@ -670,7 +688,25 @@
       "hr_zone": "Zone 1\u20132",
       "description": "Pilates session for core stability, flexibility, and movement quality. Low-intensity complement to running.",
       "key_focus": "Core strength, mobility",
-      "notes": "Light cross-training; pairs well with running recovery."
+      "notes": "Light cross-training; pairs well with running recovery.",
+      "completed": true,
+      "actual_stats": {
+        "distance_km": 6.85,
+        "duration_min": 40.9,
+        "avg_hr": 163.3,
+        "avg_pace": "5:58",
+        "calories": null,
+        "elevation_m": 62.0,
+        "activity_name": "Evening Run",
+        "activity_type": "Run"
+      },
+      "coach_analysis": "You substituted a restorative Pilates session with a hard evening run at 163 bpm average heart rate and 5:58/km pace\u2014this is a significant deviation from the planned low-intensity cross-training. While the run itself looks solid, you've missed the opportunity for active recovery and mobility work that your body likely needs. Going forward, honor your cross-training days as planned, especially after harder running sessions.",
+      "execution_rating": "skipped",
+      "coach_adjustment": {
+        "day": "Next scheduled cross-training",
+        "change": "Complete the Pilates session as originally planned before returning to running workouts",
+        "reason": "Substituting structured recovery work with hard running increases injury risk and prevents the adaptations that cross-training provides"
+      }
     },
     {
       "day": "Wednesday",
@@ -697,5 +733,6 @@
     "latest_vo2_max": null
   },
   "generated_at": "2026-06-28T11:40:23.992850Z",
-  "status": "pending_approval"
+  "status": "pending_approval",
+  "synced_at": "2026-06-30T17:21:51.551532Z"
 }

@@ -30,5 +30,26 @@
     "coach_analysis": "Solid execution of your football commitment\u2014you maintained an aerobic-focused effort at 158 bpm average, which is right in that sustainable cross-training zone for building work capacity without compromising your running. The 5.75 km over 68 minutes shows you stayed engaged with good intensity variation typical of football, hitting the aerobic and leg-strength targets you planned for. This session delivered exactly what you needed.",
     "execution_rating": "great",
     "logged_at": "2026-06-27T18:34:22.594048Z"
+  },
+  "2026-06-30": {
+    "completed": true,
+    "actual_stats": {
+      "distance_km": 6.85,
+      "duration_min": 40.9,
+      "avg_hr": 163.3,
+      "avg_pace": "5:58",
+      "calories": null,
+      "elevation_m": 62.0,
+      "activity_name": "Evening Run",
+      "activity_type": "Run"
+    },
+    "coach_analysis": "You substituted a restorative Pilates session with a hard evening run at 163 bpm average heart rate and 5:58/km pace\u2014this is a significant deviation from the planned low-intensity cross-training. While the run itself looks solid, you've missed the opportunity for active recovery and mobility work that your body likely needs. Going forward, honor your cross-training days as planned, especially after harder running sessions.",
+    "execution_rating": "skipped",
+    "coach_adjustment": {
+      "day": "Next scheduled cross-training",
+      "change": "Complete the Pilates session as originally planned before returning to running workouts",
+      "reason": "Substituting structured recovery work with hard running increases injury risk and prevents the adaptations that cross-training provides"
+    },
+    "logged_at": "2026-06-30T17:21:51.551160Z"
   }
 }
