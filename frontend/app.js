@@ -390,12 +390,27 @@ function renderToday() {
   })();
 
   const weekHtml = plan ? (() => {
-    const runs = plan.days?.filter(d => d.distance_km > 0) || [];
-    const totalKm = plan.total_distance_km || 0;
+    const days     = plan.days || [];
+    const runs     = days.filter(d => d.distance_km > 0);
+    const plannedKm = plan.total_distance_km || runs.reduce((s, d) => s + (d.distance_km || 0), 0);
     const totalRuns = runs.length;
-    const startDate = plan.days?.[0]?.date;
-    const endDate = plan.days?.[6]?.date;
+    const startDate = days[0]?.date;
+    const endDate   = days[6]?.date;
     const dateRange = startDate ? `${new Date(startDate).toLocaleDateString("en-US",{month:"short",day:"numeric"})} – ${new Date(endDate).toLocaleDateString("en-US",{month:"short",day:"numeric"})}` : "";
+
+    // Actual km completed this week from synced sessions
+    const actualKm = days.reduce((sum, d) => {
+      if (!d.completed || !d.actual_stats) return sum;
+      const isRun = ["Run","TrailRun","VirtualRun"].includes(d.actual_stats.activity_type);
+      return sum + (isRun ? (d.actual_stats.distance_km || 0) : 0);
+    }, 0);
+    const actualRuns = days.filter(d => d.completed && ["Run","TrailRun","VirtualRun"].includes(d.actual_stats?.activity_type)).length;
+    const progressPct = plannedKm > 0 ? Math.min(100, Math.round((actualKm / plannedKm) * 100)) : 0;
+    const progressColor = progressPct >= 100 ? "var(--green)" : progressPct >= 60 ? "var(--orange)" : "var(--accent)";
+
+    // Coach week summary from analytics
+    const coachSummary = currentAnalytics?.recommendations?.[0] || plan.coaching_notes || "";
+
     return `
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
@@ -404,14 +419,19 @@ function renderToday() {
       </div>
       <div class="stats-grid" style="margin-bottom:12px">
         <div class="stat-box">
-          <div class="stat-val green">${totalKm}<span class="stat-unit"> km</span></div>
-          <div class="stat-lbl">Kilometers</div>
+          <div class="stat-val green">${actualKm > 0 ? actualKm.toFixed(1) : plannedKm}<span class="stat-unit"> km</span></div>
+          <div class="stat-lbl">${actualKm > 0 ? "Done" : "Planned"}</div>
         </div>
         <div class="stat-box">
-          <div class="stat-val accent">${totalRuns}</div>
-          <div class="stat-lbl">Runs</div>
+          <div class="stat-val accent">${actualRuns > 0 ? actualRuns : totalRuns}</div>
+          <div class="stat-lbl">${actualRuns > 0 ? "Runs done" : "Runs planned"}</div>
         </div>
       </div>
+      ${actualKm > 0 ? `
+      <div class="prog-row" style="margin-bottom:8px">
+        <div class="prog-label"><span>Weekly target</span><span>${actualKm.toFixed(1)} / ${plannedKm} km · ${progressPct}%</span></div>
+        <div class="prog-track"><div class="prog-fill" style="width:${progressPct}%;background:${progressColor}"></div></div>
+      </div>` : ""}
       <div class="prog-row">
         <div class="prog-label"><span>Aerobic (Zone 1–2)</span><span>${plan.aerobic_percent}%</span></div>
         <div class="prog-track"><div class="prog-fill green" style="width:${plan.aerobic_percent}%"></div></div>
@@ -420,6 +440,11 @@ function renderToday() {
         <div class="prog-label"><span>Anaerobic (Zone 4–5)</span><span>${plan.anaerobic_percent}%</span></div>
         <div class="prog-track"><div class="prog-fill red" style="width:${plan.anaerobic_percent}%"></div></div>
       </div>
+      ${coachSummary ? `
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+        <div class="text-xs" style="color:var(--orange);font-weight:700;margin-bottom:4px">🧠 COACH FOR NEXT WEEK</div>
+        <p class="text-xs text-dim" style="line-height:1.5">${coachSummary}</p>
+      </div>` : ""}
     </div>`;
   })() : "";
 
@@ -808,18 +833,28 @@ function _renderWeekDays(days, weekOffset) {
     const rating = day.execution_rating;
 
     if (done) {
-      const isRun     = ["Run","TrailRun","VirtualRun"].includes(actual?.activity_type);
-      const distLabel = isRun && actual?.distance_km  ? `${actual.distance_km} km`  : "";
-      const hrLabel   = actual?.avg_hr                ? `${actual.avg_hr} bpm`      : "";
-      const paceLabel = isRun && actual?.avg_pace     ? `${actual.avg_pace}/km`     : "";
-      const durLabel  = !isRun && actual?.duration_min ? `${actual.duration_min} min` : "";
-      const calLabel  = !isRun && actual?.calories    ? `${actual.calories} kcal`   : "";
-      const subParts  = [distLabel, durLabel, hrLabel, paceLabel, calLabel].filter(Boolean);
+      const isRun      = ["Run","TrailRun","VirtualRun"].includes(actual?.activity_type);
+      const isSwapped  = rating === "swapped";
+      const distLabel  = isRun && actual?.distance_km   ? `${actual.distance_km} km`  : "";
+      const hrLabel    = actual?.avg_hr                 ? `${actual.avg_hr} bpm`      : "";
+      const paceLabel  = isRun && actual?.avg_pace      ? `${actual.avg_pace}/km`     : "";
+      const durLabel   = !isRun && actual?.duration_min ? `${actual.duration_min} min` : "";
+      const calLabel   = !isRun && actual?.calories     ? `${actual.calories} kcal`   : "";
+      const subParts   = [distLabel, durLabel, hrLabel, paceLabel, calLabel].filter(Boolean);
+      // Show actual activity name if it differs from planned (e.g. ran instead of Pilates)
+      const actualName = actual?.activity_name || actual?.activity_type;
+      const displayTitle = isSwapped
+        ? `🔄 ${actualName || day.title}`
+        : actualName && actual?.activity_type && !["Run","TrailRun","VirtualRun"].includes(actual.activity_type) === false && day.workout_type === "Cross-Training"
+          ? `${actualName}`
+          : actualName && actualName !== day.title
+            ? `${actualName} <span style="font-size:10px;color:var(--text-dim)">(planned: ${day.title})</span>`
+            : day.title;
       return `<div class="day-row done" onclick="openDayModal(${i}, ${weekOffset})">
         <div class="day-abbr">${day.day.slice(0,3).toUpperCase()}</div>
-        <div class="day-dot done-dot">✓</div>
+        <div class="day-dot done-dot">${isSwapped ? "🔄" : "✓"}</div>
         <div style="flex:1;min-width:0">
-          <div class="day-name">${day.title}</div>
+          <div class="day-name">${displayTitle}</div>
           ${subParts.length ? `<div class="done-sub">${subParts.join(" · ")}</div>` : ""}
         </div>
         <div class="done-badge" style="color:${_ratingColor(rating)}">${_ratingLabel(rating)}</div>
