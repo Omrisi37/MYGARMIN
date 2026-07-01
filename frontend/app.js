@@ -390,26 +390,33 @@ function renderToday() {
   })();
 
   const weekHtml = plan ? (() => {
-    const days     = plan.days || [];
-    const runs     = days.filter(d => d.distance_km > 0);
-    const plannedKm = plan.total_distance_km || runs.reduce((s, d) => s + (d.distance_km || 0), 0);
-    const totalRuns = runs.length;
+    const days      = plan.days || [];
     const startDate = days[0]?.date;
     const endDate   = days[6]?.date;
     const dateRange = startDate ? `${new Date(startDate).toLocaleDateString("en-US",{month:"short",day:"numeric"})} – ${new Date(endDate).toLocaleDateString("en-US",{month:"short",day:"numeric"})}` : "";
 
-    // Actual km completed this week from synced sessions
-    const actualKm = days.reduce((sum, d) => {
+    // Planned: all active days (not Rest)
+    const plannedActiveDays = days.filter(d => (d.intensity || "").toLowerCase() !== "rest");
+    const plannedRunDays    = days.filter(d => d.distance_km > 0);
+    const plannedKm         = plan.total_distance_km || plannedRunDays.reduce((s, d) => s + (d.distance_km || 0), 0);
+
+    // Actual: runs give km; cross-training counts as a completed session (no km)
+    const RUNNING_ACT = ["Run","TrailRun","VirtualRun"];
+    const actualRunKm   = days.reduce((sum, d) => {
       if (!d.completed || !d.actual_stats) return sum;
-      const isRun = ["Run","TrailRun","VirtualRun"].includes(d.actual_stats.activity_type);
-      return sum + (isRun ? (d.actual_stats.distance_km || 0) : 0);
+      return sum + (RUNNING_ACT.includes(d.actual_stats.activity_type) ? (d.actual_stats.distance_km || 0) : 0);
     }, 0);
-    const actualRuns = days.filter(d => d.completed && ["Run","TrailRun","VirtualRun"].includes(d.actual_stats?.activity_type)).length;
-    const progressPct = plannedKm > 0 ? Math.min(100, Math.round((actualKm / plannedKm) * 100)) : 0;
+    const sessionsDone    = days.filter(d => d.completed).length;
+    const sessionsPlanned = plannedActiveDays.length;
+
+    // Progress bar = sessions completed / sessions planned (runs + cross-training both count)
+    const progressPct   = sessionsPlanned > 0 ? Math.min(100, Math.round((sessionsDone / sessionsPlanned) * 100)) : 0;
     const progressColor = progressPct >= 100 ? "var(--green)" : progressPct >= 60 ? "var(--orange)" : "var(--accent)";
 
     // Coach week summary from analytics
     const coachSummary = currentAnalytics?.recommendations?.[0] || plan.coaching_notes || "";
+
+    const hasActivity = sessionsDone > 0;
 
     return `
     <div class="card">
@@ -419,17 +426,17 @@ function renderToday() {
       </div>
       <div class="stats-grid" style="margin-bottom:12px">
         <div class="stat-box">
-          <div class="stat-val green">${actualKm > 0 ? actualKm.toFixed(1) : plannedKm}<span class="stat-unit"> km</span></div>
-          <div class="stat-lbl">${actualKm > 0 ? "Done" : "Planned"}</div>
+          <div class="stat-val green">${hasActivity ? actualRunKm.toFixed(1) : plannedKm}<span class="stat-unit"> km</span></div>
+          <div class="stat-lbl">${hasActivity ? "Running done" : "Running planned"}</div>
         </div>
         <div class="stat-box">
-          <div class="stat-val accent">${actualRuns > 0 ? actualRuns : totalRuns}</div>
-          <div class="stat-lbl">${actualRuns > 0 ? "Runs done" : "Runs planned"}</div>
+          <div class="stat-val accent">${hasActivity ? `${sessionsDone}<span style="font-size:14px;color:var(--text-dim)">/${sessionsPlanned}</span>` : sessionsPlanned}</div>
+          <div class="stat-lbl">${hasActivity ? "Sessions" : "Sessions planned"}</div>
         </div>
       </div>
-      ${actualKm > 0 ? `
+      ${hasActivity ? `
       <div class="prog-row" style="margin-bottom:8px">
-        <div class="prog-label"><span>Weekly target</span><span>${actualKm.toFixed(1)} / ${plannedKm} km · ${progressPct}%</span></div>
+        <div class="prog-label"><span>Week progress</span><span>${sessionsDone} of ${sessionsPlanned} sessions · ${progressPct}%</span></div>
         <div class="prog-track"><div class="prog-fill" style="width:${progressPct}%;background:${progressColor}"></div></div>
       </div>` : ""}
       <div class="prog-row">
