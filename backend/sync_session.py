@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import anthropic
-from strava_client import get_access_token, fetch_recent_activities
+from strava_client import get_access_token, fetch_recent_activities, fetch_stats_summary
 
 import requests
 
@@ -582,13 +582,23 @@ def sync_session():
         if apply_coach_adjustment(plan, adj):
             adjustments_applied += 1
 
+    # Always refresh 14-day Strava summary in plan.json so the Today tab stays current
+    try:
+        print("Refreshing 14-day Strava summary...")
+        stats = fetch_stats_summary(days=14)
+        plan["strava_summary"]  = stats.get("totals", {})
+        plan["strava_averages"] = stats.get("averages", {})
+    except Exception as e:
+        print(f"Strava summary refresh failed (non-fatal): {e}")
+
     if updated > 0:
         save_plan(plan)
         print(f"✅ Marked {updated} session(s) complete with coach analysis")
         if adjustments_applied:
             print(f"✅ Applied {adjustments_applied} coach adjustment(s) to future plan days")
     else:
-        print("No new sessions to update")
+        save_plan(plan)  # Still save to persist refreshed Strava summary
+        print("No new sessions to update — saved refreshed Strava stats")
 
     # Always refresh analytics regardless of whether a new session was found
     generate_analytics()
