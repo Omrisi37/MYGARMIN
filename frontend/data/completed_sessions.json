@@ -51,5 +51,21 @@
       "reason": "Substituting structured recovery work with hard running increases injury risk and prevents the adaptations that cross-training provides"
     },
     "logged_at": "2026-06-30T17:21:51.551160Z"
+  },
+  "2026-07-01": {
+    "completed": true,
+    "actual_stats": {
+      "distance_km": 0.0,
+      "duration_min": 44.5,
+      "avg_hr": 96.3,
+      "avg_pace": null,
+      "calories": null,
+      "elevation_m": 0,
+      "activity_name": "Morning Pilates",
+      "activity_type": "Workout"
+    },
+    "coach_analysis": "You swapped the planned easy run for a 44-minute pilates session\u2014a smart cross-training choice that supports your running without the impact stress. Your average HR of 96 bpm stayed in the aerobic zone, maintaining fitness while giving your legs active recovery. This fits well into your training week, though make sure tomorrow's run feels fresh and you're not accumulating fatigue from back-to-back harder efforts.",
+    "execution_rating": "great",
+    "logged_at": "2026-07-01T06:55:35.640951Z"
   }
 }
