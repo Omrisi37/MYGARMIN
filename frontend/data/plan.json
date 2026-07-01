@@ -723,16 +723,16 @@
     }
   ],
   "strava_summary": {
-    "runs": 3,
-    "distance_km": 15.7,
-    "duration_hours": 2.1
+    "runs": 4,
+    "distance_km": 22.5,
+    "duration_hours": 2.8
   },
   "strava_averages": {
-    "distance_per_run_km": 5.2,
-    "avg_hr": 158,
+    "distance_per_run_km": 5.6,
+    "avg_hr": 161,
     "latest_vo2_max": null
   },
   "generated_at": "2026-06-28T11:40:23.992850Z",
   "status": "pending_approval",
-  "synced_at": "2026-06-30T17:21:51.551532Z"
+  "synced_at": "2026-07-01T05:24:44.555650Z"
 }

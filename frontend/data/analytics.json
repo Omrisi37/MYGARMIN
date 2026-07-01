@@ -5,64 +5,65 @@
   "hr_trend_bpm_per_week": 2.5,
   "weekly_km_trend": "tapering",
   "key_observations": [
-    "Clear V-shaped recovery pattern: 8-week decline from 16.9km to 6.3km (May-June), then sharp resurgence to 15.7km in week of 06-22 with 3 runs\u2014suggests planned deload followed by structured return",
-    "HR data reveals positive adaptation: avg HR 158 (06-22) and 163 (06-29) at faster paces (5:50-6:10 min/km) compared to May baseline (6:06-6:14), indicating improved running economy post-recovery",
-    "Current week (06-29) shows single 6.8km run at elevated HR (163 bpm)\u2014potential post-training fatigue or ongoing build phase, warrants monitoring before next intensity block"
+    "Significant 6-week volume drop (16.9km \u2192 6.3km) suggests planned deload or injury recovery, followed by recovery week (Jun 22: 15.7km) indicating return to training",
+    "HR elevation during recovery phase (158\u2192163 bpm) with maintained pace (5:50-6:10/km) suggests cardiovascular adaptation and improved efficiency post-taper",
+    "Low frequency pattern (1 run per week May 25-Jun 8) is concerning for maintenance of aerobic base; recent uptick to 3-4 runs/week (Jun 22+) shows positive momentum"
   ],
   "warnings": [
-    "Large gap between 06-08 and 06-22 (14-day absence from running) suggests injury, illness, or unplanned break\u2014confirm causation to assess readiness",
-    "Rising HR at similar/faster paces (163 vs 158) week-on-week could indicate incomplete recovery or overtraining creep; monitor for stagnation"
+    "2-week data gaps (May 13-25, Jun 10-22) limit trend analysis; cross-reference with any injury notes or structured training blocks",
+    "Acute-chronic ratio of 1.18 is acceptable but approaching caution threshold (>1.5); monitor if volume increases further",
+    "Football activity (Jun 27) shows elevated HR (158 avg, 188 max); ensure adequate recovery before harder running sessions"
   ],
   "recommendations": [
-    "Consolidate current momentum: build to 3-4 runs weekly over next 2-3 weeks before adding speed work; you have aerobic base ready",
-    "Implement structured HR zones immediately\u2014missing HR data for May-early June masks training intensity; use 06-22/06-29 HR anchors (158-163) to calibrate easy/tempo/threshold runs",
-    "Schedule deload week within next 10 days if planning race/peak event; current fatigue ratio (1.18) sustainable but trending toward high with increased volume"
+    "Continue building run frequency to 4-5x/week; current 2-3 weekly runs insufficient for aerobic base maintenance. Prioritize easy runs at 6:15-6:30/km pace",
+    "Establish consistent HR zones with recent data; avg HR trending upward (158\u2192163) while pace holds suggests need for structured threshold/tempo work to prevent compensatory recruiting",
+    "Schedule 1 easy week every 4 weeks after reaching 25-30 km/week to manage fatigue and prevent overtraining given moderate fatigue signals"
   ],
   "weeks_analysis": [
     {
       "week_start": "2026-05-04",
       "total_km": 16.9,
       "avg_hr": null,
-      "assessment": "Baseline phase: 2 runs, solid 6:06-6:14 paces, 133m elevation. Early-season aerobic building."
+      "assessment": "Solid base-building week with 2 runs; 6:06-6:14 pace indicates steady aerobic work"
     },
     {
       "week_start": "2026-05-11",
       "total_km": 13.7,
       "avg_hr": null,
-      "assessment": "Week 2 of block: 1 long run (13.67km), slight volume drop but intensity stable. Unexpected gap post-05-13."
+      "assessment": "Single 13.7km run suggests planned recovery or scheduling constraint; pace consistent"
     },
     {
       "week_start": "2026-05-25",
       "total_km": 9.5,
       "avg_hr": null,
-      "assessment": "12-day untracked gap. Single 9.5km run, moderate effort. Early deload or recovery week initiated."
+      "assessment": "Marked volume decline (9.5km, 1 run); likely injury recovery or structured taper initiated"
     },
     {
       "week_start": "2026-06-01",
       "total_km": 7.2,
       "avg_hr": null,
-      "assessment": "Continued taper: 1 run, 7.23km @ 6:12 min/km. Planned reduction suggests upcoming break or event prep."
+      "assessment": "Lowest volume week (7.2km); continued deload phase with maintained 6:12/km suggests conservative return"
     },
     {
       "week_start": "2026-06-08",
       "total_km": 6.3,
       "avg_hr": null,
-      "assessment": "Minimum volume: 1 run, 6.32km @ 5:47 (fastest May-June). Nadir of deload; complete 14-day absence follows."
+      "assessment": "Minimal volume week (6.3km, 1 run); taper nadir. Pace quickens to 5:47/km\u2014possible readiness indicator"
     },
     {
       "week_start": "2026-06-22",
       "total_km": 15.7,
       "avg_hr": 158,
-      "assessment": "Resurgence: 3 runs (football + 2 runs), 15.7km total, avg HR 158. Strong return; soccer session (max HR 188) indicates intensity tolerance recovered."
+      "assessment": "Strong return week: 3 runs, 15.7km, avg HR 158 at 5:50/km pace signals successful recovery and good fitness"
     },
     {
       "week_start": "2026-06-29",
       "total_km": 6.8,
       "avg_hr": 163,
-      "assessment": "Post-recovery consolidation: 1 run, 6.85km @ 5:58, HR 163 (elevated but pace strong). Moderate fatigue; structuring next phase advised."
+      "assessment": "Post-recovery taper week (6.8km, 1 run); HR rises 5 bpm despite similar pace\u2014likely fatigue accumulation; appropriate caution"
     }
   ],
-  "generated_at": "2026-06-30T17:22:03.183760Z",
+  "generated_at": "2026-07-01T05:24:55.086058Z",
   "raw_weeks": [
     {
       "week_start": "2026-05-04",
