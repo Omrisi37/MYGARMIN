@@ -25,7 +25,7 @@
   --radius:    14px;
   --radius-sm: 10px;
   --sidebar-w: 240px;
-  --nav-h:     64px;
+  --nav-h:     72px;
   --content-max: 680px;
 }
 
@@ -257,9 +257,11 @@ html, body {
 .bottom-nav {
   height: var(--nav-h);
   display: flex;
+  align-items: stretch;
+  gap: 4px;
   background: var(--surface);
   border-top: 1px solid var(--border);
-  padding-bottom: env(safe-area-inset-bottom);
+  padding: 8px 6px calc(6px + env(safe-area-inset-bottom));
   flex-shrink: 0;
 }
 
@@ -269,18 +271,20 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 4px;
   background: none;
   border: none;
+  border-radius: var(--radius-sm);
   color: var(--text-dim);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
+  letter-spacing: -0.1px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: color 0.15s;
+  transition: background 0.15s, color 0.15s;
 }
-.nav-btn svg { width: 20px; height: 20px; }
-.nav-btn.active { color: var(--accent); }
+.nav-btn svg { width: 23px; height: 23px; flex-shrink: 0; }
+.nav-btn.active { color: var(--accent); font-weight: 600; background: var(--accent-dim); }
 .nav-btn.active svg { stroke: var(--accent); }
 
 /* ── Cards ─────────────────────────────────────────────────────────────────── */

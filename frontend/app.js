@@ -325,15 +325,55 @@ function findCurrentWeek(plan) {
   return idx !== -1 ? plan.weeks[idx] : null;
 }
 
-// Today's workout, matched by actual date across every week in the plan —
-// not by weekday name against whichever week happens to be first.
-function findTodayWorkout(plan) {
-  const t = getTodayStr();
+// Plan day matched by actual date across every week in the plan — not by
+// weekday name against whichever week happens to be first.
+function findDayByDate(plan, date) {
+  if (!date) return null;
   for (const w of (plan?.weeks || [])) {
-    const day = (w.days || []).find(d => d.date === t);
+    const day = (w.days || []).find(d => d.date === date);
     if (day) return day;
   }
-  return (plan?.days || []).find(d => d.date === t) || null;
+  return (plan?.days || []).find(d => d.date === date) || null;
+}
+
+// Merges a manual skip/reschedule (rc_manual_skips, local to this device)
+// into the plan day for `date`, so every screen agrees on what's actually
+// happening today — not just what was originally scheduled.
+// Adds `_moveType`: "moved-in" (something else was rescheduled onto this
+// day), "moved-out" (this day's own session was moved elsewhere),
+// "skipped" (marked as rest, no move), or undefined (nothing changed).
+function resolveDayForDate(plan, date) {
+  const planned = findDayByDate(plan, date);
+  const skip = date ? getManualSkips()[date] : null;
+  if (!skip || planned?.completed) return planned ? { ...planned } : null;
+
+  if (skip.moved_from) {
+    const source = findDayByDate(plan, skip.moved_from);
+    // Strip the source day's own completion history — only its plan
+    // (title/intensity/distance/etc.) transfers to the new date.
+    const {
+      completed, actual_stats, execution_rating, coach_analysis,
+      coach_adjustment, day_swap, swapped_from_date, ...sourcePlan
+    } = source || {};
+    const base = source ? sourcePlan : { title: skip.moved_title || "Moved Workout", intensity: "Easy" };
+    return {
+      ...base,
+      date,
+      day: planned?.day || base.day,
+      completed: false,
+      _moveType: "moved-in",
+      _moveFromDate: skip.moved_from,
+      _originalTitle: planned?.title,
+    };
+  }
+  if (skip.skipped) {
+    return {
+      ...(planned || {}),
+      _moveType: skip.rescheduled_to ? "moved-out" : "skipped",
+      _moveToDate: skip.rescheduled_to,
+    };
+  }
+  return planned ? { ...planned } : null;
 }
 
 function showToast(msg, ms = 3000) {
@@ -353,7 +393,7 @@ function closeModal() {
 function renderToday() {
   const el = document.getElementById("today-content");
   const plan = currentPlan;
-  const todayWorkout = findTodayWorkout(plan);
+  const todayWorkout = resolveDayForDate(plan, getTodayStr());
   const s = getSettings();
 
   const statusHtml = plan ? (() => {
@@ -410,6 +450,31 @@ function renderToday() {
         </div>`;
     }
 
+    if (todayWorkout._moveType === "moved-out") {
+      return `
+        <div class="workout-hero">
+          <div class="card-label">TODAY'S WORKOUT</div>
+          <div class="wo-emoji">📅</div>
+          <div class="wo-title">Moved to another day</div>
+          <div class="wo-sub">Originally: ${todayWorkout._originalTitle || todayWorkout.title}</div>
+          ${todayWorkout._moveToDate ? `<div class="wo-desc">Now scheduled for ${todayWorkout._moveToDate}</div>` : ""}
+        </div>`;
+    }
+
+    if (todayWorkout._moveType === "skipped") {
+      return `
+        <div class="workout-hero">
+          <div class="card-label">TODAY'S WORKOUT</div>
+          <div class="wo-emoji">⏭</div>
+          <div class="wo-title">Skipped</div>
+          <div class="wo-sub">Originally: ${todayWorkout.title}</div>
+        </div>`;
+    }
+
+    const movedInNote = todayWorkout._moveType === "moved-in"
+      ? `<div class="text-xs" style="color:var(--accent);font-weight:600;margin-top:8px">📅 Moved here from ${todayWorkout._moveFromDate}</div>`
+      : "";
+
     return `
       <div class="workout-hero">
         <div class="card-label">TODAY'S WORKOUT</div>
@@ -418,6 +483,7 @@ function renderToday() {
         <div class="wo-sub">${todayWorkout.intensity === "Rest" ? "Recovery is training too" :
           `${todayWorkout.distance_km} km · ${todayWorkout.duration_min} min`}</div>
         ${todayWorkout.description ? `<div class="wo-desc">${todayWorkout.description}</div>` : ""}
+        ${movedInNote}
       </div>`;
   })();
 
@@ -867,12 +933,14 @@ function openCompletedModal(date) {
 
 function _renderWeekDays(days, weekOffset) {
   const t = getTodayStr();
-  return days.map((day, i) => {
-    const key = intensityKey(day.intensity);
-    const isToday = day.date === t;
-    const done = day.completed;
-    const actual = day.actual_stats;
-    const rating = day.execution_rating;
+  return days.map((rawDay, i) => {
+    const resolved = resolveDayForDate(currentPlan, rawDay.date) || rawDay;
+    const key = intensityKey(resolved.intensity);
+    const isToday = rawDay.date === t;
+    const done = resolved.completed;
+    const actual = resolved.actual_stats;
+    const rating = resolved.execution_rating;
+    const abbr = rawDay.day.slice(0,3).toUpperCase();
 
     if (done) {
       const isRun      = ["Run","TrailRun","VirtualRun"].includes(actual?.activity_type);
@@ -886,14 +954,14 @@ function _renderWeekDays(days, weekOffset) {
       // Show actual activity name if it differs from planned (e.g. ran instead of Pilates)
       const actualName = actual?.activity_name || actual?.activity_type;
       const displayTitle = isSwapped
-        ? `🔄 ${actualName || day.title}`
-        : actualName && actual?.activity_type && !["Run","TrailRun","VirtualRun"].includes(actual.activity_type) === false && day.workout_type === "Cross-Training"
+        ? `🔄 ${actualName || resolved.title}`
+        : actualName && actual?.activity_type && !["Run","TrailRun","VirtualRun"].includes(actual.activity_type) === false && resolved.workout_type === "Cross-Training"
           ? `${actualName}`
-          : actualName && actualName !== day.title
-            ? `${actualName} <span style="font-size:10px;color:var(--text-dim)">(planned: ${day.title})</span>`
-            : day.title;
+          : actualName && actualName !== resolved.title
+            ? `${actualName} <span style="font-size:10px;color:var(--text-dim)">(planned: ${resolved.title})</span>`
+            : resolved.title;
       return `<div class="day-row done" onclick="openDayModal(${i}, ${weekOffset})">
-        <div class="day-abbr">${day.day.slice(0,3).toUpperCase()}</div>
+        <div class="day-abbr">${abbr}</div>
         <div class="day-dot done-dot">${isSwapped ? "🔄" : "✓"}</div>
         <div style="flex:1;min-width:0">
           <div class="day-name">${displayTitle}</div>
@@ -904,23 +972,31 @@ function _renderWeekDays(days, weekOffset) {
       </div>`;
     }
 
-    const manualSkip = day.date ? getManualSkips()[day.date] : null;
-    if (manualSkip && (manualSkip.skipped || manualSkip.moved_from)) {
-      const isRescheduled = !!manualSkip.rescheduled_to;
-      const isMovedHere   = !!manualSkip.moved_from;
-      const subLabel = isRescheduled
-        ? `Moved → ${manualSkip.rescheduled_to}`
-        : isMovedHere
-          ? `↩ Moved from ${manualSkip.moved_from} · ${manualSkip.moved_title || ""}`
-          : "Skipped / Rest";
-      const badgeLabel = isRescheduled ? "📅 Moved" : isMovedHere ? "↩ From earlier" : "⏭ Skipped";
-      const dotIcon = isMovedHere ? "↩" : "⏭";
-
-      return `<div class="day-row done" onclick="openDayModal(${i}, ${weekOffset})">
-        <div class="day-abbr">${day.day.slice(0,3).toUpperCase()}</div>
-        <div class="day-dot" style="background:var(--text-dim);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center">${dotIcon}</div>
+    // Something was rescheduled onto this day — show it as today's real, actionable plan.
+    if (resolved._moveType === "moved-in") {
+      return `<div class="day-row${isToday ? " today" : ""}" onclick="openDayModal(${i}, ${weekOffset})">
+        <div class="day-abbr${isToday ? " today" : ""}">${abbr}</div>
+        <div class="day-dot ${key}"></div>
         <div style="flex:1;min-width:0">
-          <div class="day-name" style="color:var(--text-dim)">${day.title}</div>
+          <div class="day-name">${resolved.title}</div>
+          <div style="font-size:10px;color:var(--accent)">📅 Moved from ${resolved._moveFromDate}</div>
+        </div>
+        ${resolved.distance_km > 0 ? `<div class="text-sm text-mid">${resolved.distance_km}km</div>` : ""}
+        <div class="day-badge ${key}">${resolved.intensity}</div>
+        <div class="day-chevron">›</div>
+      </div>`;
+    }
+
+    // This day's own session was moved elsewhere, or plainly skipped.
+    if (resolved._moveType === "moved-out" || resolved._moveType === "skipped") {
+      const isRescheduled = resolved._moveType === "moved-out";
+      const subLabel = isRescheduled ? `Moved → ${resolved._moveToDate}` : "Skipped / Rest";
+      const badgeLabel = isRescheduled ? "📅 Moved" : "⏭ Skipped";
+      return `<div class="day-row done" onclick="openDayModal(${i}, ${weekOffset})">
+        <div class="day-abbr">${abbr}</div>
+        <div class="day-dot" style="background:var(--text-dim);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center">⏭</div>
+        <div style="flex:1;min-width:0">
+          <div class="day-name" style="color:var(--text-dim)">${resolved.title}</div>
           <div style="font-size:10px;color:var(--text-dim)">${subLabel}</div>
         </div>
         <div class="done-badge" style="color:var(--text-dim)">${badgeLabel}</div>
@@ -929,14 +1005,14 @@ function _renderWeekDays(days, weekOffset) {
     }
 
     return `<div class="day-row${isToday ? " today" : ""}" onclick="openDayModal(${i}, ${weekOffset})">
-      <div class="day-abbr${isToday ? " today" : ""}">${day.day.slice(0,3).toUpperCase()}</div>
+      <div class="day-abbr${isToday ? " today" : ""}">${abbr}</div>
       <div class="day-dot ${key}"></div>
       <div style="flex:1;min-width:0">
-        <div class="day-name">${day.title}</div>
-        ${day.coach_adjusted ? `<div style="font-size:10px;color:var(--orange)">⚡ Coach adjusted</div>` : ""}
+        <div class="day-name">${resolved.title}</div>
+        ${resolved.coach_adjusted ? `<div style="font-size:10px;color:var(--orange)">⚡ Coach adjusted</div>` : ""}
       </div>
-      ${day.distance_km > 0 ? `<div class="text-sm text-mid">${day.distance_km}km</div>` : ""}
-      <div class="day-badge ${key}">${day.intensity}</div>
+      ${resolved.distance_km > 0 ? `<div class="text-sm text-mid">${resolved.distance_km}km</div>` : ""}
+      <div class="day-badge ${key}">${resolved.intensity}</div>
       <div class="day-chevron">›</div>
     </div>`;
   }).join("");
@@ -1503,8 +1579,9 @@ function openDayModal(i, weekOffset) {
   } else {
     days = currentPlan?.days;
   }
-  const day = days?.[i];
-  if (!day) return;
+  const rawDay = days?.[i];
+  if (!rawDay) return;
+  const day = resolveDayForDate(currentPlan, rawDay.date) || rawDay;
   const key = intensityKey(day.intensity);
   const done = day.completed;
   const actual = day.actual_stats || {};
@@ -1591,7 +1668,15 @@ function openDayModal(i, weekOffset) {
       : `<button class="btn btn-ghost" onclick="showSkipOrRescheduleModal('${day.date}', \`${day.title.replace(/`/g,"'")}\`)" style="margin-top:10px;color:var(--text-dim)">⏭ Skip / Move to Another Day</button>`
   ) : "";
 
-  const skippedBanner = manualSkip ? `
+  const skippedBanner = day._moveType === "moved-in" ? `
+    <div style="background:var(--accent-dim);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+      <span style="font-size:18px">📅</span>
+      <span class="text-sm" style="color:var(--accent)">Moved here from ${day._moveFromDate}${day._originalTitle ? ` · originally: ${day._originalTitle}` : ""}</span>
+    </div>` : day._moveType === "moved-out" ? `
+    <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+      <span style="font-size:18px">📅</span>
+      <span class="text-sm text-dim">You moved this to ${day._moveToDate || "another day"}.</span>
+    </div>` : day._moveType === "skipped" ? `
     <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
       <span style="font-size:18px">⏭</span>
       <span class="text-sm text-dim">You marked this day as skipped / rest.</span>
