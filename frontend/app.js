@@ -78,7 +78,6 @@ function unmarkDaySkipped(date) {
 
 function showSkipOrRescheduleModal(date, dayTitle) {
   // Collect upcoming run days from plan (next 7 days, excluding today/past)
-  const today = new Date().toISOString().slice(0, 10);
   const upcoming = [];
   if (currentPlan) {
     const allDays = [
@@ -293,14 +292,48 @@ function formatDate(d) {
   return d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
 }
 
-function todayDayName() {
-  return new Date().toLocaleDateString("en-US", { weekday: "long" });
-}
-
 function daysToRace(raceDateStr) {
   if (!raceDateStr) return null;
   const diff = Math.ceil((new Date(raceDateStr) - new Date()) / 86400000);
   return diff;
+}
+
+// ── Single source of truth for "today" / "current week" across all tabs ───────
+
+function getTodayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+// Index into plan.weeks whose date range contains today; falls back to the
+// nearest upcoming week, then the last known week, so every screen agrees.
+function findCurrentWeekIndex(plan) {
+  const weeks = plan?.weeks || [];
+  if (!weeks.length) return -1;
+  const t = getTodayStr();
+  const idx = weeks.findIndex(w => {
+    const start = w.days?.[0]?.date;
+    const end = w.days?.[w.days.length - 1]?.date;
+    return start && end && start <= t && t <= end;
+  });
+  if (idx !== -1) return idx;
+  const upcomingIdx = weeks.findIndex(w => w.days?.[0]?.date && w.days[0].date > t);
+  return upcomingIdx !== -1 ? upcomingIdx : weeks.length - 1;
+}
+
+function findCurrentWeek(plan) {
+  const idx = findCurrentWeekIndex(plan);
+  return idx !== -1 ? plan.weeks[idx] : null;
+}
+
+// Today's workout, matched by actual date across every week in the plan —
+// not by weekday name against whichever week happens to be first.
+function findTodayWorkout(plan) {
+  const t = getTodayStr();
+  for (const w of (plan?.weeks || [])) {
+    const day = (w.days || []).find(d => d.date === t);
+    if (day) return day;
+  }
+  return (plan?.days || []).find(d => d.date === t) || null;
 }
 
 function showToast(msg, ms = 3000) {
@@ -320,8 +353,7 @@ function closeModal() {
 function renderToday() {
   const el = document.getElementById("today-content");
   const plan = currentPlan;
-  const today = todayDayName();
-  const todayWorkout = plan?.days?.find(d => d.day === today);
+  const todayWorkout = findTodayWorkout(plan);
   const s = getSettings();
 
   const statusHtml = plan ? (() => {
@@ -390,15 +422,16 @@ function renderToday() {
   })();
 
   const weekHtml = plan ? (() => {
-    const days      = plan.days || [];
+    const currentWeek = findCurrentWeek(plan) || plan;
+    const days      = currentWeek.days || [];
     const startDate = days[0]?.date;
-    const endDate   = days[6]?.date;
+    const endDate   = days[days.length - 1]?.date;
     const dateRange = startDate ? `${new Date(startDate).toLocaleDateString("en-US",{month:"short",day:"numeric"})} – ${new Date(endDate).toLocaleDateString("en-US",{month:"short",day:"numeric"})}` : "";
 
     // Planned: all active days (not Rest)
     const plannedActiveDays = days.filter(d => (d.intensity || "").toLowerCase() !== "rest");
     const plannedRunDays    = days.filter(d => d.distance_km > 0);
-    const plannedKm         = plan.total_distance_km || plannedRunDays.reduce((s, d) => s + (d.distance_km || 0), 0);
+    const plannedKm         = currentWeek.total_distance_km || plannedRunDays.reduce((s, d) => s + (d.distance_km || 0), 0);
 
     // Actual: runs give km; cross-training counts as a completed session (no km)
     const RUNNING_ACT = ["Run","TrailRun","VirtualRun"];
@@ -414,7 +447,7 @@ function renderToday() {
     const progressColor = progressPct >= 100 ? "var(--green)" : progressPct >= 60 ? "var(--orange)" : "var(--accent)";
 
     // Coach week summary from analytics
-    const coachSummary = currentAnalytics?.recommendations?.[0] || plan.coaching_notes || "";
+    const coachSummary = currentAnalytics?.recommendations?.[0] || currentWeek.coaching_notes || "";
 
     const hasActivity = sessionsDone > 0;
 
@@ -440,12 +473,12 @@ function renderToday() {
         <div class="prog-track"><div class="prog-fill" style="width:${progressPct}%;background:${progressColor}"></div></div>
       </div>` : ""}
       <div class="prog-row">
-        <div class="prog-label"><span>Aerobic (Zone 1–2)</span><span>${plan.aerobic_percent}%</span></div>
-        <div class="prog-track"><div class="prog-fill green" style="width:${plan.aerobic_percent}%"></div></div>
+        <div class="prog-label"><span>Aerobic (Zone 1–2)</span><span>${currentWeek.aerobic_percent}%</span></div>
+        <div class="prog-track"><div class="prog-fill green" style="width:${currentWeek.aerobic_percent}%"></div></div>
       </div>
       <div class="prog-row" style="margin-top:8px">
-        <div class="prog-label"><span>Anaerobic (Zone 4–5)</span><span>${plan.anaerobic_percent}%</span></div>
-        <div class="prog-track"><div class="prog-fill red" style="width:${plan.anaerobic_percent}%"></div></div>
+        <div class="prog-label"><span>Anaerobic (Zone 4–5)</span><span>${currentWeek.anaerobic_percent}%</span></div>
+        <div class="prog-track"><div class="prog-fill red" style="width:${currentWeek.anaerobic_percent}%"></div></div>
       </div>
       ${coachSummary ? `
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
@@ -557,7 +590,7 @@ function _renderRoadmap(plan) {
     return `<div class="empty"><div class="empty-icon">🗺</div><h3>No roadmap yet</h3><p>Generate a plan with a race date set to see all weeks.</p></div>`;
   }
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = getTodayStr();
 
   const allWeeks = [
     ...weeks4.map((w, i) => ({
@@ -590,6 +623,7 @@ function _renderRoadmap(plan) {
     const isCurrentWeek = week.week_start && week.week_end
       ? week.week_start <= todayStr && week.week_end >= todayStr
       : false;
+    const isPastWeek = week.week_end ? week.week_end < todayStr : false;
 
     const dateRange = week.week_start
       ? `${new Date(week.week_start + "T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"})} – ${new Date((week.week_end||week.week_start) + "T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"})}`
@@ -617,13 +651,14 @@ function _renderRoadmap(plan) {
         </div>`;
 
     return `
-      <div class="month-week${isCurrentWeek ? " race-now" : ""}">
+      <div class="month-week${isCurrentWeek ? " race-now" : isPastWeek ? " week-past" : ""}">
         <div class="month-week-header" onclick="toggleMonthWeek('race-${idx}')">
           <div style="flex:1">
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px">
               <span style="font-weight:700;font-size:14px">Week ${week.week_number || idx+1}</span>
               <span class="day-badge" style="background:${color}20;color:${color};border:1px solid ${color}40;font-size:10px">${week.phase}</span>
               ${isCurrentWeek ? `<span class="day-badge easy" style="font-size:10px">← Now</span>` : ""}
+              ${isPastWeek ? `<span class="day-badge" style="font-size:10px;background:var(--yellow-dim);color:var(--yellow);border:1px solid rgba(234,179,8,0.4)">Past</span>` : ""}
             </div>
             <div class="text-xs text-dim">${dateRange} · ${week.total_km || week.total_distance_km || 0} km</div>
           </div>
@@ -831,10 +866,10 @@ function openCompletedModal(date) {
 }
 
 function _renderWeekDays(days, weekOffset) {
-  const today = todayDayName();
+  const t = getTodayStr();
   return days.map((day, i) => {
     const key = intensityKey(day.intensity);
-    const isToday = (weekOffset === 0) && (day.day === today);
+    const isToday = day.date === t;
     const done = day.completed;
     const actual = day.actual_stats;
     const rating = day.execution_rating;
@@ -927,7 +962,8 @@ function renderWeek() {
 
   const hasMonthData = Array.isArray(plan.weeks) && plan.weeks.length > 0;
   const hasRoadmap = hasMonthData || Array.isArray(plan.roadmap) && plan.roadmap.length > 0;
-  const weekData = hasMonthData ? (plan.weeks[0] || plan) : plan;
+  const currentWeekIdx = hasMonthData ? findCurrentWeekIndex(plan) : -1;
+  const weekData = hasMonthData ? (plan.weeks[currentWeekIdx] || plan.weeks[0] || plan) : plan;
 
   const toggleHtml = hasMonthData ? `
     <div class="view-toggle">
@@ -938,38 +974,14 @@ function renderWeek() {
   const macroTimeline = _renderMacroTimeline();
 
   if (weekViewMode === "month" && hasMonthData) {
-    const monthCardsHtml = plan.weeks.map((week, idx) => {
-      const dotsHtml = (week.days || []).map(day => {
-        const color = _intensityColor(day.intensity);
-        const abbr = day.day ? day.day.slice(0,1) : "";
-        return `<div class="month-week-dot" style="background:${color}">${abbr}</div>`;
-      }).join("");
-
-      return `
-        <div class="month-week">
-          <div class="month-week-header" onclick="toggleMonthWeek(${idx})">
-            <div>
-              <div style="font-weight:700;font-size:14px">Week ${week.week_number || idx+1}</div>
-              <div class="text-xs text-dim">${week.phase || ""} · ${week.total_distance_km || 0} km</div>
-            </div>
-            <div style="color:var(--text-dim);font-size:18px">›</div>
-          </div>
-          <div class="month-week-dots">${dotsHtml}</div>
-          <div class="month-week-body" id="month-week-body-${idx}">
-            ${_renderWeekDays(week.days || [], idx)}
-          </div>
-        </div>`;
-    }).join("");
-
     el.innerHTML = `
       <div class="page-title">Training Plan</div>
-      <div class="page-sub">4-Week block overview</div>
+      <div class="page-sub">Full roadmap to race day · past weeks in yellow, current week highlighted</div>
       ${macroTimeline}
       ${toggleHtml}
-      ${monthCardsHtml}
+      ${_renderRoadmap(plan)}
     `;
   } else {
-    const today = todayDayName();
     el.innerHTML = `
       <div class="page-title">This Week</div>
       <div class="page-sub">Week ${weekData.week_number || 1} · ${weekData.phase || ""}</div>
@@ -977,7 +989,7 @@ function renderWeek() {
       ${macroTimeline}
       ${toggleHtml}
       ${_renderRecentCompleted()}
-      ${_renderWeekDays(weekData.days || [], 0)}
+      ${_renderWeekDays(weekData.days || [], Math.max(currentWeekIdx, 0))}
       <div class="legend" style="margin-top:8px">
         <div class="legend-label">INTENSITY LEGEND</div>
         <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Easy</div>
