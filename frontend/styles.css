@@ -17,6 +17,8 @@
   --red-dim:   rgba(239,68,68,0.12);
   --blue:      #3b82f6;
   --blue-dim:  rgba(59,130,246,0.12);
+  --yellow:    #eab308;
+  --yellow-dim:rgba(234,179,8,0.12);
   --text:      #f1f5f9;
   --text-mid:  #94a3b8;
   --text-dim:  #64748b;
@@ -1044,4 +1046,10 @@ svg text { font-family: inherit; }
 .month-week.race-now {
   border-left: 3px solid var(--accent);
   background: rgba(0,212,170,0.04);
+}
+/* Past week — already happened, kept visible but visually de-emphasized */
+.month-week.week-past {
+  border-left: 3px solid var(--yellow);
+  background: rgba(234,179,8,0.04);
+  opacity: 0.8;
 }
