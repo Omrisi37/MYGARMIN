@@ -183,7 +183,28 @@
           "hr_zone": "\u2014",
           "description": "Complete rest to prepare for training week.",
           "key_focus": "Recovery",
-          "notes": ""
+          "notes": "",
+          "completed": true,
+          "swapped": true,
+          "execution_rating": "slightly-hard",
+          "actual_stats": {
+            "distance_km": 8.26,
+            "duration_min": 49.5,
+            "avg_hr": 167.8,
+            "avg_pace": "5:59",
+            "calories": null,
+            "elevation_m": 64.0,
+            "activity_name": "Evening Run",
+            "activity_type": "Run"
+          },
+          "coach_analysis": "Excellent work swapping your schedule flexibly\u2014that's smart training management. You nailed the pace at 5:59/km (right on the 6:05/km target), but your average HR of 167.8 bpm ran considerably higher than the prescribed 65\u201375% max HR zone, suggesting you pushed the effort harder than intended despite hitting the right speed. This could indicate you were running into headwind, terrain challenges, or simply having a naturally elevated HR day\u2014monitor this closely on your next easy run to ensure true conversational-pace recovery work.",
+          "day_swap": true,
+          "swapped_from_date": "2026-07-02",
+          "coach_adjustment": {
+            "day": "Wednesday",
+            "change": "Dial back intensity slightly or extend recovery focus; consider a shorter, genuinely conversational easy run",
+            "reason": "HR running 20%+ above target zone suggests aerobic work was harder than planned\u2014prioritize true easy-paced recovery before any harder efforts"
+          }
         },
         {
           "day": "Friday",
@@ -254,14 +275,16 @@
           "day": "Wednesday",
           "date": "2026-07-08",
           "workout_type": "Easy Run",
-          "title": "Easy 8km",
-          "distance_km": 8.0,
-          "duration_min": 50,
+          "title": "Easy 5km",
+          "distance_km": 5.0,
+          "duration_min": 35,
           "intensity": "Easy",
           "hr_zone": "Zone 2",
-          "description": "Steady easy run at conversational pace ~6:00/km. Recovery-focused after tempo intervals on Monday.",
+          "description": "Shorter, genuinely conversational easy run at relaxed pace. Focus on true recovery with HR staying within Zone 2 targets.",
           "key_focus": "Aerobic recovery",
-          "notes": "Maintain easy effort\u2014this run should feel relaxed and comfortable."
+          "notes": "Coach-adjusted: Reduced distance and duration to prioritize genuine easy-paced recovery. Dial back intensity\u2014aim for comfortable, conversational effort. Keep HR in target zone.",
+          "coach_adjusted": true,
+          "adjustment_note": "Dial back intensity slightly or extend recovery focus; consider a shorter, genuinely conversational easy run"
         }
       ]
     },
@@ -749,16 +772,16 @@
     }
   ],
   "strava_summary": {
-    "runs": 4,
-    "distance_km": 22.5,
-    "duration_hours": 2.8
+    "runs": 5,
+    "distance_km": 30.8,
+    "duration_hours": 3.6
   },
   "strava_averages": {
-    "distance_per_run_km": 5.6,
-    "avg_hr": 161,
+    "distance_per_run_km": 6.2,
+    "avg_hr": 163,
     "latest_vo2_max": null
   },
   "generated_at": "2026-06-28T11:40:23.992850Z",
   "status": "pending_approval",
-  "synced_at": "2026-07-01T06:55:36.174412Z"
+  "synced_at": "2026-07-02T18:47:27.419547Z"
 }

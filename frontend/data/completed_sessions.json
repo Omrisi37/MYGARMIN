@@ -67,5 +67,28 @@
     "coach_analysis": "You swapped the planned easy run for a 44-minute pilates session\u2014a smart cross-training choice that supports your running without the impact stress. Your average HR of 96 bpm stayed in the aerobic zone, maintaining fitness while giving your legs active recovery. This fits well into your training week, though make sure tomorrow's run feels fresh and you're not accumulating fatigue from back-to-back harder efforts.",
     "execution_rating": "great",
     "logged_at": "2026-07-01T06:55:35.640951Z"
+  },
+  "2026-07-02": {
+    "completed": true,
+    "actual_stats": {
+      "distance_km": 8.26,
+      "duration_min": 49.5,
+      "avg_hr": 167.8,
+      "avg_pace": "5:59",
+      "calories": null,
+      "elevation_m": 64.0,
+      "activity_name": "Evening Run",
+      "activity_type": "Run"
+    },
+    "coach_analysis": "Excellent work swapping your schedule flexibly\u2014that's smart training management. You nailed the pace at 5:59/km (right on the 6:05/km target), but your average HR of 167.8 bpm ran considerably higher than the prescribed 65\u201375% max HR zone, suggesting you pushed the effort harder than intended despite hitting the right speed. This could indicate you were running into headwind, terrain challenges, or simply having a naturally elevated HR day\u2014monitor this closely on your next easy run to ensure true conversational-pace recovery work.",
+    "execution_rating": "slightly-hard",
+    "day_swap": true,
+    "swapped_from_date": "2026-07-02",
+    "coach_adjustment": {
+      "day": "Wednesday",
+      "change": "Dial back intensity slightly or extend recovery focus; consider a shorter, genuinely conversational easy run",
+      "reason": "HR running 20%+ above target zone suggests aerobic work was harder than planned\u2014prioritize true easy-paced recovery before any harder efforts"
+    },
+    "logged_at": "2026-07-02T18:47:25.385219Z"
   }
 }
