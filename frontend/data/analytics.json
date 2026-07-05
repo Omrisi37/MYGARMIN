@@ -2,76 +2,63 @@
   "fitness_trend": "improving",
   "fatigue_level": "moderate",
   "acute_chronic_ratio": 1.18,
-  "hr_trend_bpm_per_week": 2.7,
+  "hr_trend_bpm_per_week": 2.8,
   "weekly_km_trend": "building",
   "key_observations": [
-    "Strong return to consistent training after 2-week gap (May 25\u2013Jun 08): only single runs of 6\u20139.5km indicate recovery or base-building phase",
-    "Significant volume and intensity jump in final 2 weeks: doubled run frequency (1\u21923 runs, then 2 runs) with 15+ km weeks and HR elevation from 158\u2192166 bpm signals fitness gains but compressed timeline",
-    "Pace stability excellent across 8 weeks (5:39\u20136:14 min/km runs): consistent aerobic efficiency despite HR rise suggests improved economy or true fitness progression"
+    "Clear V-shaped recovery pattern: volume collapsed from 13.7km to 6.3km (weeks 1-4), then aggressive rebuild to 19.3km by week 6\u2014suggests planned deload or injury/illness recovery followed by structured return-to-training",
+    "Heart rate stability improving despite increasing load: avg HR 158\u2192160 bpm across recent weeks with pace accelerating (6:14\u21925:58 min/km), indicating genuine aerobic fitness gains rather than sympathetic stress",
+    "Recent sessions show elevated work capacity: last 3 runs averaging 167.8, 163.3, and 161 bpm at sub-6:00 pace suggests lactate threshold improvements and readiness for intensity work"
   ],
   "warnings": [
-    "Rapid training load increase over 14 days (6.3km week to 15.7km week) without gradual progression\u2014overtraining risk if sustained without recovery week",
-    "HR data only available for final 2 weeks; cannot validate aerobic adaptation across full 8-week block or assess baseline drift"
+    "HR data missing for first 4 weeks limits early fatigue assessment; cannot confirm whether initial volume drop was planned or reactive",
+    "Only 10 tracked activities over 8 weeks (1.25 runs/week average)\u2014suggests cross-training or non-Strava activity; training structure unclear without complete picture",
+    "Recent acceleration (15.7\u219219.3km + 3 runs/week) over just 1 week is aggressive; monitor for overtraining signals in week 7"
   ],
   "recommendations": [
-    "Insert a recovery week (8\u201310km, single or 2 easy runs max) after week of 2026-06-29 to consolidate fitness gains and mitigate fatigue accumulation",
-    "Establish consistent HR monitoring zones immediately; current 158\u2013167 bpm range suggests Zone 2\u20133 training\u2014structure runs by intensity (Z2 easy + 1 Z3/threshold session weekly)",
-    "Maintain 1 rest day minimum between runs; Friday football + Monday run (June 27\u201330) shows 48-hour recovery only\u2014extend to 72 hours given recent volume spike"
+    "Maintain current 3 runs/week frequency but cap weekly volume at 20-22km for next 2 weeks to consolidate fitness gains before next progression; risk of injury is elevated with rapid rebuilding",
+    "Incorporate one dedicated threshold/tempo session weekly (currently missing from data); your recent easy-run paces and stable HR suggest readiness for structured intensity",
+    "Reintroduce HR monitoring on all runs to build aerobic baseline data; current 3-week sample is too small to establish personal zones and progression metrics"
   ],
   "weeks_analysis": [
-    {
-      "week_start": "2026-05-04",
-      "total_km": 5.3,
-      "avg_hr": null,
-      "assessment": "Minimal baseline week; likely returning from extended break or injury. Single 5.3km run at easy pace (5:39)."
-    },
     {
       "week_start": "2026-05-11",
       "total_km": 13.7,
       "avg_hr": null,
-      "assessment": "Aggressive 158% jump in volume. Long steady run (13.67km @ 6:14) suggests aerobic base work. No data loss apparent; standard buildup pattern."
+      "assessment": "Single 13.7km run at 6:14 pace; solid aerobic effort but incomplete weekly structure. No HR data limits assessment."
     },
     {
       "week_start": "2026-05-25",
       "total_km": 9.5,
       "avg_hr": null,
-      "assessment": "2-week gap in data (May 18\u201324 unreported). Volume reduction to 9.5km; likely planned drop or forced rest. Pace maintained (6:11)."
+      "assessment": "29% volume drop suggests deload or recovery week; consistent 6:11 pace maintained despite lower volume. Data gap of 2 weeks unexplained."
     },
     {
       "week_start": "2026-06-01",
       "total_km": 7.2,
       "avg_hr": null,
-      "assessment": "Conservative week post-gap: 7.2km single run. Pace consistent (6:12). Suggests cautious return or recovery microcycle."
+      "assessment": "Continued descent to lowest point (47% below week 1); single easy 7.2km at 6:12 pace. Strong signal of planned taper or return-from-injury protocol."
     },
     {
       "week_start": "2026-06-08",
       "total_km": 6.3,
       "avg_hr": null,
-      "assessment": "Lowest volume in tracking period (6.3km). Single run at faster pace (5:47). May indicate tapering or low-commitment week before intensity block."
+      "assessment": "Nadir reached at 6.3km; pace improved to 5:47 despite minimal volume\u2014suggests readiness for progression phase. Still single run, incomplete structure."
     },
     {
       "week_start": "2026-06-22",
       "total_km": 15.7,
       "avg_hr": 158,
-      "assessment": "Major jump: 3 runs, 15.7km, HR baseline established (158 bpm avg). Includes football (cross-training, 158 bpm). Marks transition to structured intensity phase."
+      "assessment": "Key inflection point: 3 runs, volume +150%, avg HR 158 bpm. Include football activity (158 avg HR). Rebuild phase initiated with controlled intensity."
     },
     {
       "week_start": "2026-06-29",
-      "total_km": 15.1,
-      "avg_hr": 166,
-      "assessment": "Sustained high volume (2 runs, 15.1km) with HR elevation +8 bpm (158\u2192166). Pace remains efficient (5:58\u20135:59). Clear fitness gain; fatigue accumulating."
+      "total_km": 19.3,
+      "avg_hr": 160,
+      "assessment": "Strong progression: +23% volume, 3 dedicated runs at avg 160 bpm, paces 5:58-5:59 min/km. Elevated HR trend (+2 bpm) is appropriate for workload increase. Fitness rising but fatigue accumulating."
     }
   ],
-  "generated_at": "2026-07-02T18:47:38.943454Z",
+  "generated_at": "2026-07-05T16:59:46.939054Z",
   "raw_weeks": [
-    {
-      "week_start": "2026-05-04",
-      "runs": 1,
-      "total_km": 5.3,
-      "total_hours": 0.5,
-      "avg_hr": null,
-      "vo2_max": null
-    },
     {
       "week_start": "2026-05-11",
       "runs": 1,
@@ -114,10 +101,10 @@
     },
     {
       "week_start": "2026-06-29",
-      "runs": 2,
-      "total_km": 15.1,
-      "total_hours": 1.5,
-      "avg_hr": 166,
+      "runs": 3,
+      "total_km": 19.3,
+      "total_hours": 2.0,
+      "avg_hr": 160,
       "vo2_max": null
     }
   ]

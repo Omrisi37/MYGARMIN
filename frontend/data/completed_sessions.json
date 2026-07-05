@@ -90,5 +90,26 @@
       "reason": "HR running 20%+ above target zone suggests aerobic work was harder than planned\u2014prioritize true easy-paced recovery before any harder efforts"
     },
     "logged_at": "2026-07-02T18:47:25.385219Z"
+  },
+  "2026-07-05": {
+    "completed": true,
+    "actual_stats": {
+      "distance_km": 4.23,
+      "duration_min": 29.6,
+      "avg_hr": 147.7,
+      "avg_pace": "6:59",
+      "calories": null,
+      "elevation_m": 40.0,
+      "activity_name": "Evening Run",
+      "activity_type": "Run"
+    },
+    "coach_analysis": "You ran a moderate-paced 4.2km evening run at 147.7 bpm when a complete rest day was prescribed. While the pace and heart rate suggest controlled effort, this still represents active recovery rather than true rest after football. Consider honoring planned rest days more strictly to allow full CNS and muscular recovery\u2014your body needs these days to adapt to training stress.",
+    "execution_rating": "slightly-hard",
+    "coach_adjustment": {
+      "day": "next_planned_run",
+      "change": "Add 5-10 min easy recovery pace if it's a hard session, or keep the next session unchanged if already marked easy",
+      "reason": "Since you didn't fully rest today, ensure the next running session accounts for this incomplete recovery to avoid cumulative fatigue"
+    },
+    "logged_at": "2026-07-05T16:59:34.914830Z"
   }
 }
