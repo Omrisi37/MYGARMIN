@@ -111,5 +111,26 @@
       "reason": "Since you didn't fully rest today, ensure the next running session accounts for this incomplete recovery to avoid cumulative fatigue"
     },
     "logged_at": "2026-07-05T16:59:34.914830Z"
+  },
+  "2026-07-06": {
+    "completed": true,
+    "actual_stats": {
+      "distance_km": 7.64,
+      "duration_min": 46.5,
+      "avg_hr": 175.7,
+      "avg_pace": "6:05",
+      "calories": null,
+      "elevation_m": 18.0,
+      "activity_name": "Evening Run",
+      "activity_type": "Run"
+    },
+    "coach_analysis": "Solid execution of your easy run foundation work. You nailed the pace at 6:05/km (only 6 seconds slower than planned) and covered the full 7.64km distance. However, your average HR of 175.7 bpm is significantly elevated for an easy run\u2014aim to keep these aerobic sessions under 160 bpm to ensure you're truly working at a conversational, sustainable intensity.",
+    "execution_rating": "slightly-hard",
+    "coach_adjustment": {
+      "day": "next easy run",
+      "change": "Reduce pace to 6:20-6:30/km to bring HR into 155-165 bpm zone",
+      "reason": "Your HR suggests you're running harder than easy intensity; slower pacing will build aerobic base more efficiently and reduce injury risk"
+    },
+    "logged_at": "2026-07-06T21:14:52.610986Z"
   }
 }
