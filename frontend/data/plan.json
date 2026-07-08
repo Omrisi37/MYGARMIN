@@ -320,7 +320,20 @@
           "key_focus": "Aerobic recovery",
           "notes": "Coach-adjusted: Reduced distance and duration to prioritize genuine easy-paced recovery. Dial back intensity\u2014aim for comfortable, conversational effort. Keep HR in target zone.",
           "coach_adjusted": true,
-          "adjustment_note": "Dial back intensity slightly or extend recovery focus; consider a shorter, genuinely conversational easy run"
+          "adjustment_note": "Dial back intensity slightly or extend recovery focus; consider a shorter, genuinely conversational easy run",
+          "completed": true,
+          "actual_stats": {
+            "distance_km": 6.0,
+            "duration_min": 39.4,
+            "avg_hr": 151.3,
+            "avg_pace": "6:33",
+            "calories": null,
+            "elevation_m": 53.0,
+            "activity_name": "Evening Run",
+            "activity_type": "Run"
+          },
+          "coach_analysis": "You nailed the distance and duration, but your average HR of 151.3 bpm is running into Zone 3 territory when Zone 2 easy should sit around 130-140 bpm for true recovery. Your pace of 6:33/km reflects this\u2014you were running with intention rather than genuine ease. Next time, actively slow down and focus on conversational breathing; an easy run should feel almost boring.",
+          "execution_rating": "slightly-hard"
         }
       ]
     },
@@ -808,18 +821,18 @@
     }
   ],
   "strava_summary": {
-    "runs": 6,
-    "distance_km": 39.0,
-    "duration_hours": 4.6
+    "runs": 7,
+    "distance_km": 45.0,
+    "duration_hours": 5.2
   },
   "strava_averages": {
-    "distance_per_run_km": 6.5,
-    "avg_hr": 162,
+    "distance_per_run_km": 6.4,
+    "avg_hr": 161,
     "latest_vo2_max": null
   },
   "generated_at": "2026-06-28T11:40:23.992850Z",
   "status": "pending_approval",
-  "synced_at": "2026-07-06T21:14:53.062604Z",
+  "synced_at": "2026-07-08T18:55:05.928341Z",
   "start_date": "2026-06-25",
   "week_start_day": "Thursday"
 }

@@ -132,5 +132,21 @@
       "reason": "Your HR suggests you're running harder than easy intensity; slower pacing will build aerobic base more efficiently and reduce injury risk"
     },
     "logged_at": "2026-07-06T21:14:52.610986Z"
+  },
+  "2026-07-08": {
+    "completed": true,
+    "actual_stats": {
+      "distance_km": 6.0,
+      "duration_min": 39.4,
+      "avg_hr": 151.3,
+      "avg_pace": "6:33",
+      "calories": null,
+      "elevation_m": 53.0,
+      "activity_name": "Evening Run",
+      "activity_type": "Run"
+    },
+    "coach_analysis": "You nailed the distance and duration, but your average HR of 151.3 bpm is running into Zone 3 territory when Zone 2 easy should sit around 130-140 bpm for true recovery. Your pace of 6:33/km reflects this\u2014you were running with intention rather than genuine ease. Next time, actively slow down and focus on conversational breathing; an easy run should feel almost boring.",
+    "execution_rating": "slightly-hard",
+    "logged_at": "2026-07-08T18:55:05.403683Z"
   }
 }
