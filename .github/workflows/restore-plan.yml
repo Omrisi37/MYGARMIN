@@ -1,0 +1,49 @@
+name: Restore Plan Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      backup_filename:
+        description: "Backup file to restore (e.g. plan_20260706_backup.json)"
+        required: true
+
+jobs:
+  restore-plan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate backup filename
+        run: |
+          FILE="${{ inputs.backup_filename }}"
+          if [[ ! "$FILE" =~ ^plan_[0-9]{8}_backup\.json$ ]]; then
+            echo "Invalid backup filename: $FILE"
+            exit 1
+          fi
+          if [ ! -f "frontend/data/$FILE" ]; then
+            echo "Backup file not found: $FILE"
+            exit 1
+          fi
+
+      - name: Restore backup as current plan
+        run: |
+          FILE="${{ inputs.backup_filename }}"
+          # Save current plan.json as today's backup before overwriting
+          TODAY=$(date +%Y%m%d)
+          if [ -f "frontend/data/plan.json" ]; then
+            cp "frontend/data/plan.json" "frontend/data/plan_${TODAY}_backup.json"
+          fi
+          cp "frontend/data/$FILE" "frontend/data/plan.json"
+          echo "Restored $FILE to plan.json"
+
+      - name: Commit restored plan
+        run: |
+          git config user.name "Running Coach Bot"
+          git config user.email "bot@running-coach"
+          git pull --rebase origin main
+          git add frontend/data/plan.json frontend/data/plan_*_backup.json
+          git commit -m "Restore plan from ${{ inputs.backup_filename }}" || echo "No changes"
+          git push

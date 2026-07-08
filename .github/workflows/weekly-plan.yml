@@ -103,6 +103,6 @@ jobs:
           git stash --include-untracked
           git pull --rebase origin main
           git stash pop || true
-          git add frontend/data/plan.json frontend/data/user_settings.json frontend/data/plan_*_backup.json 2>/dev/null || true
+          git add frontend/data/plan.json frontend/data/user_settings.json frontend/data/plan_*_backup.json frontend/data/plan_versions.json 2>/dev/null || true
           git commit -m "Weekly plan: $(date +%Y-%m-%d)" || echo "No changes"
           git push
