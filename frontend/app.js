@@ -596,9 +596,32 @@ function renderToday() {
 // ── Render: WEEK ──────────────────────────────────────────────────────────────
 
 let weekViewMode = "week";
+let viewedWeekIdx = null; // null = auto (current week); set by prev/next nav
 
 function setWeekView(mode) {
   weekViewMode = mode === "race" ? "week" : mode;
+  renderWeek();
+}
+
+function _resolvedWeekIdx(plan) {
+  const cur = findCurrentWeekIndex(plan);
+  if (viewedWeekIdx === null) return cur;
+  const max = (plan?.weeks?.length || 1) - 1;
+  return Math.max(0, Math.min(viewedWeekIdx, max));
+}
+
+function navWeek(delta) {
+  const plan = currentPlan;
+  if (!plan?.weeks?.length) return;
+  const cur = _resolvedWeekIdx(plan);
+  const next = cur + delta;
+  if (next < 0 || next >= plan.weeks.length) return;
+  viewedWeekIdx = next;
+  renderWeek();
+}
+
+function jumpToCurrentWeek() {
+  viewedWeekIdx = null;
   renderWeek();
 }
 
@@ -1039,11 +1062,13 @@ function renderWeek() {
   const hasMonthData = Array.isArray(plan.weeks) && plan.weeks.length > 0;
   const hasRoadmap = hasMonthData || Array.isArray(plan.roadmap) && plan.roadmap.length > 0;
   const currentWeekIdx = hasMonthData ? findCurrentWeekIndex(plan) : -1;
-  const weekData = hasMonthData ? (plan.weeks[currentWeekIdx] || plan.weeks[0] || plan) : plan;
+  const displayWeekIdx = hasMonthData ? _resolvedWeekIdx(plan) : Math.max(currentWeekIdx, 0);
+  const weekData = hasMonthData ? (plan.weeks[displayWeekIdx] || plan.weeks[0] || plan) : plan;
+  const isViewingCurrentWeek = viewedWeekIdx === null || displayWeekIdx === currentWeekIdx;
 
   const toggleHtml = hasMonthData ? `
     <div class="view-toggle">
-      <button class="view-toggle-btn${weekViewMode === "week" ? " active" : ""}" onclick="setWeekView('week')">This Week</button>
+      <button class="view-toggle-btn${weekViewMode === "week" ? " active" : ""}" onclick="setWeekView('week')">Week View</button>
       <button class="view-toggle-btn${weekViewMode === "month" ? " active" : ""}" onclick="setWeekView('month')">4-Week Plan</button>
     </div>` : "";
 
@@ -1058,14 +1083,32 @@ function renderWeek() {
       ${_renderRoadmap(plan)}
     `;
   } else {
+    const totalWeeks = plan.weeks?.length || 1;
+    const canPrev = displayWeekIdx > 0;
+    const canNext = displayWeekIdx < totalWeeks - 1;
+    const weekLabel = isViewingCurrentWeek ? "This Week" : `Week ${(weekData.week_number || displayWeekIdx + 1)}`;
+    const backToNow = !isViewingCurrentWeek
+      ? `<button class="btn btn-ghost" style="font-size:12px;padding:4px 10px;margin-left:8px" onclick="jumpToCurrentWeek()">↩ Back to current</button>`
+      : "";
+
+    const weekNavHtml = hasMonthData ? `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <button class="week-nav-btn${canPrev ? "" : " disabled"}" onclick="${canPrev ? "navWeek(-1)" : ""}" aria-label="Previous week">‹</button>
+        <div style="flex:1;text-align:center">
+          <span style="font-size:13px;font-weight:600;color:var(--text)">${weekLabel} · ${weekData.phase || ""}</span>
+          ${backToNow}
+        </div>
+        <button class="week-nav-btn${canNext ? "" : " disabled"}" onclick="${canNext ? "navWeek(1)" : ""}" aria-label="Next week">›</button>
+      </div>` : "";
+
     el.innerHTML = `
-      <div class="page-title">This Week</div>
-      <div class="page-sub">Week ${weekData.week_number || 1} · ${weekData.phase || ""}</div>
+      <div class="page-title">Weekly Schedule</div>
       ${_workflowBanner()}
       ${macroTimeline}
       ${toggleHtml}
+      ${weekNavHtml}
       ${_renderRecentCompleted()}
-      ${_renderWeekDays(weekData.days || [], Math.max(currentWeekIdx, 0))}
+      ${_renderWeekDays(weekData.days || [], displayWeekIdx)}
       <div class="legend" style="margin-top:8px">
         <div class="legend-label">INTENSITY LEGEND</div>
         <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Easy</div>
@@ -1217,7 +1260,7 @@ function renderGoals() {
       <div class="form-group">
         <label class="form-label">Plan Start Date</label>
         <input id="g-start-date" class="form-input" type="date" value="${s.start_date||""}"/>
-        <span class="text-xs text-dim" style="margin-top:2px">Leave empty to start from next Monday</span>
+        <span class="text-xs text-dim" style="margin-top:2px">Sets the anchor weekday for all weeks (e.g. Thursday). Leave empty to keep the existing plan anchor.</span>
       </div>
       <div class="form-group" style="margin-top:4px">
         <label class="form-label">Running Days</label>
@@ -1523,6 +1566,16 @@ function _saveGoalFields() {
 function renderSettings() {
   const el = document.getElementById("settings-content");
 
+  const planInfo = currentPlan ? (() => {
+    const sd = currentPlan.start_date;
+    const wsd = currentPlan.week_start_day;
+    const gen = currentPlan.generated_at?.slice(0, 10);
+    return `<div class="info-box" style="margin-bottom:10px">
+      ${sd ? `<div><strong>Plan anchor:</strong> ${sd} (${wsd || "?"})</div>` : ""}
+      ${gen ? `<div style="margin-top:4px"><strong>Last generated:</strong> ${gen}</div>` : ""}
+    </div>`;
+  })() : "";
+
   el.innerHTML = `
     <!-- Strava -->
     <div class="settings-section">
@@ -1531,6 +1584,16 @@ function renderSettings() {
         <div class="info-box">✅ Connected via OAuth. Your Strava runs are fetched automatically when generating a plan.</div>
         <button class="btn btn-accent" onclick="syncFromStrava()" style="margin-top:10px">🔄 Sync Session</button>
         <p class="text-xs text-dim" style="margin-top:6px">Marks completed workouts · Coach analyses each session · Refreshes the Analytics tab. Does not change your plan.</p>
+      </div>
+    </div>
+
+    <!-- Plan History -->
+    <div class="settings-section">
+      <div class="settings-header"><span class="icon">🗂️</span> Plan History</div>
+      <div class="settings-body">
+        ${planInfo}
+        <p class="text-xs text-dim" style="margin-bottom:10px">Every time a new plan is generated the previous one is saved as a backup. You can restore any version below.</p>
+        <div id="plan-versions-list"><span class="text-dim text-xs">Loading versions…</span></div>
       </div>
     </div>
 
@@ -1550,6 +1613,51 @@ function renderSettings() {
       </div>
     </div>
   `;
+
+  _loadPlanVersions();
+}
+
+async function _loadPlanVersions() {
+  const listEl = document.getElementById("plan-versions-list");
+  if (!listEl) return;
+  try {
+    const res = await fetch(`/data/plan_versions.json?t=${Date.now()}`);
+    if (!res.ok) throw new Error("not found");
+    const versions = await res.json();
+    if (!versions.length) {
+      listEl.innerHTML = `<span class="text-dim text-xs">No saved versions found.</span>`;
+      return;
+    }
+    const currentGen = currentPlan?.generated_at?.slice(0, 10) || "";
+    listEl.innerHTML = versions.map(v => {
+      const range = v.plan_start && v.plan_end ? `${v.plan_start} → ${v.plan_end}` : "Unknown range";
+      const isCurrent = v.generated_at === currentGen;
+      return `
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600;color:var(--text)">${v.label}${isCurrent ? ' <span style="color:var(--green);font-size:11px">← current</span>' : ""}</div>
+            <div class="text-xs text-dim" style="margin-top:2px">${range}</div>
+          </div>
+          ${!isCurrent ? `<button class="btn btn-ghost" style="font-size:12px;padding:6px 12px;flex-shrink:0" onclick="restorePlanVersion('${v.filename}','${v.label}')">Restore</button>` : ""}
+        </div>`;
+    }).join("");
+  } catch {
+    listEl.innerHTML = `<span class="text-dim text-xs">No version history available yet.</span>`;
+  }
+}
+
+async function restorePlanVersion(filename, label) {
+  if (!confirm(`Restore plan from ${label}?\n\nThis will replace your current plan. The current plan will be saved as a backup first.`)) return;
+  showToast("⏳ Restoring plan…");
+  const ok = await triggerWorkflow("restore-plan.yml", { backup_filename: filename });
+  if (!ok) return;
+  showToast(`✅ Plan restore triggered — refreshing in ~30s`, 5000);
+  setTimeout(async () => {
+    [currentPlan] = await Promise.all([fetchPlan()]);
+    viewedWeekIdx = null;
+    renderScreen(currentScreen);
+    showToast("✅ Plan restored!", 4000);
+  }, 30000);
 }
 
 async function syncFromStrava() {

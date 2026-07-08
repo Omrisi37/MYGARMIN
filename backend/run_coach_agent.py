@@ -195,11 +195,20 @@ def build_user_message(strava_data: dict, config: dict) -> str:
     weeks_left = weeks_to_race(config.get("race_date"))
     today = datetime.today()
 
-    # Determine plan start date
+    # Determine plan start date — prefer explicit config, then existing plan's
+    # stored start_date, then fall back to the current Monday so the cron
+    # trigger never silently resets a Thursday-anchored (or any non-Monday) plan.
     if config.get("start_date"):
         week_start = datetime.strptime(config["start_date"], "%Y-%m-%d")
     else:
-        week_start = today - timedelta(days=today.weekday())  # Monday
+        existing_start = _load_existing_plan_start_date()
+        if existing_start:
+            # Advance to the next 4-week block from the original anchor
+            weeks_since = max(0, (today - existing_start).days // 7)
+            block_offset = (weeks_since // 4) * 4
+            week_start = existing_start + timedelta(weeks=block_offset)
+        else:
+            week_start = today - timedelta(days=today.weekday())  # Monday
 
     # Generate 4 weeks of dates (full detail)
     all_weeks_dates = []
@@ -315,6 +324,51 @@ Generate the complete 4-week training plan for the block above.
 """
 
 
+def _update_plan_versions_index(data_dir: Path, today_str: str):
+    """Rebuild plan_versions.json listing all backup files for the frontend."""
+    versions = []
+    for f in sorted(data_dir.glob("plan_*_backup.json"), reverse=True):
+        date_part = f.stem.replace("plan_", "").replace("_backup", "")
+        try:
+            label = datetime.strptime(date_part, "%Y%m%d").strftime("%b %d, %Y")
+        except Exception:
+            label = date_part
+        try:
+            snap = json.loads(f.read_text())
+            weeks = snap.get("weeks", [])
+            start = weeks[0]["days"][0]["date"] if weeks and weeks[0].get("days") else ""
+            end = weeks[-1]["days"][-1]["date"] if weeks and weeks[-1].get("days") else ""
+            generated = snap.get("generated_at", "")[:10]
+        except Exception:
+            start = end = generated = ""
+        versions.append({
+            "filename": f.name,
+            "date": date_part,
+            "label": label,
+            "plan_start": start,
+            "plan_end": end,
+            "generated_at": generated,
+        })
+    versions_path = data_dir / "plan_versions.json"
+    versions_path.write_text(json.dumps(versions, indent=2))
+    print(f"plan_versions.json updated ({len(versions)} versions)")
+
+
+def _load_existing_plan_start_date() -> datetime | None:
+    """Read start_date from the current plan.json so cron runs preserve the anchor."""
+    plan_path = Path(__file__).parent.parent / "frontend" / "data" / "plan.json"
+    if not plan_path.exists():
+        return None
+    try:
+        plan = json.loads(plan_path.read_text())
+        sd = plan.get("start_date")
+        if sd:
+            return datetime.strptime(sd, "%Y-%m-%d")
+    except Exception:
+        pass
+    return None
+
+
 def _load_completed_sessions(data_dir: Path) -> dict:
     """Load persistent completed sessions log (survives plan regeneration)."""
     path = data_dir / "completed_sessions.json"
@@ -351,13 +405,26 @@ def save_plan(result: dict):
     data_dir.mkdir(exist_ok=True)
     plan_path = data_dir / "plan.json"
 
+    today_str = datetime.today().strftime("%Y%m%d")
     if plan_path.exists():
-        backup = data_dir / f"plan_{datetime.today().strftime('%Y%m%d')}_backup.json"
+        backup = data_dir / f"plan_{today_str}_backup.json"
         backup.write_text(plan_path.read_text())
 
     # Build the plan object
     weeks = result.get("weeks", [])
     first_week = weeks[0] if weeks else {}
+
+    # Derive start_date and week_start_day from the generated weeks
+    plan_start_date = TRAINING_CONFIG.get("start_date") or ""
+    week_start_day = ""
+    if weeks and weeks[0].get("days"):
+        first_day_date = weeks[0]["days"][0].get("date", "")
+        if first_day_date:
+            plan_start_date = plan_start_date or first_day_date
+            try:
+                week_start_day = datetime.strptime(first_day_date, "%Y-%m-%d").strftime("%A")
+            except Exception:
+                pass
 
     plan = {
         # 4-week structure + full roadmap to race
@@ -365,6 +432,9 @@ def save_plan(result: dict):
         "roadmap": result.get("roadmap", []),
         "coaching_overview": result.get("coaching_overview", ""),
         "total_plan_distance_km": result.get("total_plan_distance_km", 0),
+        # Anchor — preserved across regenerations so cron never shifts week day
+        "start_date":        plan_start_date,
+        "week_start_day":    week_start_day,
         # Backward compat — first week at top level
         "week_number":       first_week.get("week_number", 1),
         "phase":             first_week.get("phase", ""),
@@ -387,6 +457,9 @@ def save_plan(result: dict):
 
     plan_path.write_text(json.dumps(plan, indent=2))
     print(f"Plan saved to {plan_path}")
+
+    # Update plan_versions.json index for the frontend version picker
+    _update_plan_versions_index(data_dir, today_str)
 
     # Save settings to user_settings.json so any device can restore them
     settings = {
