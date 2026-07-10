@@ -359,7 +359,20 @@
           "hr_zone": "\u2014",
           "description": "Complete rest to prepare for training week.",
           "key_focus": "Recovery",
-          "notes": ""
+          "notes": "",
+          "completed": true,
+          "actual_stats": {
+            "distance_km": 0.0,
+            "duration_min": 51.3,
+            "avg_hr": 119.4,
+            "avg_pace": null,
+            "calories": null,
+            "elevation_m": 0,
+            "activity_name": "Evening Pilates",
+            "activity_type": "Workout"
+          },
+          "coach_analysis": "You turned a planned rest day into active recovery with 51 minutes of pilates\u2014a smart choice that kept your HR moderate (119 bpm) without heavy impact stress. This low-intensity cross-training actually supports running recovery by improving core stability and mobility, rather than hindering it. You're well-positioned for the week ahead.",
+          "execution_rating": "great"
         },
         {
           "day": "Friday",
@@ -821,18 +834,18 @@
     }
   ],
   "strava_summary": {
-    "runs": 7,
-    "distance_km": 45.0,
-    "duration_hours": 5.2
+    "runs": 6,
+    "distance_km": 38.7,
+    "duration_hours": 4.6
   },
   "strava_averages": {
-    "distance_per_run_km": 6.4,
+    "distance_per_run_km": 6.5,
     "avg_hr": 161,
     "latest_vo2_max": null
   },
   "generated_at": "2026-06-28T11:40:23.992850Z",
   "status": "pending_approval",
-  "synced_at": "2026-07-08T18:55:05.928341Z",
+  "synced_at": "2026-07-10T08:54:34.237110Z",
   "start_date": "2026-06-25",
   "week_start_day": "Thursday"
 }

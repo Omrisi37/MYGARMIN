@@ -148,5 +148,21 @@
     "coach_analysis": "You nailed the distance and duration, but your average HR of 151.3 bpm is running into Zone 3 territory when Zone 2 easy should sit around 130-140 bpm for true recovery. Your pace of 6:33/km reflects this\u2014you were running with intention rather than genuine ease. Next time, actively slow down and focus on conversational breathing; an easy run should feel almost boring.",
     "execution_rating": "slightly-hard",
     "logged_at": "2026-07-08T18:55:05.403683Z"
+  },
+  "2026-07-09": {
+    "completed": true,
+    "actual_stats": {
+      "distance_km": 0.0,
+      "duration_min": 51.3,
+      "avg_hr": 119.4,
+      "avg_pace": null,
+      "calories": null,
+      "elevation_m": 0,
+      "activity_name": "Evening Pilates",
+      "activity_type": "Workout"
+    },
+    "coach_analysis": "You turned a planned rest day into active recovery with 51 minutes of pilates\u2014a smart choice that kept your HR moderate (119 bpm) without heavy impact stress. This low-intensity cross-training actually supports running recovery by improving core stability and mobility, rather than hindering it. You're well-positioned for the week ahead.",
+    "execution_rating": "great",
+    "logged_at": "2026-07-10T08:54:33.818882Z"
   }
 }
