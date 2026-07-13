@@ -3,7 +3,7 @@
   "race_name": "",
   "race_date": null,
   "target_time": "",
-  "start_date": "2026-06-25",
+  "start_date": null,
   "run_days": [],
   "sessions_per_week": 4,
   "weekly_hours": 7.0,
@@ -14,5 +14,5 @@
   "weekly_skip_ct": [
     "[]"
   ],
-  "saved_at": "2026-07-06T11:23:20.939236Z"
+  "saved_at": "2026-07-13T10:16:50.438343Z"
 }
