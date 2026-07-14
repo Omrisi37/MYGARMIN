@@ -164,5 +164,49 @@
     "coach_analysis": "You turned a planned rest day into active recovery with 51 minutes of pilates\u2014a smart choice that kept your HR moderate (119 bpm) without heavy impact stress. This low-intensity cross-training actually supports running recovery by improving core stability and mobility, rather than hindering it. You're well-positioned for the week ahead.",
     "execution_rating": "great",
     "logged_at": "2026-07-10T08:54:33.818882Z"
+  },
+  "2026-07-12": {
+    "completed": true,
+    "actual_stats": {
+      "distance_km": 2.32,
+      "duration_min": 33.4,
+      "avg_hr": 95.8,
+      "avg_pace": "14:23",
+      "calories": null,
+      "elevation_m": 20.0,
+      "activity_name": "Evening Walk",
+      "activity_type": "Walk"
+    },
+    "coach_analysis": "You completed an easy 33-minute walk instead of the planned 16 km long run\u2014this is a significant deviation from your aerobic endurance goal. While walking is valuable recovery cross-training, it doesn't build the marathon-specific fitness or test the fueling strategy that the long run demands. Consider rescheduling the 16 km run soon to stay on track with your program.",
+    "execution_rating": "skipped",
+    "coach_adjustment": {
+      "day": "next available",
+      "change": "Prioritize the 16 km long run before moving forward with other key sessions",
+      "reason": "Skipping a long run disrupts marathon preparation; this workout is critical for aerobic base and fueling practice and should be completed within the next 2\u20133 days"
+    },
+    "logged_at": "2026-07-14T10:23:28.334055Z"
+  },
+  "2026-07-13": {
+    "completed": true,
+    "actual_stats": {
+      "distance_km": 10.0,
+      "duration_min": 62.6,
+      "avg_hr": 169.0,
+      "avg_pace": "6:15",
+      "calories": null,
+      "elevation_m": 106.0,
+      "activity_name": "Evening Run",
+      "activity_type": "Run"
+    },
+    "coach_analysis": "Great flexibility swapping your Saturday VO2 max workout to today\u2014that shows smart training intuition. However, today's effort was significantly easier than the planned workout: your 6:15/km average pace was ~70 sec/km slower than the target 5:05/km repeats, and your 169 bpm average HR suggests you ran comfortably rather than at the high-intensity stimulus needed for VO2 max development. This felt more like an aerobic base run than the neuromuscular power session you intended.",
+    "execution_rating": "too-easy",
+    "day_swap": true,
+    "swapped_from_date": "2026-07-13",
+    "coach_adjustment": {
+      "day": "Saturday",
+      "change": "Execute the 6 \u00d7 800m @ 5:05/km VO2 max session as originally planned",
+      "reason": "The intensity stimulus wasn't achieved today; you still need this high-end workout to develop aerobic capacity and neuromuscular power. Return to the target pace/HR on Saturday."
+    },
+    "logged_at": "2026-07-14T10:23:33.617044Z"
   }
 }

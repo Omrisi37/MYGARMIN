@@ -406,7 +406,25 @@
           "hr_zone": "Zone 2",
           "description": "Long run at steady easy pace (6:05/km). Fueling is critical at this distance. Drink water every 2 km; consume carbs every 30\u201340 min (sports drink, gels, or real food). This builds marathon-specific aerobic endurance and tests your fueling strategy.",
           "key_focus": "Aerobic endurance; race-specific fueling",
-          "notes": "Peak long run of the block\u2014monitor for overtraining signs (persistent elevated HR, heaviness in legs)."
+          "notes": "Peak long run of the block\u2014monitor for overtraining signs (persistent elevated HR, heaviness in legs).",
+          "completed": true,
+          "actual_stats": {
+            "distance_km": 2.32,
+            "duration_min": 33.4,
+            "avg_hr": 95.8,
+            "avg_pace": "14:23",
+            "calories": null,
+            "elevation_m": 20.0,
+            "activity_name": "Evening Walk",
+            "activity_type": "Walk"
+          },
+          "coach_analysis": "You completed an easy 33-minute walk instead of the planned 16 km long run\u2014this is a significant deviation from your aerobic endurance goal. While walking is valuable recovery cross-training, it doesn't build the marathon-specific fitness or test the fueling strategy that the long run demands. Consider rescheduling the 16 km run soon to stay on track with your program.",
+          "execution_rating": "skipped",
+          "coach_adjustment": {
+            "day": "next available",
+            "change": "Prioritize the 16 km long run before moving forward with other key sessions",
+            "reason": "Skipping a long run disrupts marathon preparation; this workout is critical for aerobic base and fueling practice and should be completed within the next 2\u20133 days"
+          }
         },
         {
           "day": "Monday",
@@ -419,7 +437,28 @@
           "hr_zone": "\u2014",
           "description": "Full recovery day. Serious sleep and nutrition focus.",
           "key_focus": "Recover after peak week",
-          "notes": ""
+          "notes": "",
+          "completed": true,
+          "swapped": true,
+          "execution_rating": "too-easy",
+          "actual_stats": {
+            "distance_km": 10.0,
+            "duration_min": 62.6,
+            "avg_hr": 169.0,
+            "avg_pace": "6:15",
+            "calories": null,
+            "elevation_m": 106.0,
+            "activity_name": "Evening Run",
+            "activity_type": "Run"
+          },
+          "coach_analysis": "Great flexibility swapping your Saturday VO2 max workout to today\u2014that shows smart training intuition. However, today's effort was significantly easier than the planned workout: your 6:15/km average pace was ~70 sec/km slower than the target 5:05/km repeats, and your 169 bpm average HR suggests you ran comfortably rather than at the high-intensity stimulus needed for VO2 max development. This felt more like an aerobic base run than the neuromuscular power session you intended.",
+          "day_swap": true,
+          "swapped_from_date": "2026-07-13",
+          "coach_adjustment": {
+            "day": "Saturday",
+            "change": "Execute the 6 \u00d7 800m @ 5:05/km VO2 max session as originally planned",
+            "reason": "The intensity stimulus wasn't achieved today; you still need this high-end workout to develop aerobic capacity and neuromuscular power. Return to the target pace/HR on Saturday."
+          }
         },
         {
           "day": "Tuesday",
@@ -489,15 +528,17 @@
         {
           "day": "Saturday",
           "date": "2026-07-18",
-          "workout_type": "Tempo Run",
-          "title": "Easy Tempo: 2 \u00d7 2 km @ 5:30/km with 2 min recovery",
-          "distance_km": 6.5,
-          "duration_min": 40,
-          "intensity": "Moderate",
-          "hr_zone": "Zone 3",
-          "description": "Warm up 1 km easy at 6:05/km. Run 2 \u00d7 2 km repeats at a comfortable tempo (5:30/km\u2014slightly slower than threshold, focusing on form over speed) with 2 min recovery jog (6:30/km) between. Cool down 0.5 km easy. This is a maintenance effort, not a push\u2014retain fitness without stressing the system.",
-          "key_focus": "Fitness maintenance; form focus",
-          "notes": "Recovery-week quality session\u2014moderate intensity only. Focus on smooth running."
+          "workout_type": "VO2 Max Intervals",
+          "title": "VO2 Max: 6 \u00d7 800m @ 5:05/km with recovery",
+          "distance_km": 7.2,
+          "duration_min": 45,
+          "intensity": "High",
+          "hr_zone": "Zone 5",
+          "description": "Warm up 1 km easy at 6:05/km. Run 6 \u00d7 800m repeats at 5:05/km (VO2 max intensity) with 90 sec recovery jog (6:30/km) between repeats. Cool down 0.5 km easy. This high-end aerobic workout develops aerobic capacity and neuromuscular power.",
+          "key_focus": "Aerobic capacity; neuromuscular power development",
+          "notes": "Coach-adjusted from planned tempo run. Intensity stimulus not achieved in previous session\u2014this VO2 max workout is necessary to meet training objectives. Return to target pace and heart rate zone.",
+          "coach_adjusted": true,
+          "adjustment_note": "Execute the 6 \u00d7 800m @ 5:05/km VO2 max session as originally planned"
         },
         {
           "day": "Sunday",
@@ -767,15 +808,16 @@
     }
   ],
   "strava_summary": {
-    "runs": 5,
-    "distance_km": 33.0,
-    "duration_hours": 3.4
+    "runs": 6,
+    "distance_km": 43.0,
+    "duration_hours": 4.5
   },
   "strava_averages": {
-    "distance_per_run_km": 6.6,
-    "avg_hr": 161,
+    "distance_per_run_km": 7.2,
+    "avg_hr": 162,
     "latest_vo2_max": null
   },
   "generated_at": "2026-07-13T10:16:50.435693Z",
-  "status": "pending_approval"
+  "status": "pending_approval",
+  "synced_at": "2026-07-14T10:23:36.332956Z"
 }
