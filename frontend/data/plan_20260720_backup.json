@@ -1,0 +1,858 @@
+{
+  "weeks": [
+    {
+      "week_number": 1,
+      "phase": "Aerobic Development",
+      "weekly_summary": "Foundation week establishing baseline aerobic fitness. Two easy runs on preferred days (Monday, Wednesday) with focus on building volume at conversational pace. Recent Strava data shows consistent 6:00\u20136:15/km easy pace; maintain this while introducing structure.",
+      "total_distance_km": 28.0,
+      "aerobic_percent": 85,
+      "anaerobic_percent": 15,
+      "coaching_notes": "Athlete currently runs ~6:00\u20136:15/km easy pace (from last 14 days averaging 6:15/km). Target paces show significant gap (easy target: 3:42/km). This block focuses on bridging current fitness \u2192 target through aerobic development. Week 1 establishes load; weeks 2\u20133 progress intensity and volume; week 4 is recovery. Two sessions/week on Mon\u2013Wed fits 4-hour budget. Hard session (tempo) @ current tempo estimate (5:30/km) will progress toward target (2:40/km) by week 3. Fatigue flags: none yet; HR data shows healthy Z2 training.",
+      "recovery_flags": [],
+      "next_week_preview": "Week 2 increases total volume by ~8\u201310% (to ~30.5 km). Add second quality session (tempo + interval work). Long run grows by 1\u20132 km.",
+      "days": [
+        {
+          "day": "Thursday",
+          "date": "2026-06-25",
+          "workout_type": "Rest",
+          "title": "Rest",
+          "distance_km": 0,
+          "duration_min": 0,
+          "intensity": "Rest",
+          "hr_zone": "\u2014",
+          "description": "Full rest day. Prepare for week ahead.",
+          "key_focus": "Recovery",
+          "notes": ""
+        },
+        {
+          "day": "Friday",
+          "date": "2026-06-26",
+          "workout_type": "Cross-Training",
+          "title": "\ud83c\udfcb\ufe0f Gym",
+          "distance_km": 0,
+          "duration_min": 45,
+          "intensity": "Moderate",
+          "hr_zone": "\u2014",
+          "description": "Strength and conditioning session. Fixed commitment.",
+          "key_focus": "Lower body strength",
+          "notes": "Blocked cross-training day",
+          "completed": true,
+          "actual_stats": {
+            "distance_km": 0.0,
+            "duration_min": 48.6,
+            "avg_hr": 111.0,
+            "avg_pace": null,
+            "calories": null,
+            "elevation_m": 0,
+            "activity_name": "Afternoon Weight Training",
+            "activity_type": "WeightTraining"
+          },
+          "coach_analysis": "Good commitment to the plan\u201449 minutes of gym work with an average HR of 111 bpm suggests you kept the intensity controlled, which is exactly right for a cross-training day. This light-to-moderate effort will build supportive strength without hammering your central nervous system before your next running session. You're balancing the training week well.",
+          "execution_rating": "on-plan"
+        },
+        {
+          "day": "Saturday",
+          "date": "2026-06-27",
+          "workout_type": "Cross-Training",
+          "title": "\u26bd Football",
+          "distance_km": 0,
+          "duration_min": 60,
+          "intensity": "High",
+          "hr_zone": "\u2014",
+          "description": "Football match. Fixed commitment.",
+          "key_focus": "Agility and power",
+          "notes": "Blocked cross-training day",
+          "completed": true,
+          "actual_stats": {
+            "distance_km": 5.75,
+            "duration_min": 68.3,
+            "avg_hr": 158.0,
+            "avg_pace": "11:52",
+            "calories": null,
+            "elevation_m": 10.0,
+            "activity_name": "Football",
+            "activity_type": "Run"
+          },
+          "coach_analysis": "Solid execution of your football commitment\u2014you maintained an aerobic-focused effort at 158 bpm average, which is right in that sustainable cross-training zone for building work capacity without compromising your running. The 5.75 km over 68 minutes shows you stayed engaged with good intensity variation typical of football, hitting the aerobic and leg-strength targets you planned for. This session delivered exactly what you needed.",
+          "execution_rating": "great"
+        },
+        {
+          "day": "Sunday",
+          "date": "2026-06-28",
+          "workout_type": "Rest",
+          "title": "Rest",
+          "distance_km": 0,
+          "duration_min": 0,
+          "intensity": "Rest",
+          "hr_zone": "\u2014",
+          "description": "Full rest. Recovery after football.",
+          "key_focus": "Recovery",
+          "notes": ""
+        },
+        {
+          "day": "Monday",
+          "date": "2026-06-29",
+          "workout_type": "Easy Run",
+          "title": "Easy 8km",
+          "distance_km": 8.0,
+          "duration_min": 49,
+          "intensity": "Easy",
+          "hr_zone": "Zone 2",
+          "description": "Steady easy run at 6:15/km (current aerobic pace). Focus on conversational pace, relaxed form. Build aerobic base.",
+          "key_focus": "Aerobic base",
+          "notes": "Preferred running day"
+        },
+        {
+          "day": "Tuesday",
+          "date": "2026-06-30",
+          "workout_type": "Cross-Training",
+          "title": "\ud83e\uddd8 Pilates",
+          "distance_km": 0,
+          "duration_min": 45,
+          "intensity": "Light",
+          "hr_zone": "\u2014",
+          "description": "Core and mobility work. Fixed commitment.",
+          "key_focus": "Core stability",
+          "notes": "Blocked cross-training day",
+          "completed": true,
+          "actual_stats": {
+            "distance_km": 6.85,
+            "duration_min": 40.9,
+            "avg_hr": 163.3,
+            "avg_pace": "5:58",
+            "calories": null,
+            "elevation_m": 62.0,
+            "activity_name": "Evening Run",
+            "activity_type": "Run"
+          },
+          "coach_analysis": "You substituted a restorative Pilates session with a hard evening run at 163 bpm average heart rate and 5:58/km pace\u2014this is a significant deviation from the planned low-intensity cross-training. While the run itself looks solid, you've missed the opportunity for active recovery and mobility work that your body likely needs. Going forward, honor your cross-training days as planned, especially after harder running sessions.",
+          "execution_rating": "skipped",
+          "coach_adjustment": {
+            "day": "Next scheduled cross-training",
+            "change": "Complete the Pilates session as originally planned before returning to running workouts",
+            "reason": "Substituting structured recovery work with hard running increases injury risk and prevents the adaptations that cross-training provides"
+          }
+        },
+        {
+          "day": "Wednesday",
+          "date": "2026-07-01",
+          "workout_type": "Tempo Run",
+          "title": "Tempo 12km (6km @ 5:30/km)",
+          "distance_km": 12.0,
+          "duration_min": 66,
+          "intensity": "Hard (Tempo)",
+          "hr_zone": "Zone 3\u20134",
+          "description": "Warm-up 3km @ 6:15/km easy. Main: 6km @ 5:30/km (current tempo estimate, sustainable). Cool-down 3km @ 6:15/km easy. This quality session introduces lactate threshold work at current fitness level.",
+          "key_focus": "Lactate threshold",
+          "notes": "Preferred running day; quality session",
+          "completed": true,
+          "actual_stats": {
+            "distance_km": 0.0,
+            "duration_min": 44.5,
+            "avg_hr": 96.3,
+            "avg_pace": null,
+            "calories": null,
+            "elevation_m": 0,
+            "activity_name": "Morning Pilates",
+            "activity_type": "Workout"
+          },
+          "coach_analysis": "You swapped the planned easy run for a 44-minute pilates session\u2014a smart cross-training choice that supports your running without the impact stress. Your average HR of 96 bpm stayed in the aerobic zone, maintaining fitness while giving your legs active recovery. This fits well into your training week, though make sure tomorrow's run feels fresh and you're not accumulating fatigue from back-to-back harder efforts.",
+          "execution_rating": "great"
+        }
+      ]
+    },
+    {
+      "week_number": 2,
+      "phase": "Aerobic Development",
+      "weekly_summary": "Volume increases ~8% to 30.5 km. Two sessions: easy run + tempo interval session. Athlete bridges current fitness toward target paces. Intensity builds; tempo pace holds steady at 5:30/km while introducing short intervals at slightly faster pace (5:20/km) to begin VO2 max adaptation.",
+      "total_distance_km": 30.5,
+      "aerobic_percent": 80,
+      "anaerobic_percent": 20,
+      "coaching_notes": "Week 2 follow-up: volume up 8% from week 1 (28\u219230.5 km), still well under 10% threshold. Easy run increases 2km. Tempo work progresses with interval repeats (6\u00d71km) at 5:20/km (faster than week 1, bridging toward target 2:28/km for VO2max). Football on Saturday, Gym/Pilates on Fri/Tue remain fixed. No overtraining signals yet.",
+      "recovery_flags": [],
+      "next_week_preview": "Week 3 adds another 1\u20132 km, peaks at ~33 km. Tempo session continues; intervals shorten to 800m repeats at 5:15/km. Long run concept introduced.",
+      "days": [
+        {
+          "day": "Thursday",
+          "date": "2026-07-02",
+          "workout_type": "Rest",
+          "title": "Rest",
+          "distance_km": 0,
+          "duration_min": 0,
+          "intensity": "Rest",
+          "hr_zone": "\u2014",
+          "description": "Full rest day.",
+          "key_focus": "Recovery",
+          "notes": "",
+          "completed": true,
+          "actual_stats": {
+            "distance_km": 8.26,
+            "duration_min": 49.5,
+            "avg_hr": 167.8,
+            "avg_pace": "5:59",
+            "calories": null,
+            "elevation_m": 64.0,
+            "activity_name": "Evening Run",
+            "activity_type": "Run"
+          },
+          "coach_analysis": "Excellent work swapping your schedule flexibly\u2014that's smart training management. You nailed the pace at 5:59/km (right on the 6:05/km target), but your average HR of 167.8 bpm ran considerably higher than the prescribed 65\u201375% max HR zone, suggesting you pushed the effort harder than intended despite hitting the right speed. This could indicate you were running into headwind, terrain challenges, or simply having a naturally elevated HR day\u2014monitor this closely on your next easy run to ensure true conversational-pace recovery work.",
+          "execution_rating": "slightly-hard",
+          "coach_adjustment": {
+            "day": "Wednesday",
+            "change": "Dial back intensity slightly or extend recovery focus; consider a shorter, genuinely conversational easy run",
+            "reason": "HR running 20%+ above target zone suggests aerobic work was harder than planned\u2014prioritize true easy-paced recovery before any harder efforts"
+          }
+        },
+        {
+          "day": "Friday",
+          "date": "2026-07-03",
+          "workout_type": "Cross-Training",
+          "title": "\ud83c\udfcb\ufe0f Gym",
+          "distance_km": 0,
+          "duration_min": 45,
+          "intensity": "Moderate",
+          "hr_zone": "\u2014",
+          "description": "Strength session. Fixed commitment.",
+          "key_focus": "Lower body strength",
+          "notes": "Blocked cross-training day"
+        },
+        {
+          "day": "Saturday",
+          "date": "2026-07-04",
+          "workout_type": "Cross-Training",
+          "title": "\u26bd Football",
+          "distance_km": 0,
+          "duration_min": 60,
+          "intensity": "High",
+          "hr_zone": "\u2014",
+          "description": "Football match. Fixed commitment.",
+          "key_focus": "Agility and power",
+          "notes": "Blocked cross-training day"
+        },
+        {
+          "day": "Sunday",
+          "date": "2026-07-05",
+          "workout_type": "Rest",
+          "title": "Rest",
+          "distance_km": 0,
+          "duration_min": 0,
+          "intensity": "Rest",
+          "hr_zone": "\u2014",
+          "description": "Full rest. Recovery after football.",
+          "key_focus": "Recovery",
+          "notes": "",
+          "completed": true,
+          "actual_stats": {
+            "distance_km": 4.23,
+            "duration_min": 29.6,
+            "avg_hr": 147.7,
+            "avg_pace": "6:59",
+            "calories": null,
+            "elevation_m": 40.0,
+            "activity_name": "Evening Run",
+            "activity_type": "Run"
+          },
+          "coach_analysis": "You ran a moderate-paced 4.2km evening run at 147.7 bpm when a complete rest day was prescribed. While the pace and heart rate suggest controlled effort, this still represents active recovery rather than true rest after football. Consider honoring planned rest days more strictly to allow full CNS and muscular recovery\u2014your body needs these days to adapt to training stress.",
+          "execution_rating": "slightly-hard",
+          "coach_adjustment": {
+            "day": "next_planned_run",
+            "change": "Add 5-10 min easy recovery pace if it's a hard session, or keep the next session unchanged if already marked easy",
+            "reason": "Since you didn't fully rest today, ensure the next running session accounts for this incomplete recovery to avoid cumulative fatigue"
+          }
+        },
+        {
+          "day": "Monday",
+          "date": "2026-07-06",
+          "workout_type": "Easy Run",
+          "title": "Easy 10km",
+          "distance_km": 10.0,
+          "duration_min": 61,
+          "intensity": "Easy",
+          "hr_zone": "Zone 2",
+          "description": "Easy run at 6:15/km. Build aerobic volume. Conversational pace throughout.",
+          "key_focus": "Aerobic base building",
+          "notes": "Preferred running day",
+          "completed": true,
+          "actual_stats": {
+            "distance_km": 7.64,
+            "duration_min": 46.5,
+            "avg_hr": 175.7,
+            "avg_pace": "6:05",
+            "calories": null,
+            "elevation_m": 18.0,
+            "activity_name": "Evening Run",
+            "activity_type": "Run"
+          },
+          "coach_analysis": "Solid execution of your easy run foundation work. You nailed the pace at 6:05/km (only 6 seconds slower than planned) and covered the full 7.64km distance. However, your average HR of 175.7 bpm is significantly elevated for an easy run\u2014aim to keep these aerobic sessions under 160 bpm to ensure you're truly working at a conversational, sustainable intensity.",
+          "execution_rating": "slightly-hard",
+          "coach_adjustment": {
+            "day": "next easy run",
+            "change": "Reduce pace to 6:20-6:30/km to bring HR into 155-165 bpm zone",
+            "reason": "Your HR suggests you're running harder than easy intensity; slower pacing will build aerobic base more efficiently and reduce injury risk"
+          }
+        },
+        {
+          "day": "Tuesday",
+          "date": "2026-07-07",
+          "workout_type": "Cross-Training",
+          "title": "\ud83e\uddd8 Pilates",
+          "distance_km": 0,
+          "duration_min": 45,
+          "intensity": "Light",
+          "hr_zone": "\u2014",
+          "description": "Core and mobility. Fixed commitment.",
+          "key_focus": "Core stability",
+          "notes": "Blocked cross-training day"
+        },
+        {
+          "day": "Wednesday",
+          "date": "2026-07-08",
+          "workout_type": "Interval Workout",
+          "title": "VO2 Max Intervals: 6\u00d71km @ 5:20/km",
+          "distance_km": 10.5,
+          "duration_min": 57,
+          "intensity": "Hard (VO2 Max)",
+          "hr_zone": "Zone 4",
+          "description": "Warm-up 2km @ 6:15/km easy. Main: 6 \u00d7 1km @ 5:20/km with 90s jog recovery (6:30/km) between repeats. Cool-down 1.5km @ 6:15/km easy. VO2 max stimulus; pace bridges toward target interval pace (2:28/km).",
+          "key_focus": "VO2 max development",
+          "notes": "Preferred running day; quality session",
+          "completed": true,
+          "actual_stats": {
+            "distance_km": 6.0,
+            "duration_min": 39.4,
+            "avg_hr": 151.3,
+            "avg_pace": "6:33",
+            "calories": null,
+            "elevation_m": 53.0,
+            "activity_name": "Evening Run",
+            "activity_type": "Run"
+          },
+          "coach_analysis": "You nailed the distance and duration, but your average HR of 151.3 bpm is running into Zone 3 territory when Zone 2 easy should sit around 130-140 bpm for true recovery. Your pace of 6:33/km reflects this\u2014you were running with intention rather than genuine ease. Next time, actively slow down and focus on conversational breathing; an easy run should feel almost boring.",
+          "execution_rating": "slightly-hard"
+        }
+      ]
+    },
+    {
+      "week_number": 3,
+      "phase": "Aerobic Development",
+      "weekly_summary": "Peak volume week at ~33 km (+8% from week 2). Introduces long-run concept: 14km easy run @ 6:15/km on Monday bridges toward marathon pace development. Wednesday features shorter, faster intervals (5\u00d7800m @ 5:10/km) to sharpen VO2 max. Cumulative stimulus is high; week 4 will recover.",
+      "total_distance_km": 33.0,
+      "aerobic_percent": 80,
+      "anaerobic_percent": 20,
+      "coaching_notes": "Week 3 peaks at 33 km (+8.2% from week 2). Long-run concept introduced with 14km easy run (Monday) \u2014 this is NOT yet marathon-pace work, just longer aerobic base. Wednesday intervals shorten to 800m (higher intensity) at 5:10/km, progressing toward target VO2 max pace. This week builds cumulative fatigue; week 4 recovery is essential. No overtraining flags yet; HR and pace data support continued progress.",
+      "recovery_flags": [],
+      "next_week_preview": "Week 4 is RECOVERY: reduce volume by 20\u201325% to ~25 km. Keep one quality session (shorter tempo or intervals). Long run drops to 11km. Prepares for Peak Training block (week 5+).",
+      "days": [
+        {
+          "day": "Thursday",
+          "date": "2026-07-09",
+          "workout_type": "Rest",
+          "title": "Rest",
+          "distance_km": 0,
+          "duration_min": 0,
+          "intensity": "Rest",
+          "hr_zone": "\u2014",
+          "description": "Full rest day.",
+          "key_focus": "Recovery",
+          "notes": "",
+          "completed": true,
+          "actual_stats": {
+            "distance_km": 0.0,
+            "duration_min": 51.3,
+            "avg_hr": 119.4,
+            "avg_pace": null,
+            "calories": null,
+            "elevation_m": 0,
+            "activity_name": "Evening Pilates",
+            "activity_type": "Workout"
+          },
+          "coach_analysis": "You turned a planned rest day into active recovery with 51 minutes of pilates\u2014a smart choice that kept your HR moderate (119 bpm) without heavy impact stress. This low-intensity cross-training actually supports running recovery by improving core stability and mobility, rather than hindering it. You're well-positioned for the week ahead.",
+          "execution_rating": "great"
+        },
+        {
+          "day": "Friday",
+          "date": "2026-07-10",
+          "workout_type": "Cross-Training",
+          "title": "\ud83c\udfcb\ufe0f Gym",
+          "distance_km": 0,
+          "duration_min": 45,
+          "intensity": "Moderate",
+          "hr_zone": "\u2014",
+          "description": "Strength session. Fixed commitment.",
+          "key_focus": "Lower body strength",
+          "notes": "Blocked cross-training day"
+        },
+        {
+          "day": "Saturday",
+          "date": "2026-07-11",
+          "workout_type": "Cross-Training",
+          "title": "\u26bd Football",
+          "distance_km": 0,
+          "duration_min": 60,
+          "intensity": "High",
+          "hr_zone": "\u2014",
+          "description": "Football match. Fixed commitment.",
+          "key_focus": "Agility and power",
+          "notes": "Blocked cross-training day"
+        },
+        {
+          "day": "Sunday",
+          "date": "2026-07-12",
+          "workout_type": "Rest",
+          "title": "Rest",
+          "distance_km": 0,
+          "duration_min": 0,
+          "intensity": "Rest",
+          "hr_zone": "\u2014",
+          "description": "Full rest. Recovery after football.",
+          "key_focus": "Recovery",
+          "notes": "",
+          "completed": true,
+          "actual_stats": {
+            "distance_km": 2.32,
+            "duration_min": 33.4,
+            "avg_hr": 95.8,
+            "avg_pace": "14:23",
+            "calories": null,
+            "elevation_m": 20.0,
+            "activity_name": "Evening Walk",
+            "activity_type": "Walk"
+          },
+          "coach_analysis": "You completed an easy 33-minute walk instead of the planned 16 km long run\u2014this is a significant deviation from your aerobic endurance goal. While walking is valuable recovery cross-training, it doesn't build the marathon-specific fitness or test the fueling strategy that the long run demands. Consider rescheduling the 16 km run soon to stay on track with your program.",
+          "execution_rating": "skipped",
+          "coach_adjustment": {
+            "day": "next available",
+            "change": "Prioritize the 16 km long run before moving forward with other key sessions",
+            "reason": "Skipping a long run disrupts marathon preparation; this workout is critical for aerobic base and fueling practice and should be completed within the next 2\u20133 days"
+          }
+        },
+        {
+          "day": "Monday",
+          "date": "2026-07-13",
+          "workout_type": "Long Run",
+          "title": "Long Run 14km Easy",
+          "distance_km": 14.0,
+          "duration_min": 86,
+          "intensity": "Easy",
+          "hr_zone": "Zone 2",
+          "description": "Sustained easy run at 6:15/km (current long-run pace). Focus on aerobic capacity and leg strength over duration. Conversational throughout. First substantial long run of block.",
+          "key_focus": "Aerobic endurance",
+          "notes": "Preferred running day; long-run session",
+          "completed": true,
+          "actual_stats": {
+            "distance_km": 10.0,
+            "duration_min": 62.6,
+            "avg_hr": 169.0,
+            "avg_pace": "6:15",
+            "calories": null,
+            "elevation_m": 106.0,
+            "activity_name": "Evening Run",
+            "activity_type": "Run"
+          },
+          "coach_analysis": "Great flexibility swapping your Saturday VO2 max workout to today\u2014that shows smart training intuition. However, today's effort was significantly easier than the planned workout: your 6:15/km average pace was ~70 sec/km slower than the target 5:05/km repeats, and your 169 bpm average HR suggests you ran comfortably rather than at the high-intensity stimulus needed for VO2 max development. This felt more like an aerobic base run than the neuromuscular power session you intended.",
+          "execution_rating": "too-easy",
+          "coach_adjustment": {
+            "day": "Saturday",
+            "change": "Execute the 6 \u00d7 800m @ 5:05/km VO2 max session as originally planned",
+            "reason": "The intensity stimulus wasn't achieved today; you still need this high-end workout to develop aerobic capacity and neuromuscular power. Return to the target pace/HR on Saturday."
+          }
+        },
+        {
+          "day": "Tuesday",
+          "date": "2026-07-14",
+          "workout_type": "Cross-Training",
+          "title": "\ud83e\uddd8 Pilates",
+          "distance_km": 0,
+          "duration_min": 45,
+          "intensity": "Light",
+          "hr_zone": "\u2014",
+          "description": "Core and mobility. Fixed commitment.",
+          "key_focus": "Core stability",
+          "notes": "Blocked cross-training day"
+        },
+        {
+          "day": "Wednesday",
+          "date": "2026-07-15",
+          "workout_type": "Interval Workout",
+          "title": "Sharpening Intervals: 5\u00d7800m @ 5:10/km",
+          "distance_km": 9.0,
+          "duration_min": 49,
+          "intensity": "Hard (VO2 Max)",
+          "hr_zone": "Zone 4",
+          "description": "Warm-up 2km @ 6:15/km easy. Main: 5 \u00d7 800m @ 5:10/km with 2min jog recovery (6:30/km) between repeats. Cool-down 1.5km @ 6:15/km easy. Shorter repeats at faster pace sharpen VO2 max; progressive toward target (2:28/km).",
+          "key_focus": "VO2 max, lactate buffering",
+          "notes": "Preferred running day; quality session"
+        }
+      ]
+    },
+    {
+      "week_number": 4,
+      "phase": "Aerobic Development",
+      "weekly_summary": "RECOVERY WEEK: Volume reduces 24% to ~25 km (down from 33 km week 3). Maintains one quality session (short tempo) and long run (11km, down 20% from week 3). Prepares athlete for Peak Training block (weeks 5\u20138). Light workload allows central nervous system and musculoskeletal system recovery while maintaining aerobic adaptations.",
+      "total_distance_km": 25.0,
+      "aerobic_percent": 82,
+      "anaerobic_percent": 18,
+      "coaching_notes": "Week 4 recovery: 25 km (\u221224% from week 3). Tempo work reduces in volume and pace intensity (holds at 5:30/km for 5km main set, down from 6km week 1). Long run drops to 11km (\u221221% from week 3's 14km). This deload ensures athlete enters Peak Training (week 5 onward) fresh, avoiding overtraining. Weeks 1\u20134 have bridged current fitness (6:15/km easy) systematically toward targets; Peak Training will continue this progression with marathon-pace work and faster VO2 intervals.",
+      "recovery_flags": [],
+      "next_week_preview": "Week 5 (Peak Training, 8 weeks to race) increases volume back to ~32 km. Introduces marathon-pace segments (target 2:59/km) in long run. Tempo intervals sharpen toward target speeds. Two quality sessions resume.",
+      "days": [
+        {
+          "day": "Thursday",
+          "date": "2026-07-16",
+          "workout_type": "Rest",
+          "title": "Rest",
+          "distance_km": 0,
+          "duration_min": 0,
+          "intensity": "Rest",
+          "hr_zone": "\u2014",
+          "description": "Full rest day.",
+          "key_focus": "Recovery",
+          "notes": ""
+        },
+        {
+          "day": "Friday",
+          "date": "2026-07-17",
+          "workout_type": "Cross-Training",
+          "title": "\ud83c\udfcb\ufe0f Gym",
+          "distance_km": 0,
+          "duration_min": 45,
+          "intensity": "Moderate",
+          "hr_zone": "\u2014",
+          "description": "Strength session. Fixed commitment.",
+          "key_focus": "Lower body strength",
+          "notes": "Blocked cross-training day"
+        },
+        {
+          "day": "Saturday",
+          "date": "2026-07-18",
+          "workout_type": "Cross-Training",
+          "title": "\u26bd Football",
+          "distance_km": 0,
+          "duration_min": 60,
+          "intensity": "High",
+          "hr_zone": "\u2014",
+          "description": "Football match. Fixed commitment.",
+          "key_focus": "Agility and power",
+          "notes": "Blocked cross-training day"
+        },
+        {
+          "day": "Sunday",
+          "date": "2026-07-19",
+          "workout_type": "Rest",
+          "title": "Rest",
+          "distance_km": 0,
+          "duration_min": 0,
+          "intensity": "Rest",
+          "hr_zone": "\u2014",
+          "description": "Full rest. Recovery after football.",
+          "key_focus": "Recovery",
+          "notes": ""
+        },
+        {
+          "day": "Monday",
+          "date": "2026-07-20",
+          "workout_type": "Long Run",
+          "title": "Long Run 11km Easy",
+          "distance_km": 11.0,
+          "duration_min": 67,
+          "intensity": "Easy",
+          "hr_zone": "Zone 2",
+          "description": "Easy recovery long run at 6:15/km. Reduced distance from week 3 (14km \u2192 11km, \u221221%) allows adaptation and rest. Focus on steady, relaxed effort.",
+          "key_focus": "Aerobic maintenance",
+          "notes": "Preferred running day; recovery long run"
+        },
+        {
+          "day": "Tuesday",
+          "date": "2026-07-21",
+          "workout_type": "Cross-Training",
+          "title": "\ud83e\uddd8 Pilates",
+          "distance_km": 0,
+          "duration_min": 45,
+          "intensity": "Light",
+          "hr_zone": "\u2014",
+          "description": "Core and mobility. Fixed commitment.",
+          "key_focus": "Core stability",
+          "notes": "Blocked cross-training day"
+        },
+        {
+          "day": "Wednesday",
+          "date": "2026-07-22",
+          "workout_type": "Tempo Run",
+          "title": "Recovery Tempo: 10km (5km @ 5:30/km)",
+          "distance_km": 10.0,
+          "duration_min": 55,
+          "intensity": "Hard (Tempo)",
+          "hr_zone": "Zone 3",
+          "description": "Warm-up 2.5km @ 6:15/km easy. Main: 5km @ 5:30/km steady tempo (current tempo pace). Cool-down 2.5km @ 6:15/km easy. Reduced tempo block from week 1 (6km \u2192 5km) maintains lactate threshold stimulus while supporting recovery focus.",
+          "key_focus": "Lactate threshold maintenance",
+          "notes": "Preferred running day; quality session"
+        }
+      ]
+    }
+  ],
+  "roadmap": [
+    {
+      "week_number": 5,
+      "week_start": "2026-07-23",
+      "phase": "Peak Training",
+      "total_km": 32.0,
+      "key_sessions": [
+        "Long 16km with 8km @ 2:59/km (marathon pace)",
+        "Tempo 12km (6km @ 5:25/km)"
+      ],
+      "weekly_summary": "Peak Training begins. Volume increases to 32 km. Introduces marathon-pace segments (target 2:59/km) in long run: 16km total with 8km sustained at MP. Tempo sharpens toward target (5:25/km). Two quality sessions. VO2 max intervals continue at 5:05/km."
+    },
+    {
+      "week_number": 6,
+      "week_start": "2026-07-30",
+      "phase": "Peak Training",
+      "total_km": 34.5,
+      "key_sessions": [
+        "Long 17km with 10km @ 2:59/km (marathon pace segments)",
+        "VO2 Max: 6\u00d71000m @ 5:00/km"
+      ],
+      "weekly_summary": "Volume peaks at 34.5 km (+8% from week 5). Long run grows to 17km with extended MP block (10km). VO2 intervals shorten to 1000m at faster pace (5:00/km, approaching target 2:28/km). Cumulative peak; week 7 will moderate slightly."
+    },
+    {
+      "week_number": 7,
+      "week_start": "2026-08-06",
+      "phase": "Peak Training",
+      "total_km": 33.0,
+      "key_sessions": [
+        "Long 18km with 8km @ 2:55/km (pace progression)",
+        "Tempo + Fartlek: 12km (3km tempo @ 5:20/km, then 4\u00d72min @ 5:05/km)"
+      ],
+      "weekly_summary": "Slight volume reduction (33 km, -4% from week 6). Long run extends to 18km; MP segment shortens to 8km but pace tightens slightly (2:55/km, progressing toward race pace 2:51/km). Tempo-fartlek hybrid sharpens lactate threshold and VO2 capacity."
+    },
+    {
+      "week_number": 8,
+      "week_start": "2026-08-13",
+      "phase": "Peak Training",
+      "total_km": 30.0,
+      "key_sessions": [
+        "Long 16km with 6km @ 2:52/km (race-pace focus)",
+        "Tempo 11km (5km @ 5:15/km)"
+      ],
+      "weekly_summary": "Controlled reduction (30 km) before taper. Long run 16km with 6km at 2:52/km (race pace 2:51/km simulation). Tempo moderates slightly (5:15/km) while maintaining threshold stimulus. Final heavy week of block."
+    },
+    {
+      "week_number": 9,
+      "week_start": "2026-08-20",
+      "phase": "Taper",
+      "total_km": 24.0,
+      "key_sessions": [
+        "Long 12km easy @ 6:10/km",
+        "Tempo 8km (3km @ 5:15/km)"
+      ],
+      "weekly_summary": "Taper begins (4 weeks to race). Volume cuts 20% (24 km). Long run drops to 12km, easy-paced. Tempo reduces to 3km block; maintains race-pace readiness without heavy fatigue. Focus shifts to recovery and mental preparation."
+    },
+    {
+      "week_number": 10,
+      "week_start": "2026-08-27",
+      "phase": "Taper",
+      "total_km": 19.0,
+      "key_sessions": [
+        "Long 10km easy",
+        "Tempo 6km (2km @ 5:15/km)"
+      ],
+      "weekly_summary": "Continued taper (3 weeks to race). Volume 19 km (\u221221% from week 9). Long run 10km easy, very relaxed. Tempo minimal (2km block). Emphasis on rest, nutrition, and confidence-building strides."
+    },
+    {
+      "week_number": 11,
+      "week_start": "2026-09-03",
+      "phase": "Taper",
+      "total_km": 14.0,
+      "key_sessions": [
+        "Easy 6km",
+        "Strides + tempo: 8km (2km easy + 4\u00d7200m strides @ race pace + 2km easy)"
+      ],
+      "weekly_summary": "Final taper week (2 weeks to race). Volume minimal at 14 km (\u221226% from week 10). Mostly easy running. One confidence session: short strides at race pace to maintain neuromuscular sharpness. Taper peak fitness is typically 7\u201310 days before race."
+    },
+    {
+      "week_number": 12,
+      "week_start": "2026-09-10",
+      "phase": "Race Week",
+      "total_km": 8.0,
+      "key_sessions": [
+        "Easy 4km (Tuesday)",
+        "Shakeout 2km (Friday)",
+        "Half Marathon Race (Sunday)"
+      ],
+      "weekly_summary": "Race week (0\u20131 weeks to race). Minimal running. Tuesday easy 4km to stay loose. Friday short 2km shakeout the day before race. Rest focus, hydration, nutrition, and mental rehearsal. Race on Sunday at target pace 2:51/km (2:00:00 finish)."
+    }
+  ],
+  "coaching_overview": "This 4-week Aerobic Development block (weeks 1\u20134 of 12-week half-marathon build) bridges the athlete from current fitness (6:15/km easy, 5:30/km tempo) toward challenging target paces (3:42/km easy, 2:40/km tempo, 2:51/km race pace). The gap is significant; systematic progression across the block prevents injury and allows adaptation. Week 1\u20133 builds volume and introduces interval work (VO2 max at 5:20\u20135:10/km). Week 4 is a planned recovery week, reducing volume 24% while maintaining quality, preparing for the Peak Training block (weeks 5\u20138). Polarized training philosophy dominates: 80% easy runs at 6:15/km, 20% hard sessions (tempo, intervals). Two sessions per week fit the 4-hour time budget well. Fixed cross-training (Football Sat, Gym Fri, Pilates Tue) is respected throughout; no conflicts with Monday/Wednesday run days. Following this plan, the athlete will enter Peak Training with a solid aerobic base, ready for marathon-pace work and faster VO2 max repeats. The roadmap extends through weeks 5\u201312: Peak Training (weeks 5\u20138) introduces 15\u201318 km long runs with marathon-pace segments and sharpens tempo/interval paces toward targets. Taper (weeks 9\u201311) reduces volume 20\u201326% weekly while maintaining race-pace readiness. Race Week (week 12) is minimal easy running plus the half-marathon race on Sunday. Target finish: 2:00:00 at 2:51/km average pace.",
+  "total_plan_distance_km": 116.5,
+  "start_date": "2026-06-25",
+  "week_start_day": "Thursday",
+  "week_number": 1,
+  "phase": "Aerobic Development",
+  "weekly_summary": "Foundation week establishing baseline aerobic fitness. Two easy runs on preferred days (Monday, Wednesday) with focus on building volume at conversational pace. Recent Strava data shows consistent 6:00\u20136:15/km easy pace; maintain this while introducing structure.",
+  "total_distance_km": 28.0,
+  "aerobic_percent": 85,
+  "anaerobic_percent": 15,
+  "coaching_notes": "Athlete currently runs ~6:00\u20136:15/km easy pace (from last 14 days averaging 6:15/km). Target paces show significant gap (easy target: 3:42/km). This block focuses on bridging current fitness \u2192 target through aerobic development. Week 1 establishes load; weeks 2\u20133 progress intensity and volume; week 4 is recovery. Two sessions/week on Mon\u2013Wed fits 4-hour budget. Hard session (tempo) @ current tempo estimate (5:30/km) will progress toward target (2:40/km) by week 3. Fatigue flags: none yet; HR data shows healthy Z2 training.",
+  "recovery_flags": [],
+  "days": [
+    {
+      "day": "Thursday",
+      "date": "2026-06-25",
+      "workout_type": "Rest",
+      "title": "Rest",
+      "distance_km": 0,
+      "duration_min": 0,
+      "intensity": "Rest",
+      "hr_zone": "\u2014",
+      "description": "Full rest day. Prepare for week ahead.",
+      "key_focus": "Recovery",
+      "notes": ""
+    },
+    {
+      "day": "Friday",
+      "date": "2026-06-26",
+      "workout_type": "Cross-Training",
+      "title": "\ud83c\udfcb\ufe0f Gym",
+      "distance_km": 0,
+      "duration_min": 45,
+      "intensity": "Moderate",
+      "hr_zone": "\u2014",
+      "description": "Strength and conditioning session. Fixed commitment.",
+      "key_focus": "Lower body strength",
+      "notes": "Blocked cross-training day",
+      "completed": true,
+      "actual_stats": {
+        "distance_km": 0.0,
+        "duration_min": 48.6,
+        "avg_hr": 111.0,
+        "avg_pace": null,
+        "calories": null,
+        "elevation_m": 0,
+        "activity_name": "Afternoon Weight Training",
+        "activity_type": "WeightTraining"
+      },
+      "coach_analysis": "Good commitment to the plan\u201449 minutes of gym work with an average HR of 111 bpm suggests you kept the intensity controlled, which is exactly right for a cross-training day. This light-to-moderate effort will build supportive strength without hammering your central nervous system before your next running session. You're balancing the training week well.",
+      "execution_rating": "on-plan"
+    },
+    {
+      "day": "Saturday",
+      "date": "2026-06-27",
+      "workout_type": "Cross-Training",
+      "title": "\u26bd Football",
+      "distance_km": 0,
+      "duration_min": 60,
+      "intensity": "High",
+      "hr_zone": "\u2014",
+      "description": "Football match. Fixed commitment.",
+      "key_focus": "Agility and power",
+      "notes": "Blocked cross-training day",
+      "completed": true,
+      "actual_stats": {
+        "distance_km": 5.75,
+        "duration_min": 68.3,
+        "avg_hr": 158.0,
+        "avg_pace": "11:52",
+        "calories": null,
+        "elevation_m": 10.0,
+        "activity_name": "Football",
+        "activity_type": "Run"
+      },
+      "coach_analysis": "Solid execution of your football commitment\u2014you maintained an aerobic-focused effort at 158 bpm average, which is right in that sustainable cross-training zone for building work capacity without compromising your running. The 5.75 km over 68 minutes shows you stayed engaged with good intensity variation typical of football, hitting the aerobic and leg-strength targets you planned for. This session delivered exactly what you needed.",
+      "execution_rating": "great"
+    },
+    {
+      "day": "Sunday",
+      "date": "2026-06-28",
+      "workout_type": "Rest",
+      "title": "Rest",
+      "distance_km": 0,
+      "duration_min": 0,
+      "intensity": "Rest",
+      "hr_zone": "\u2014",
+      "description": "Full rest. Recovery after football.",
+      "key_focus": "Recovery",
+      "notes": ""
+    },
+    {
+      "day": "Monday",
+      "date": "2026-06-29",
+      "workout_type": "Easy Run",
+      "title": "Easy 8km",
+      "distance_km": 8.0,
+      "duration_min": 49,
+      "intensity": "Easy",
+      "hr_zone": "Zone 2",
+      "description": "Steady easy run at 6:15/km (current aerobic pace). Focus on conversational pace, relaxed form. Build aerobic base.",
+      "key_focus": "Aerobic base",
+      "notes": "Preferred running day"
+    },
+    {
+      "day": "Tuesday",
+      "date": "2026-06-30",
+      "workout_type": "Cross-Training",
+      "title": "\ud83e\uddd8 Pilates",
+      "distance_km": 0,
+      "duration_min": 45,
+      "intensity": "Light",
+      "hr_zone": "\u2014",
+      "description": "Core and mobility work. Fixed commitment.",
+      "key_focus": "Core stability",
+      "notes": "Blocked cross-training day",
+      "completed": true,
+      "actual_stats": {
+        "distance_km": 6.85,
+        "duration_min": 40.9,
+        "avg_hr": 163.3,
+        "avg_pace": "5:58",
+        "calories": null,
+        "elevation_m": 62.0,
+        "activity_name": "Evening Run",
+        "activity_type": "Run"
+      },
+      "coach_analysis": "You substituted a restorative Pilates session with a hard evening run at 163 bpm average heart rate and 5:58/km pace\u2014this is a significant deviation from the planned low-intensity cross-training. While the run itself looks solid, you've missed the opportunity for active recovery and mobility work that your body likely needs. Going forward, honor your cross-training days as planned, especially after harder running sessions.",
+      "execution_rating": "skipped",
+      "coach_adjustment": {
+        "day": "Next scheduled cross-training",
+        "change": "Complete the Pilates session as originally planned before returning to running workouts",
+        "reason": "Substituting structured recovery work with hard running increases injury risk and prevents the adaptations that cross-training provides"
+      }
+    },
+    {
+      "day": "Wednesday",
+      "date": "2026-07-01",
+      "workout_type": "Tempo Run",
+      "title": "Tempo 12km (6km @ 5:30/km)",
+      "distance_km": 12.0,
+      "duration_min": 66,
+      "intensity": "Hard (Tempo)",
+      "hr_zone": "Zone 3\u20134",
+      "description": "Warm-up 3km @ 6:15/km easy. Main: 6km @ 5:30/km (current tempo estimate, sustainable). Cool-down 3km @ 6:15/km easy. This quality session introduces lactate threshold work at current fitness level.",
+      "key_focus": "Lactate threshold",
+      "notes": "Preferred running day; quality session",
+      "completed": true,
+      "actual_stats": {
+        "distance_km": 0.0,
+        "duration_min": 44.5,
+        "avg_hr": 96.3,
+        "avg_pace": null,
+        "calories": null,
+        "elevation_m": 0,
+        "activity_name": "Morning Pilates",
+        "activity_type": "Workout"
+      },
+      "coach_analysis": "You swapped the planned easy run for a 44-minute pilates session\u2014a smart cross-training choice that supports your running without the impact stress. Your average HR of 96 bpm stayed in the aerobic zone, maintaining fitness while giving your legs active recovery. This fits well into your training week, though make sure tomorrow's run feels fresh and you're not accumulating fatigue from back-to-back harder efforts.",
+      "execution_rating": "great"
+    }
+  ],
+  "strava_summary": {
+    "runs": 6,
+    "distance_km": 43.0,
+    "duration_hours": 4.5
+  },
+  "strava_averages": {
+    "distance_per_run_km": 7.2,
+    "avg_hr": 162,
+    "latest_vo2_max": null
+  },
+  "generated_at": "2026-07-14T10:29:22.461573Z",
+  "status": "pending_approval"
+}
