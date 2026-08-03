@@ -1,5 +1,13 @@
 [
   {
+    "filename": "plan_20260803_backup.json",
+    "date": "20260803",
+    "label": "Aug 03, 2026",
+    "plan_start": "2026-07-23",
+    "plan_end": "2026-08-19",
+    "generated_at": "2026-07-27"
+  },
+  {
     "filename": "plan_20260727_backup.json",
     "date": "20260727",
     "label": "Jul 27, 2026",
